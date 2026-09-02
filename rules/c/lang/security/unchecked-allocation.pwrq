@@ -1,0 +1,46 @@
+# rules: c-unchecked-allocation
+# languages: c
+# fixture: c/CWE-476.c
+# from: CWE-476 (NULL Pointer Dereference), CWE-252 (Unchecked Return Value), CERT C ERR33-C, EXP34-C
+#
+# malloc's failure return is a value, not an exception, so a program that
+# never reads it carries on with a pointer to nothing. What follows is a
+# dereference of address zero: a crash where page zero is unmapped, and a
+# write into attacker-chosen memory where it is not.
+#
+# The rule is a pair of readings of the same three statements. One says "this
+# was allocated and then used"; the other says "this was allocated and then
+# tested". Both are focused onto the pointer they name, which makes their
+# spans the same span - the name in the declaration - and lets the second
+# subtract from the first. Without the focus the two would end at different
+# statements and nothing would cancel.
+#
+# It is deliberately local: the allocation and the use have to be in one
+# statement list for a pattern to see both, so an allocation handed to a
+# helper that checks it is not reported. Reporting less is the right direction
+# here, because the reader's question about a NULL check is "is there one",
+# and a rule that answers it wrongly is worse than one that answers it rarely.
+
+["$T *$P = $ALLOC($$$_);\n$$$_\n$F($P, $$$_);",
+ "$T *$P = $ALLOC($$$_);\n$$$_\n$P[$_] = $_;",
+ "$T *$P = $ALLOC($$$_);\n$$$_\n$P->$_ = $_;",
+ "$T *$P = $ALLOC($$$_);\n$$$_\n*$P = $_;"] as $uses
+| ["$T *$P = $ALLOC($$$_);\n$$$_\nif (!$P) $$$_",
+   "$T *$P = $ALLOC($$$_);\n$$$_\nif ($P) $$$_",
+   "$T *$P = $ALLOC($$$_);\n$$$_\nif ($P == NULL) $$$_",
+   "$T *$P = $ALLOC($$$_);\n$$$_\nif ($P != NULL) $$$_",
+   "$T *$P = $ALLOC($$$_);\n$$$_\nif (NULL == $P) $$$_",
+   "$T *$P = $ALLOC($$$_);\n$$$_\nif (NULL != $P) $$$_",
+   "$T *$P = $ALLOC($$$_);\n$$$_\nif ($P == 0) $$$_",
+   "$T *$P = $ALLOC($$$_);\n$$$_\nassert($P);"] as $checks
+| ["malloc", "calloc", "realloc", "reallocarray", "aligned_alloc",
+   "valloc", "memalign", "posix_memalign", "strdup", "strndup",
+   "wcsdup", "asprintf", "vasprintf"] as $allocators
+| scan_ast("*.[ch]"; $uses + $checks) as $all
+| ( ($all | of($uses) | focus("P"))
+    | not_at($all | of($checks) | focus("P")) )
+| where_capture("ALLOC"; "^(?:" + ($allocators | join("|")) + ")$")
+| finding("c-unchecked-allocation";
+    "$P is used without asking whether $ALLOC returned it; on failure it is "
+    + "NULL and the next line dereferences address zero")
+| report

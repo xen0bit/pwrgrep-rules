@@ -1,0 +1,37 @@
+# rules: c-os-command-injection
+# languages: c
+# fixture: c/CWE-78.c
+# from: CWE-78 (OS Command Injection), CERT C ENV33-C
+#
+# Two spellings of one mistake, and they need two different tests.
+#
+# system, popen and wordexp hand their argument to /bin/sh, so the finding is
+# that the argument is not a literal: a shell reading text a program built at
+# runtime is a shell reading whatever ended up in it, and `;` and `$( )` are
+# ordinary characters until then.
+#
+# The exec family runs a program directly, so passing it a variable is not
+# wrong on its own - execv("/bin/ls", argv) is how a program runs a program.
+# It is wrong in the two places here: when the program named is a shell and
+# the command it is given is not a literal, which is system() written out
+# longhand, and when the program named is itself not a literal, which is the
+# attacker choosing the binary rather than its arguments.
+#
+# A literal argument is the safe spelling in every case, which is what makes
+# this checkable without following the value: the guard is on how the
+# argument is written, not on where it came from.
+
+["system($CMD)", "popen($CMD, $_)", "wordexp($CMD, $$$_)"] as $shell
+| ["execl($SH, $_, \"-c\", $CMD, $$$_)",
+   "execlp($SH, $_, \"-c\", $CMD, $$$_)",
+   "execle($SH, $_, \"-c\", $CMD, $$$_)"] as $dashc
+| ["execv($PROG, $$$_)", "execvp($PROG, $$$_)", "execvpe($PROG, $$$_)",
+   "execve($PROG, $$$_)", "execl($PROG, $$$_)", "execlp($PROG, $$$_)"] as $prog
+| scan_ast("*.[ch]"; $shell + $dashc + $prog) as $all
+| ( ($all | of($shell) | where_capture_not("CMD"; "^L?\""))
+    + ($all | of($dashc) | where_capture_not("CMD"; "^L?\""))
+    + ($all | of($prog) | where_capture_not("PROG"; "^L?\"")) )
+| finding("c-os-command-injection";
+    "this runs a command that is not written here; a shell reading text a "
+    + "program assembled is a shell reading whatever ended up in it")
+| report

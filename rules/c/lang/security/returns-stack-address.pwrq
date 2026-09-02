@@ -1,0 +1,40 @@
+# rules: c-returns-stack-address
+# languages: c
+# fixture: c/CWE-562.c
+# from: CWE-562 (Return of Stack Variable Address), CERT C DCL30-C
+#
+# A local lives in the frame, and returning its address hands the caller a
+# pointer to storage that stopped existing at the return. It usually works.
+# The bytes are still there until the next call writes over them, so the
+# function passes its test, ships, and produces wrong answers later under a
+# call pattern nobody wrote down.
+#
+# The pattern has to see the declaration to know the storage is automatic, and
+# the reader wants to be shown the return, so the two are matched together and
+# the finding is moved onto the returned expression with focus. $B and $R are
+# written apart and required to be the same name; a pattern that wrote one
+# hole twice would have said the same thing, but not left a second span to
+# point the finding at.
+#
+# `static` is the one storage class where all of this is fine, and it is not
+# part of the type, so no guard on $T can see it. It is subtracted instead:
+# the same patterns with `static` written in front of them, matched in the
+# same walk and taken away afterwards.
+
+["$T $B[$$$_];\n$$$_\nreturn $R;",
+ "$T $B[$$$_];\n$$$_\nreturn &$R[$$$_];",
+ "$T $B[$_][$_];\n$$$_\nreturn $R;",
+ "$T $B[$_][$_];\n$$$_\nreturn &$R[$$$_][$$$_];",
+ "$T $V;\n$$$_\nreturn &$R;",
+ "$T $V = $_;\n$$$_\nreturn &$R;",
+ "$T $V = {$$$_};\n$$$_\nreturn &$R;"] as $automatic
+| ($automatic | map("static " + .)) as $sticks
+| scan_ast("*.[ch]"; $automatic + $sticks) as $all
+| ( ($all | of($automatic) | where_same("B"; "R") | focus("R"))
+    + ($all | of($automatic) | where_same("V"; "R") | focus("R")) )
+| not_at( ($all | of($sticks) | where_same("B"; "R") | focus("R"))
+          + ($all | of($sticks) | where_same("V"; "R") | focus("R")) )
+| finding("c-returns-stack-address";
+    "$R is a local, so this returns the address of storage that stops "
+    + "existing at the return; the caller reads whatever the next call wrote")
+| report

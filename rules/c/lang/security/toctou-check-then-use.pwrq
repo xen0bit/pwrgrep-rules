@@ -1,0 +1,48 @@
+# rules: c-toctou-check-then-use
+# languages: c
+# fixture: c/CWE-367.c
+# from: CWE-367 (Time-of-check Time-of-use Race Condition), CERT C FIO01-C, POS35-C
+#
+# access() and stat() answer a question about a name. open() asks a different
+# question about the same name, a moment later, and in between the name can be
+# made to point somewhere else - a symlink dropped into a directory the
+# attacker can write. The program then checks one file and opens another, and
+# in a setuid program the second one is whatever the attacker chose.
+#
+# It cannot be fixed by checking harder, because there is no amount of
+# checking that closes the gap: the answer is to stop naming the file twice.
+# Open it once, with O_CREAT|O_EXCL|O_NOFOLLOW, and ask the descriptor - not
+# the path - with fstat, fchmod and fchown, which is what the second function
+# in the fixture does.
+#
+# The check and the use are almost never siblings. The check is a condition
+# and the use is in the branch it guards, so the rule reads an `if` as two
+# pieces of text: what was tested and what was done about it. That is a
+# coarser instrument than a pattern - it says the branch mentions open, not
+# that it opens the path that was checked - and it is the right coarseness
+# here, because a check on one path guarding an open of another is not a
+# safer program.
+#
+# The f-prefixed calls are the fix rather than the bug, and the word
+# boundaries keep them out: there is no boundary in the middle of `fstat`, so
+# the regex that finds `stat(` does not find it.
+
+["if ($COND) { $$$BODY }"] as $branches
+| ["access($P, $$$_);\n$$$_\n$_ $_ = open($Q, $$$_);",
+   "access($P, $$$_);\n$$$_\n$_ $_ = fopen($Q, $$$_);",
+   "stat($P, $$$_);\n$$$_\n$_ $_ = open($Q, $$$_);",
+   "stat($P, $$$_);\n$$$_\n$_ $_ = fopen($Q, $$$_);",
+   "lstat($P, $$$_);\n$$$_\n$_ $_ = open($Q, $$$_);",
+   "lstat($P, $$$_);\n$$$_\n$_ $_ = fopen($Q, $$$_);"] as $sequences
+| "\\b(?:access|eaccess|euidaccess|faccessat|stat|stat64|lstat|lstat64)\\s*\\(" as $check
+| "\\b(?:open|open64|openat|fopen|freopen|creat|unlink|remove|rename|"
+  + "chmod|chown|lchown|truncate|mkdir|rmdir|symlink|link)\\s*\\(" as $use
+| scan_ast("*.[ch]"; $branches + $sequences) as $all
+| ( ($all | of($branches)
+     | where_capture("COND"; $check) | where_capture("BODY"; $use))
+    + ($all | of($sequences) | where_same("P"; "Q") | focus("Q")) )
+| finding("c-toctou-check-then-use";
+    "this asks about a path and then opens it, and the name can be made to "
+    + "refer to something else in between; open it once and ask the "
+    + "descriptor with fstat instead")
+| report

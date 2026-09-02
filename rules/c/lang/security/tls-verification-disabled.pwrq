@@ -1,0 +1,35 @@
+# rules: c-tls-verification-disabled
+# languages: c
+# fixture: c/CWE-295.c
+# from: CWE-295 (Improper Certificate Validation), CWE-297, CERT C
+#
+# Turning verification off is not a weakening of TLS, it is the removal of the
+# only half that says who the other end is. The traffic is still encrypted -
+# to whoever answered - so nothing about the connection looks wrong from the
+# inside, and a machine in the middle needs no certificate at all rather than
+# a forged one.
+#
+# It is written this way because it is what makes a self-signed development
+# certificate work, and it survives into production because nothing fails
+# when it does.
+#
+# Three libraries, one shape: a constant naming the level of checking, passed
+# where the checking is configured. curl's is a number rather than a name,
+# which is why 0, 0L and FALSE all have to be spelled out - and why 2, not 1,
+# is the correct value for VERIFYHOST.
+
+["SSL_CTX_set_verify($_, SSL_VERIFY_NONE, $$$_)",
+ "SSL_set_verify($_, SSL_VERIFY_NONE, $$$_)",
+ "mbedtls_ssl_conf_authmode($_, MBEDTLS_SSL_VERIFY_NONE)",
+ "gnutls_certificate_set_verify_flags($_, 0)"] as $off
+| ["curl_easy_setopt($_, CURLOPT_SSL_VERIFYPEER, $V)",
+   "curl_easy_setopt($_, CURLOPT_SSL_VERIFYHOST, $V)",
+   "curl_easy_setopt($_, CURLOPT_PROXY_SSL_VERIFYPEER, $V)",
+   "curl_easy_setopt($_, CURLOPT_PROXY_SSL_VERIFYHOST, $V)"] as $curl
+| scan_ast("*.[ch]"; $off + $curl) as $all
+| ( ($all | of($off))
+    + ($all | of($curl) | where_capture("V"; "^(?:0[lLuU]*|FALSE|false|NULL)$")) )
+| finding("c-tls-verification-disabled";
+    "this switches off certificate verification, which leaves the connection "
+    + "encrypted to whoever answered it and authenticated to nobody")
+| report

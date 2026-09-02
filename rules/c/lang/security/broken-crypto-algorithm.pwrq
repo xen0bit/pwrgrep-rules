@@ -1,0 +1,47 @@
+# rules: c-broken-crypto-algorithm
+# languages: c
+# fixture: c/CWE-327.c
+# from: CWE-327 (Broken or Risky Cryptographic Algorithm), CWE-328 (Weak Hash), CERT C MSC30-C
+#
+# In C the algorithm is not a string looked up in a registry, it is the
+# function you called or the EVP_* handle you passed, so this is one of the
+# few security questions a syntactic rule answers completely: the name is the
+# choice.
+#
+# MD4, MD5 and SHA-1 have practical collisions, so a signature or a
+# fingerprint over one of them can be forged. DES has a 56-bit key and RC4 has
+# biased output, so neither is a cipher any more. ECB is not an algorithm at
+# all but a mode, and it is here because it leaks equality: two identical
+# plaintext blocks encrypt to identical ciphertext blocks, which is enough to
+# read a picture through it.
+#
+# The digest handles are matched as a hole with a regex on it rather than as
+# twenty patterns, because they are all one argument in one position and the
+# family is still growing.
+
+["MD2($$$_)", "MD4($$$_)", "MD5($$$_)", "SHA($$$_)", "SHA1($$$_)",
+ "RIPEMD160($$$_)",
+ "MD2_Init($$$_)", "MD4_Init($$$_)", "MD5_Init($$$_)", "SHA_Init($$$_)",
+ "SHA1_Init($$$_)",
+ "RC4($$$_)", "RC4_set_key($$$_)", "RC2_set_key($$$_)",
+ "DES_set_key($$$_)", "DES_set_key_unchecked($$$_)",
+ "DES_ecb_encrypt($$$_)", "DES_ncbc_encrypt($$$_)",
+ "BF_set_key($$$_)"] as $named
+| ["EVP_DigestInit($_, $ALGO)", "EVP_DigestInit_ex($_, $ALGO, $$$_)",
+   "EVP_DigestInit_ex2($_, $ALGO, $$$_)",
+   "EVP_EncryptInit($_, $ALGO, $$$_)", "EVP_EncryptInit_ex($_, $ALGO, $$$_)",
+   "EVP_DecryptInit($_, $ALGO, $$$_)", "EVP_DecryptInit_ex($_, $ALGO, $$$_)",
+   "EVP_CipherInit($_, $ALGO, $$$_)", "EVP_CipherInit_ex($_, $ALGO, $$$_)",
+   "HMAC($ALGO, $$$_)"] as $evp
+| scan_ast("*.[ch]"; $named + $evp) as $all
+| ( ($all | of($named))
+    + ($all | of($evp)
+       | where_capture("ALGO";
+           "^EVP_(?:md2|md4|md5|sha|sha1|ripemd160|rc4|rc4_40)\\("
+           + "|^EVP_(?:des|desx|rc2|bf|cast5|idea|seed)_"
+           + "|_ecb\\(")) )
+| finding("c-broken-crypto-algorithm";
+    "this names an algorithm that no longer does what it is being used for; "
+    + "MD4, MD5 and SHA-1 collide, DES and RC4 are broken ciphers, and ECB "
+    + "leaks which plaintext blocks are equal")
+| report

@@ -1,6 +1,6 @@
 # pwrgrep-rules
 
-The structural rule corpus for [pwrq](https://github.com/xen0bit/pwrq): 1815
+The structural rule corpus for [pwrq](https://github.com/xen0bit/pwrq): 1841
 rules in 25 languages, each one a pwrq query and nothing else.
 
 A rule is a file and a header. There is no schema, no plugin API and nothing to
@@ -39,7 +39,7 @@ tools/validate.py    the check CI runs
 
 Rules are grouped by what they search rather than by who wrote them. The path
 is also how a rule is selected, so naming a directory narrows a run:
-`invoke_pwrgrep("."; "go/lang/security")` over a Go repository, not all 1815.
+`invoke_pwrgrep("."; "go/lang/security")` over a Go repository, not all 1841.
 
 ## Using it
 
@@ -118,6 +118,15 @@ the operator cannot read — and that is worse than a rule that was never
 shipped, because it takes the whole run down with it.
 
 `--no-smoke` skips it, which is most of the ninety seconds.
+
+C is the one language where every rule carries a fixture, and its fixtures
+are named for the weakness rather than for the rule:
+`testdata/fixtures/c/CWE-134.c` demonstrates every way a C program writes an
+uncontrolled format string, and `c-uncontrolled-format-string` is the rule that
+has to find all of them and nothing else. Going from a number in an advisory to
+the code that causes it is one `ls`. Where a rule reports something with no
+obvious number of its own, the nearest one is used and the rule's header says
+which.
 
 Fixtures are annotated the way the corpus this was translated from annotates
 them: `ruleid: <id>` on the line before a line that must produce a finding,

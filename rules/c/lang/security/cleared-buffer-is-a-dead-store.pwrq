@@ -1,0 +1,48 @@
+# rules: c-cleared-buffer-is-a-dead-store
+# languages: c
+# fixture: c/CWE-14.c
+# from: CWE-14 (Compiler Removal of Code to Clear Buffers), CWE-226, CERT C MSC06-C
+#
+# A store to memory that is never read again is a dead store, and a compiler
+# is allowed to delete it. Between a memset and the free of the same pointer
+# there is no read, by construction - that is what free means - so the memset
+# is exactly the store the optimiser is looking for. At -O0 the key is wiped
+# and at -O2 it is not, and the source is the same source.
+#
+# This is not a hypothetical. It is why explicit_bzero, memset_s and
+# SecureZeroMemory exist: each is a clear the compiler is forbidden to remove,
+# and they exist because the ordinary one was being removed.
+#
+# The rule reads the clear and what comes after it, and the two have to be
+# adjacent - no "anything else here" between them. That is what makes it
+# decidable rather than a guess: with a gap allowed, a memset with a write to
+# the buffer after it and a free three lines later reads as the same shape and
+# is a live store. Adjacency finds fewer of these and does not have to be
+# argued with.
+#
+# The second half is the same store on the stack. A local array cleared
+# immediately before the return is dead for the same reason - the frame is
+# gone - and the declaration has to be in the pattern to know the buffer is
+# local and not the caller's.
+#
+# It says nothing about whether the buffer held a secret, because nothing in
+# the call does. A reader who knows it did not can dismiss it in a second, and
+# a reader who is not shown it cannot.
+
+["memset($B, $$$_);\nfree($R);",
+ "bzero($B, $$$_);\nfree($R);",
+ "memset($B, $$$_);\nOPENSSL_free($R);",
+ "bzero($B, $$$_);\nOPENSSL_free($R);",
+ "memset($B, $$$_);\ng_free($R);"] as $heap
+| ["$T $B[$$$_];\n$$$_\nmemset($R, $$$_);\nreturn;",
+   "$T $B[$$$_];\n$$$_\nmemset($R, $$$_);\nreturn $_;",
+   "$T $B[$$$_];\n$$$_\nbzero($R, $$$_);\nreturn;",
+   "$T $B[$$$_];\n$$$_\nbzero($R, $$$_);\nreturn $_;"] as $stack
+| scan_ast("*.[ch]"; $heap + $stack) as $all
+| ( ($all | of($heap) | where_same("B"; "R") | focus("B"))
+    + ($all | of($stack) | where_same("B"; "R") | focus("R")) )
+| finding("c-cleared-buffer-is-a-dead-store";
+    "nothing reads this buffer after the clear, so the clear is a dead store "
+    + "and the optimiser may delete it; explicit_bzero and memset_s are the "
+    + "clears a compiler is not allowed to remove")
+| report

@@ -1,0 +1,33 @@
+# rules: c-buffer-size-off-by-one
+# languages: c
+# fixture: c/CWE-131.c
+# from: CWE-131 (Incorrect Calculation of Buffer Size), CWE-193 (Off-by-one Error), CERT C STR31-C
+#
+# strlen returns the number of characters before the NUL, and a C string is
+# the characters and the NUL. A buffer sized by strlen alone is therefore
+# exactly one byte short of the string it was sized for, and strcpy - which
+# writes the terminator whether or not there is room for it - puts that byte
+# on the heap metadata.
+#
+# One byte is enough. It is the whole of the off-by-one heap overflow, and it
+# reads as correct on the page: the number in the allocation is the length of
+# the thing being stored.
+#
+# The test is on how the size was written rather than on what it evaluates to:
+# a size that is a bare strlen call, or a sum of nothing but strlen calls, has
+# no room for the terminator in it. `strlen(a) + 1` and `strlen(a) + 16` have,
+# and both are left alone - the rule is not counting bytes, it is noticing
+# that nobody added any.
+
+["malloc($SIZE)", "alloca($SIZE)", "valloc($SIZE)",
+ "OPENSSL_malloc($SIZE)", "g_malloc($SIZE)",
+ "realloc($_, $SIZE)", "reallocarray($_, $SIZE, $_)",
+ "calloc($SIZE, $_)"] as $sized
+| scan_ast("*.[ch]"; $sized)
+| where_capture("SIZE";
+    "^(?:strlen|wcslen|strnlen)\\s*\\([^()]*\\)"
+    + "(?:\\s*\\+\\s*(?:strlen|wcslen|strnlen)\\s*\\([^()]*\\))*$")
+| finding("c-buffer-size-off-by-one";
+    "$SIZE counts the characters and not the NUL that ends them, so this "
+    + "buffer is one byte short of the string it is being sized for")
+| report

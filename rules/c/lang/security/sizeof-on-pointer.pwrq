@@ -1,0 +1,48 @@
+# rules: c-sizeof-on-pointer
+# languages: c
+# fixture: c/CWE-467.c
+# from: CWE-467 (Use of sizeof on a Pointer Type), CERT C ARR01-C
+#
+# sizeof asks a type how big it is, and the type of a pointer is a pointer.
+# `sizeof(buf)` where buf is `char *` is 8, whatever buf points at and however
+# much of it was allocated - so the memset clears eight bytes of a 4KB secret,
+# the read stops after eight, and `malloc(sizeof(p))` allocates room for the
+# pointer instead of for the thing.
+#
+# What makes it hard to see is that the same line is right one function up. An
+# array is an array where it was declared, and sizeof gives its real size
+# there; passed to a function it decays to a pointer, and the identical
+# expression now gives the word size. Nothing warns, because nothing is
+# ill-formed.
+#
+# So the rule needs to know the name is a pointer, and it gets that from a
+# declaration it can see: a parameter written with a star, or a local written
+# with one. Four readings of that - single parameter, one parameter among
+# several, initialised local, uninitialised local - are crossed with the
+# places a length is expected, which is the list of calls. Writing the cross
+# product out by hand would be two hundred lines, so it is built with map,
+# and scan_ast walks the tree once however many patterns come out.
+
+["memset($_, $_, sizeof($N));", "bzero($_, sizeof($N));",
+ "explicit_bzero($_, sizeof($N));",
+ "memcpy($_, $_, sizeof($N));", "memmove($_, $_, sizeof($N));",
+ "memcmp($_, $_, sizeof($N));",
+ "strncpy($_, $_, sizeof($N));", "strncat($_, $_, sizeof($N));",
+ "strlcpy($_, $_, sizeof($N));", "strlcat($_, $_, sizeof($N));",
+ "snprintf($_, sizeof($N), $$$_);", "vsnprintf($_, sizeof($N), $$$_);",
+ "fgets($_, sizeof($N), $_);",
+ "read($_, $_, sizeof($N));", "recv($_, $_, sizeof($N), $_);",
+ "fread($_, $_, sizeof($N), $_);",
+ "malloc(sizeof($N));", "calloc($_, sizeof($N));",
+ "$_ = malloc(sizeof($N));", "$_ = calloc($_, sizeof($N));"] as $uses
+| ( ($uses | map("$RT $FN($T *$P) {\n$$$_\n" + . + "\n$$$_\n}"))
+    + ($uses | map("$RT $FN($$$_, $T *$P, $$$_) {\n$$$_\n" + . + "\n$$$_\n}"))
+    + ($uses | map("$T *$P = $_;\n$$$_\n" + .))
+    + ($uses | map("$T *$P;\n$$$_\n" + .)) ) as $pats
+| scan_ast("*.[ch]"; $pats)
+| where_same("P"; "N")
+| focus("N")
+| finding("c-sizeof-on-pointer";
+    "$N is a pointer, so sizeof($N) is the size of a pointer - 8 bytes - and "
+    + "not the size of what it points at")
+| report

@@ -1,0 +1,47 @@
+# rules: c-copy-sized-by-source
+# languages: c
+# fixture: c/CWE-806.c
+# from: CWE-806 (Buffer Access Using Size of Source Buffer), CWE-805, CERT C ARR38-C
+#
+# The length argument of memcpy, strncpy and snprintf exists to describe the
+# destination - it is the answer to "how much room is there". Computed from
+# the source it answers a different question, "how much is there to copy", and
+# the guard is then inverted: it lets the copy through in exactly the case
+# where it does not fit.
+#
+# This one is easy to write and hard to see, because both readings are
+# plausible sentences about the same two buffers, and `strncpy(dst, src,
+# strlen(src))` looks like it is being careful. It is strcpy with extra
+# characters, and it does not terminate either.
+#
+# The test is a name comparison rather than an analysis: the second argument
+# is the source, and the finding is that the source's name is the one inside
+# sizeof or strlen. Where the length names the destination, or names neither -
+# a size the caller passed in - the rule says nothing, because there is
+# nothing in the call to say it from.
+#
+# `sizeof x` and `sizeof(x)` are different syntax, so each length is written
+# twice. The unparenthesised reading also matches the parenthesised spelling
+# and binds the parentheses with the name, which is harmless where the two
+# names are being compared to each other and not harmless where the name is
+# compared to the destination - so snprintf's reading throws away the captures
+# that came with a bracket on the front.
+
+["memcpy($D, $S, sizeof($N));", "memmove($D, $S, sizeof($N));",
+ "strncpy($D, $S, sizeof($N));", "strncat($D, $S, sizeof($N));",
+ "memcpy($D, $S, sizeof $N);", "memmove($D, $S, sizeof $N);",
+ "strncpy($D, $S, sizeof $N);", "strncat($D, $S, sizeof $N);",
+ "memcpy($D, $S, strlen($N));", "memmove($D, $S, strlen($N));",
+ "strncpy($D, $S, strlen($N));", "strncat($D, $S, strlen($N));",
+ "strncpy($D, $S, wcslen($N));"] as $copies
+| ["snprintf($D, sizeof($N), $$$_);", "snprintf($D, sizeof $N, $$$_);",
+   "vsnprintf($D, sizeof($N), $$$_);"] as $prints
+| scan_ast("*.[ch]"; $copies + $prints) as $all
+| ( ($all | of($copies) | where_same("S"; "N") | where_different("D"; "N"))
+    + ($all | of($prints)
+       | where_capture_not("N"; "^\\(")
+       | where_different("D"; "N")) )
+| finding("c-copy-sized-by-source";
+    "the length here is the size of the source and the destination is $D; "
+    + "a bound taken from what is being copied is not a bound at all")
+| report

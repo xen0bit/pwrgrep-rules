@@ -1,0 +1,31 @@
+# rules: c-realloc-loses-the-block
+# languages: c
+# fixture: c/CWE-401.c
+# from: CWE-401 (Missing Release of Memory after Effective Lifetime), CERT C MEM31-C
+#
+# `p = realloc(p, n)` is the spelling everybody writes and it is a leak. On
+# failure realloc returns NULL and leaves the old block allocated and
+# untouched; the assignment then puts NULL into the only pointer to it. The
+# block is still there, nothing refers to it, and the program has no way back
+# to it - so under memory pressure, which is a condition an attacker can
+# arrange, this leaks the whole buffer on every attempt.
+#
+# The fix is a second variable: realloc into it, check it, and only then
+# overwrite the original.
+#
+# A general leak rule is not attempted here. "Allocated and never freed" needs
+# to follow a pointer out of the function that allocated it, and a rule that
+# guesses at that reports the careful code as loudly as the careless. This
+# one asks a question a single statement answers: is the destination of the
+# assignment also the argument of the call.
+
+["$P = realloc($Q, $$$_);", "$P = realloc($Q, $$$_)",
+ "$P = reallocarray($Q, $$$_);", "$P = reallocarray($Q, $$$_)",
+ "$P = g_realloc($Q, $$$_);", "$P = OPENSSL_realloc($Q, $$$_);"] as $inplace
+| scan_ast("*.[ch]"; $inplace)
+| where_same("P"; "Q")
+| finding("c-realloc-loses-the-block";
+    "realloc leaves the old block allocated when it fails and returns NULL, "
+    + "and this assignment puts that NULL into $P - the only pointer to it; "
+    + "realloc into a second variable and check it before overwriting $P")
+| report

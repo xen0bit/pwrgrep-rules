@@ -1,0 +1,41 @@
+# rules: c-unchecked-privilege-drop
+# languages: c
+# fixture: c/CWE-273.c
+# from: CWE-273 (Improper Check for Dropped Privileges), CWE-252, CERT C POS37-C
+#
+# setuid returns a value because it can fail, and the way it fails is
+# reachable from outside: with RLIMIT_NPROC already at the target user's
+# limit - a process table an attacker filled - the call returns -1 and the
+# process keeps the uid it had. A program that does not look then runs the
+# rest of itself as root, including the parts written on the understanding
+# that it is not, which is how a privilege drop becomes a privilege
+# escalation.
+#
+# "Checked" is not a property of the call, it is a property of where the call
+# was written, so this rule is about position rather than about syntax: a call
+# whose value goes nowhere is a statement, and a call whose value is used sits
+# inside a condition, an initialiser or a return.
+#
+# The subtraction is done on the condition rather than on the `if`, which
+# matters. Focused onto $COND, an `if` covers its test and not its body, so
+# `if (setuid(u) != 0)` cancels and `if (x) { setuid(u); }` - a call that is
+# inside an if and still unchecked - does not.
+
+["setuid", "setgid", "seteuid", "setegid",
+ "setreuid", "setregid", "setresuid", "setresgid",
+ "setgroups", "initgroups", "setfsuid", "setfsgid"] as $drops
+| ($drops | map(. + "($$$_);")) as $bare
+| ($drops | map("$_ = " + . + "($$$_);")
+   + ($drops | map("$_ $_ = " + . + "($$$_);"))
+   + ($drops | map("return " + . + "($$$_);"))) as $used
+| ["if ($COND) $$$_", "while ($COND) $$$_", "for ($_; $COND; $_) $$$_",
+   "do $$$_ while ($COND);"] as $tests
+| scan_ast("*.[ch]"; $bare + $used + $tests) as $all
+| ( $all | of($bare)
+    | outside($all | of($tests) | focus("COND"))
+    | outside($all | of($used)) )
+| finding("c-unchecked-privilege-drop";
+    "this drops privileges and does not look at whether it worked; setuid "
+    + "returns -1 when the target user is at RLIMIT_NPROC, and everything "
+    + "after this line then runs with the privileges it believes it gave up")
+| report

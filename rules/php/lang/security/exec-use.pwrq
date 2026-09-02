@@ -20,10 +20,11 @@
 # the first half found, and the rule reported nothing at all. See GUIDE.md.
 
 ["$F($CMD)", "$F($CMD, $$$_)"] as $calls
+| "^(?:'(?:[^'\\\\]|\\\\.)*'|\"[^\"$\\\\{]*\")$" as $written_here
 | scan_ast("*.php"; $calls)
 | where_capture("F";
     "^(?:exec|passthru|proc_open|popen|shell_exec|system|pcntl_exec)$")
-| where_capture_not("CMD"; "^(?:'[^'$\\\\]*'|\"[^\"$\\\\]*\")$")
+| where_capture_not("CMD"; $written_here)
 | where_capture_not("CMD"; "escapeshellarg|escapeshellcmd")
 | finding("exec-use";
     "this runs a command the file does not contain; a shell reading a string "

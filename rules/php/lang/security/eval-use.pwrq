@@ -19,11 +19,18 @@
 #
 # What works is a hole in the function position and a guard on what it caught,
 # which is also the shape to write when a rule is about a list of names.
+#
+# "Written in the file" has to be read the way PHP reads it. A single-quoted
+# string interpolates nothing, so `eval('$e = new Exception(...); throw $e;')`
+# is a constant however many dollars it contains - PEAR does exactly that, and
+# a guard that treated any $ as interpolation reported it. A double-quoted
+# string is the opposite: a $ or a { in one is code.
 
 ["$F($CODE)", "$F($CODE, $$$_)"] as $calls
+| "^(?:'(?:[^'\\\\]|\\\\.)*'|\"[^\"$\\\\{]*\")$" as $written_here
 | scan_ast("*.php"; $calls)
 | where_capture("F"; "^(?:eval|create_function)$")
-| where_capture_not("CODE"; "^(?:'[^'$\\\\]*'|\"[^\"$\\\\]*\")$")
+| where_capture_not("CODE"; $written_here)
 | finding("eval-use";
     "this compiles $CODE as PHP and runs it in the current scope; anything "
     + "that reaches it is the program from that line on")

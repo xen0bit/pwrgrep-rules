@@ -1,0 +1,29 @@
+# rules: php-include-from-request
+# languages:
+# fixture: php/CWE-98.php
+# from: CWE-98 (PHP Remote File Inclusion), CWE-73, CWE-94
+#
+# include does not read a file, it runs one. So a path the request chooses is
+# the request choosing which PHP executes, and the file it names does not have
+# to look like PHP: an uploaded avatar with `<?php` in its EXIF comment, a log
+# file the attacker wrote a line into, /proc/self/environ. Appending '.php' to
+# the path narrows this and does not close it, and with allow_url_include on
+# it need not be a local file at all.
+#
+# basename() is the answer that fits in one line - it leaves a filename with
+# no path in it, so the include can only reach the directory it was given.
+#
+# Like the XSS rule this is text rather than syntax, and for the same reason:
+# include and require are language constructs with no argument list, and the
+# pattern matcher has no reading of them - `include $X;` is not code in PHP on
+# its own. So `# languages:` names nothing.
+
+["\\b(?:include|include_once|require|require_once)\\s*\\(?\\s*(?P<PATH>[^;\\n]+)"]
+  as $includes
+| scan_regex("*.php"; $includes)
+| where_capture("PATH"; "\\$_(?:GET|POST|REQUEST|COOKIE|FILES|SERVER)\\b")
+| where_capture_not("PATH"; "basename|realpath|in_array")
+| finding("php-include-from-request";
+    "include runs what it loads, and $PATH lets the request say what that is; "
+    + "basename it, or look the page up in a list this file contains")
+| report

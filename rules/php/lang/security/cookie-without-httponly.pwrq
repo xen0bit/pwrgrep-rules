@@ -1,0 +1,48 @@
+# rules: php-cookie-without-httponly
+# languages: php
+# fixture: php/CWE-1004.php
+# from: CWE-1004 (Sensitive Cookie Without HttpOnly Flag), CWE-614, OWASP A05
+#
+# HttpOnly is the flag that keeps document.cookie from reading the cookie, and
+# it is what stands between a cross-site scripting bug and an account
+# takeover: without it, any script that ends up running on the page - injected
+# through a form, or arriving through a dependency nobody reads - can post the
+# session somewhere else. With it, the same script has to use the session in
+# place, which is a far smaller problem.
+#
+# setcookie has two signatures and both are here. The positional one puts
+# httponly seventh, so anything shorter than seven arguments has not set it -
+# which includes the two-argument call that most code writes. The options
+# array arrived in PHP 7.3 and names the flags, so the test there is whether
+# 'httponly' is among them.
+#
+# Each arity is a pattern of its own because a pattern says how many arguments
+# a call has. That is six patterns to say "fewer than seven", and it is worth
+# it: the alternative is a hole over the argument list, which would not say
+# how many there were.
+#
+# Every argument is a named hole, including the ones nothing is asked of.
+# `setcookie($_, $_)` looks like it says the same thing and does not: a PHP
+# pattern with no named hole in it is not read as PHP at all, and compiles to
+# a search for those characters as text. The two-argument call - which is the
+# one most code writes - went unreported until each $_ was given a name.
+
+["setcookie", "setrawcookie"] as $setters
+| ($setters | map(. + "($N, $V)")
+   + ($setters | map(. + "($N, $V, $E, $P)"))
+   + ($setters | map(. + "($N, $V, $E, $P, $D)"))
+   + ($setters | map(. + "($N, $V, $E, $P, $D, $S)"))) as $short
+| ($setters | map(. + "($N, $V, $OPTS)")) as $maybe_options
+| ($setters | map(. + "($N, $V, $E, $P, $D, $S, $HTTPONLY)")) as $full
+| scan_ast("*.php"; $short + $maybe_options + $full) as $all
+| ( ($all | of($short))
+    + ($all | of($maybe_options)
+       | where_capture_not("OPTS";
+           "(?i)['\"]httponly['\"]\\s*=>\\s*true"))
+    + ($all | of($full)
+       | where_capture("HTTPONLY"; "^(?:false|0|null|'')$")) )
+| finding("php-cookie-without-httponly";
+    "this cookie is readable from document.cookie, so a script that gets onto "
+    + "the page can take it; HttpOnly is the seventh argument, or "
+    + "'httponly' => true in the options array")
+| report

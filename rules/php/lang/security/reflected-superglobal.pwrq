@@ -1,0 +1,40 @@
+# rules: php-reflected-superglobal
+# languages:
+# fixture: php/CWE-79.php
+# from: CWE-79 (Cross-site Scripting), OWASP A03
+#
+# A request parameter written into the response is markup the request wrote.
+# PHP's output has no notion of context - echo puts bytes where they land - so
+# the escaping happens at the point of output or it does not happen, and
+# htmlspecialchars with ENT_QUOTES is the spelling that covers an attribute
+# value as well as text between tags.
+#
+# This rule is text rather than syntax, and that is not a shortcut. echo,
+# print and <?= are language constructs with no argument list, and the pattern
+# matcher has no reading of them: `echo $X;` is not code in PHP on its own,
+# and `<?php echo $X;` compiles to a query for the file's first statement with
+# the echo keyword dropped out of it. So `# languages:` names nothing, because
+# the patterns here are not code in anything.
+#
+# The consequence is that it reports only the direct case - a superglobal
+# written straight into the output. `$name = $_GET['name']; echo $name;` is
+# the same bug and is not reported, because following a value needs a sink the
+# parser produced and this sink is a regex match. That is the honest limit of
+# it: what is here is exact, and there is more of this than the rule can see.
+#
+# The escaping test is on the same line of text, which is why casting to int
+# counts. `echo (int) $_GET['page']` cannot carry a tag.
+
+["(?:\\becho\\b|\\bprint\\b|<\\?=)\\s+(?P<OUT>[^;\\n]+)"] as $output
+| scan_regex("*.php"; $output)
+| where_capture("OUT"; "\\$_(?:GET|POST|REQUEST|COOKIE)\\b")
+| where_capture_not("OUT";
+    "htmlspecialchars|htmlentities|html_entity_encode|strip_tags"
+    + "|esc_html|esc_attr|esc_url|esc_js|esc_textarea"
+    + "|urlencode|rawurlencode|json_encode|intval|floatval"
+    + "|\\(\\s*(?:int|integer|float|double|bool|boolean)\\s*\\)")
+| finding("php-reflected-superglobal";
+    "$OUT writes a request parameter straight into the response, so whoever "
+    + "sends the parameter writes the markup; htmlspecialchars with "
+    + "ENT_QUOTES at the point of output")
+| report

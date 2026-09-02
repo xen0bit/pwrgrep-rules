@@ -1,0 +1,37 @@
+# rules: php-path-from-request
+# languages: php
+# fixture: php/CWE-22.php
+# from: CWE-22 (Path Traversal), CWE-434, CWE-73
+#
+# A path the request chose is a path that may contain "../", and each one
+# steps a directory further out of wherever the code meant to stay. Prefixing
+# a directory is not a boundary: "uploads/" . "../../index.php" is
+# index.php.
+#
+# Writing is the dangerous direction and is what this rule is about. A read
+# through a traversed path leaks a file; a write through one puts an attacker's
+# bytes at a path they chose, and a .php file in the document root is a shell.
+# move_uploaded_file with the client's own filename is the canonical version -
+# the browser sends that name and nothing checks it.
+#
+# The read side is not duplicated here. file_get_contents, fopen, readfile and
+# file are php-ssrf's, because in PHP those functions take URLs as readily as
+# paths and the finding to report about them is the wider one.
+#
+# basename() leaves a name with no path in it and is treated as an answer;
+# it is not a check, but after it there is nothing left to traverse with.
+
+["file_put_contents($PATH, $$$_)", "move_uploaded_file($_, $PATH)",
+ "rename($PATH, $$$_)", "rename($_, $PATH)",
+ "copy($_, $PATH)", "mkdir($PATH)", "mkdir($PATH, $$$_)",
+ "rmdir($PATH)", "touch($PATH)", "touch($PATH, $$$_)",
+ "chmod($PATH, $_)", "scandir($PATH)", "opendir($PATH)",
+ "glob($PATH)", "fwrite($PATH, $$$_)"] as $writes
+| scan_ast("*.php"; $writes)
+| where_capture("PATH"; "\\$_(?:GET|POST|REQUEST|COOKIE|FILES)\\b")
+| where_capture_not("PATH"; "basename|realpath|bin2hex|md5|uniqid")
+| focus("PATH")
+| finding("php-path-from-request";
+    "$PATH lets the request say where this goes, and a directory prefix is a "
+    + "string rather than a boundary; basename it, or name the file yourself")
+| report

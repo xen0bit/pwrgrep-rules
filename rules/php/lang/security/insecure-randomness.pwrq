@@ -1,0 +1,35 @@
+# rules: php-insecure-randomness
+# languages: php
+# fixture: php/CWE-330.php
+# from: CWE-330 (Insufficiently Random Values), CWE-338, CWE-340
+#
+# mt_rand is a Mersenne Twister, which is a published recurrence: 624
+# consecutive outputs recover the entire state and the state gives every
+# output before and after it. rand() is weaker still. uniqid() is not a
+# generator at all - it is the current time in hexadecimal, so one value tells
+# you roughly what the next will be, and `more_entropy` appends a few digits
+# of the same clock.
+#
+# None of that matters for a retry delay and all of it matters for a password
+# reset token, and nothing in the call says which one this is. So the rule
+# asks the name: a value assigned to something called a token, a key, a salt,
+# a nonce or a secret is one an attacker must not be able to guess, and the
+# generators above do not clear that bar.
+#
+# random_bytes and random_int are the CSPRNG, they are in core, and they take
+# the same one line.
+
+["mt_rand", "rand", "uniqid", "str_shuffle", "shuffle", "lcg_value",
+ "mt_srand", "srand", "array_rand"] as $weak
+| "(?i)token|secret|salt|nonce|key|password|passwd|session|csrf|otp|"
+  + "random|uuid|guid|api_?key|reset" as $names
+| ($weak | map("$LHS = " + . + "($$$A);")) as $direct
+| ($weak | map("$LHS = $OUTER(" + . + "($$$A));")) as $wrapped
+| scan_ast("*.php"; $direct + $wrapped)
+| where_capture("LHS"; $names)
+| focus("LHS")
+| finding("php-insecure-randomness";
+    "$LHS is a value an attacker must not be able to guess, and this "
+    + "generator is a published recurrence or the system clock; random_bytes "
+    + "and random_int are in core")
+| report

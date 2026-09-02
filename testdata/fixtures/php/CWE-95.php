@@ -21,6 +21,8 @@ function render($template, $rows)
     /* ok: eval-use */
     eval('return 1 + 1;');
     /* ok: eval-use */
+    eval('$e = new RuntimeException($this->message); throw $e;');
+    /* ok: eval-use */
     eval("return null;");
 
     return $rows;

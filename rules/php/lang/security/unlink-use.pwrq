@@ -19,9 +19,10 @@
 # subtracted everything had the first half found anything. See GUIDE.md.
 
 ["$F($PATH)", "$F($PATH, $$$_)"] as $calls
+| "^(?:'(?:[^'\\\\]|\\\\.)*'|\"[^\"$\\\\{]*\")$" as $written_here
 | scan_ast("*.php"; $calls)
 | where_capture("F"; "^(?:unlink|wp_delete_file)$")
-| where_capture_not("PATH"; "^(?:'[^'$\\\\]*'|\"[^\"$\\\\]*\")$")
+| where_capture_not("PATH"; $written_here)
 | where_capture_not("PATH"; "^(?:basename|realpath)\\s*\\(")
 | finding("unlink-use";
     "this deletes a path the file does not contain; whoever decides $PATH "

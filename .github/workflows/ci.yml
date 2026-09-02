@@ -1,0 +1,103 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Cancel superseded runs on the same ref (e.g. rapid PR pushes).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # The module is data, so the only thing to compile is the embed - but the
+  # embed is exactly what breaks silently. A rules directory that stops
+  # matching the pattern gives a binary with no corpus in it, and nothing
+  # downstream says so until someone runs a query and gets nothing back.
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: "1.27"
+          cache: true
+
+      - name: Verify go.mod is tidy
+        run: |
+          go mod tidy
+          git diff --exit-code -- go.mod go.sum
+
+      - name: Build
+        run: go build ./... && go vet ./...
+
+      - name: gofmt
+        run: |
+          # testdata is excluded because it is deliberately not formatted: the
+          # Go fixtures are annotated code written to trip a rule, and gofmt
+          # would rewrite the constructs some of them exist to catch.
+          unformatted=$(find . -name '*.go' -not -path './testdata/*' -print0 | xargs -0 gofmt -l)
+          if [ -n "$unformatted" ]; then
+            echo "::error::gofmt found unformatted files:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: The corpus is embedded whole
+        run: |
+          set -euo pipefail
+          # go:embed drops nothing quietly, but a rule saved with the wrong
+          # extension is invisible to both the pattern and the loader. Counting
+          # both sides is what notices.
+          on_disk=$(find rules -name '*.pwrq' | wc -l)
+          stray=$(find rules -type f -not -name '*.pwrq' | wc -l)
+          echo "rules: $on_disk, non-rule files under rules/: $stray"
+          [ "$on_disk" -gt 0 ] || { echo "::error::rules/ holds no .pwrq files"; exit 1; }
+          [ "$stray" -eq 0 ] || {
+            echo "::error::files under rules/ that are not rules:"
+            find rules -type f -not -name '*.pwrq'
+            exit 1
+          }
+
+  # A rule is a pwrq query, and there is no second implementation of what one
+  # means - so validating the corpus means running it under a real pwrq. It is
+  # built from source rather than installed from a release because the grammar
+  # set is decided by build tags in pwrq's Makefile: a binary built without
+  # them carries 206 grammars instead of the 34 a release ships, and "this
+  # language is in the build" would then be a check that passes on a rule no
+  # released binary can run.
+  validate:
+    name: validate the corpus
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Check out pwrq
+        uses: actions/checkout@v7
+        with:
+          repository: xen0bit/pwrq
+          path: .pwrq
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: "1.27"
+          cache: true
+          cache-dependency-path: .pwrq/go.sum
+
+      - name: Build pwrq
+        run: make -C .pwrq build
+
+      - name: Validate
+        run: PWRQ="$PWD/.pwrq/pwrq" tools/validate.py

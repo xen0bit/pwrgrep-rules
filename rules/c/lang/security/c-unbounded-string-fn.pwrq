@@ -1,7 +1,7 @@
 # rules: c-unbounded-string-fn
 # languages: c
-# fixture: c/unbounded-string-fn.c
-# from: c/lang/security/insecure-use-gets-fn.yaml (insecure-use-gets-fn), insecure-use-string-copy-fn.yaml (insecure-use-string-copy-fn), insecure-use-strcat-fn.yaml (insecure-use-strcat-fn), insecure-use-printf-fn.yaml (insecure-use-printf-fn)
+# fixture: c/CWE-787.c
+# from: c/lang/security/insecure-use-gets-fn.yaml (insecure-use-gets-fn), insecure-use-string-copy-fn.yaml (insecure-use-string-copy-fn), insecure-use-strcat-fn.yaml (insecure-use-strcat-fn), insecure-use-printf-fn.yaml (insecure-use-printf-fn), CWE-787, CERT C STR31-C
 #
 # CWE-787. Four upstream rules, one sentence: a function that writes into a
 # buffer without being told how big the buffer is.
@@ -12,9 +12,22 @@
 # file begins. The query compiled, reported no problem, and matched nothing in
 # any C ever written. Patterns are now read as statements as well, which is
 # what makes this rule fire at all; see statementReading.
+#
+# Every function here has a counterpart that takes a size: fgets for gets,
+# strlcpy for strcpy, snprintf for sprintf, getcwd for getwd. realpath is the
+# odd one - it is unbounded only when it is given a buffer, because the
+# buffer it is given must be PATH_MAX and nothing in the call says whether it
+# is. Passing NULL asks it to allocate one that fits, which is why that is
+# the safe spelling and why the second argument is what this rule reads.
 
-["gets($$$_)", "strcpy($$$_)", "strcat($$$_)", "sprintf($$$_)"] as $unbounded
-| scan_ast("*.[ch]"; $unbounded)
+["gets($$$_)", "strcpy($$$_)", "strcat($$$_)", "stpcpy($$$_)",
+ "sprintf($$$_)", "vsprintf($$$_)",
+ "wcscpy($$$_)", "wcscat($$$_)", "wcpcpy($$$_)",
+ "getwd($$$_)", "scanf_s($$$_)"] as $unbounded
+| ["realpath($_, $OUT)"] as $sized_by_faith
+| scan_ast("*.[ch]"; $unbounded + $sized_by_faith) as $all
+| ( ($all | of($unbounded))
+    + ($all | of($sized_by_faith) | where_capture_not("OUT"; "^(?:NULL|0|nullptr)$")) )
 | finding("c-unbounded-string-fn";
     "this writes into the destination without being told its size; "
     + "fgets, strlcpy, strlcat and snprintf take one")

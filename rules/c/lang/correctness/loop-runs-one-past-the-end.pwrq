@@ -1,0 +1,39 @@
+# rules: c-loop-runs-one-past-the-end
+# languages: c
+# fixture: c/CWE-193.c
+# from: CWE-193 (Off-by-one Error), CWE-787, CERT C ARR30-C
+#
+# `for (i = 0; i <= n; i++)` runs the body n+1 times. Where n is the number of
+# elements, the last pass is one element past the end of the array; where n is
+# strlen, the last pass is one past the NUL. It is a one-byte overflow, which
+# is enough - the off-by-one heap overflow is a whole exploitation technique.
+#
+# The operator alone does not decide it, because `i <= last` is correct and
+# looks identical. What decides it is what the bound is: a count is not an
+# index. So the rule reads the bound, and reports it when the bound is a
+# length by construction - strlen, sizeof - or is called one: n, len, size,
+# count, nmemb and the rest. A bound called `last`, `max` or `end` is a
+# programmer saying it is an index, and the rule believes them.
+#
+# The body has to write through a subscript, which is what makes the finding
+# a memory bug rather than a loop that counts one too far. That is read off
+# the body as text, because the pattern that would ask it structurally - a
+# subscript indexed by this loop's variable, somewhere among the statements -
+# is not a pattern the matcher will take.
+
+["for ($_; $I <= $N; $$$_) { $$$BODY }",
+ "for ($_; $I <= $N; $$$_) $$$BODY",
+ "while ($I <= $N) { $$$BODY }",
+ "while ($I <= $N) $$$BODY"] as $inclusive
+| "^(?:strlen|wcslen|strnlen|sizeof)\\s*[(\\s]" as $measured
+| "(?i)(?:^|_)(?:n|len|length|size|count|num|nitems|nmemb|total)(?:$|_)"
+  + "|(?i)^[a-z]+(?:Len|Length|Size|Count|Num)$" as $named
+| "\\[[^]]*\\]\\s*(?:[-+*/|&^]?=[^=]|\\+\\+|--)" as $indexed_write
+| scan_ast("*.[ch]"; $inclusive) as $all
+| ( ($all | where_capture("N"; $measured))
+    + ($all | where_capture("N"; $named)) )
+| where_capture("BODY"; $indexed_write)
+| finding("c-loop-runs-one-past-the-end";
+    "$N is a count and this compares with <=, so the last pass is one past "
+    + "the end; a loop over $N elements ends at $N - 1")
+| report

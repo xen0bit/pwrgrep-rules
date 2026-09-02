@@ -1,0 +1,42 @@
+name: notify pwrq
+
+# pwrq embeds this corpus and should be carrying whatever is on main. It has a
+# daily sweep that goes and gets it (.github/workflows/rules.yml there), so
+# this is only the difference between "within a day" and "within a minute".
+#
+# It needs a token that can act on xen0bit/pwrq, which GITHUB_TOKEN is not:
+# a repository's own token cannot dispatch to another repository. Set
+# PWRQ_DISPATCH_TOKEN to a fine-grained PAT scoped to xen0bit/pwrq with
+# Contents: read and write - the dispatches endpoint requires write access,
+# and read alone returns 403. Without the secret this job skips, and pwrq's
+# daily sweep keeps the two in step, which is why it is checked rather than
+# assumed.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  dispatch:
+    name: tell pwrq to bump
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch
+        env:
+          TOKEN: ${{ secrets.PWRQ_DISPATCH_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${TOKEN:-}" ]; then
+            echo "::notice::PWRQ_DISPATCH_TOKEN is not set; pwrq's daily sweep will pick this up instead"
+            exit 0
+          fi
+          curl -fsSL -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/xen0bit/pwrq/dispatches \
+            -d '{"event_type":"rules-updated"}'
+          echo "dispatched rules-updated to xen0bit/pwrq"

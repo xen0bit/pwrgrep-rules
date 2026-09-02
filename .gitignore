@@ -1,2 +1,6 @@
-.pwrq/
-pwrq
+# A pwrq binary built or checked out here for validation. Both anchored to the
+# repository root: unanchored, `pwrq` matches a file or directory of that name
+# anywhere, and in this repository that is a rule path. It has happened before
+# - the same pattern in pwrq once swallowed a directory of rules whole.
+/.pwrq/
+/pwrq

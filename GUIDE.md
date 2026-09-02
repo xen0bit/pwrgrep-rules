@@ -193,6 +193,89 @@ dimensional case.
 compile and all match. If a rule is reaching for a regex over something the
 grammar has a node for, it is usually the wrong rule.
 
+## The matcher is not the same in every language
+
+Everything above was learned in C. Almost none of it transferred to PHP
+unchanged, and the way it failed was silent in every case, so check these
+before writing a rule in a language nobody has written one in yet.
+
+**Every PHP pattern needs a named hole.** `eval($$$_)`, `phpinfo($$$_)`,
+`system($_)`, `foo()` — a pattern whose arguments contain no `$NAME` is not
+read as PHP at all. The grammar takes it for inline HTML text, and the query
+becomes a search for those characters verbatim, which matches nothing in any
+PHP ever written. `ast_pattern` reports `Valid: true` and shows you
+`(_) @_lit_1 (#eq? @_lit_1 "eval(__GREP_VAR____);")`, which is the tell.
+
+This ran through most of the PHP corpus: eleven rules — eval-use, exec-use,
+unserialize-use, phpinfo-use, unlink-use and the rest — could not fire on any
+input. The spelling that works is a hole in the function position with a guard
+on what it caught:
+
+```
+["$F($CODE)", "$F($CODE, $$$_)"] as $calls
+| scan_ast("*.php"; $calls)
+| where_capture("F"; "^(?:eval|create_function)$")
+```
+
+which is the shape you want anyway when a rule is about a list of names. Where
+you need a fixed arity, give every argument a name — `setcookie($N, $V)`, not
+`setcookie($_, $_)`, which has no named hole and so is not PHP either.
+
+**`$$$_` between statements is not an ellipsis in PHP.** In C,
+`A;\n$$$_\nB;` is the workhorse. In PHP the same pattern compiles the middle
+line to a call with empty parentheses:
+
+```
+(expression_statement . (function_call_expression (_) @_ arguments: (arguments) @_lit_3) .)
+(#eq? @_lit_3 "()")
+```
+
+so it can never match. Adjacent statements (`A;\nB;`) work. For anything with
+a gap, use `reaching` instead — and focus the source onto the part that sits
+inside the assignment's right-hand side, or the name on the left will not pick
+the taint up:
+
+```
+| ($all | of(["$V = $S;"]) | where_capture("S"; $sql) | focus("S")) as $assembled
+| ($all | of($sinks) | reaching($assembled; []))
+```
+
+**Some constructs have no reading at all.** `echo`, `print`, `include`,
+`require` and `exit` are PHP language constructs rather than calls, and
+neither `echo $X;` nor `<?php echo $X;` compiles to anything that finds one —
+the second silently drops the keyword and matches the file's first statement.
+When the grammar has no node a pattern can name, `scan_regex` is the right
+tool and not a shortcut; say so in the header and leave `# languages:` empty,
+because the patterns are not code in anything.
+
+The cost is real and should be stated in the rule: a regex sink cannot be the
+sink of a `reaching`, because following a value needs a parsed file. So the
+PHP XSS rule reports `echo $_GET['q']` and does not report
+`$name = $_GET['q']; echo $name;`, and its header says so.
+
+**A superglobal written in a pattern is a hole.** `$_GET[$K]` binds a capture
+called `_GET`, and it matches `$_POST` and `$_COOKIE` too. That is usually
+convenient — one pattern for every superglobal, with the name available to
+filter on — but it is not what the pattern looks like it says:
+
+```
+| where_capture("_GET"; "^\\$_(?:GET|POST|REQUEST|COOKIE)$")
+```
+
+**How far a hole is folded depends on what is around it.** `md5($ARG)` binds
+`$ARG` to the argument; `$x = md5($ARG);` binds it to the parenthesised
+argument list. So two readings of the same call can be impossible to bring to
+the same span, and the focus-and-subtract technique above does not apply. When
+that happens, make the readings disjoint by construction instead — ask the two
+questions of sets that cannot overlap — rather than trying to cancel one
+against the other.
+
+**Read the literals the way the language does.** PHP single quotes interpolate
+nothing, so `eval('$e = new Exception($this->message); throw $e;')` is a
+constant however many dollars are in it — PEAR contains exactly that, and a
+"contains a `$`" test reported it. Double quotes are the opposite: a `$` or a
+`{` in one is code.
+
 ## The techniques
 
 ### Two statements as one construct
@@ -504,7 +587,9 @@ Then the checklist:
 
 The last thing, and it is the reason this document exists.
 
-Three rules in the C corpus did not work. `use-after-free` and
+Fourteen rules across two languages did not work.
+
+Three in C. `use-after-free` and
 `function-use-after-free` were both built on `within(free($VAR); $$$_)` —
 that trailing "anything else here" is dropped from the compiled query, so the
 span covered the free and stopped there and no later use was ever inside it.
@@ -512,7 +597,14 @@ span covered the free and stopped there and no later use was ever inside it.
 cast is written in C. All three compiled. All three ran. All three reported
 nothing, on any input, ever.
 
+Eleven in PHP, all from one cause: a pattern with no named hole in its
+arguments, which the grammar does not read as PHP. And one more, php-ssrf,
+failing the other way — `$FUNCS($$$_,$DATA, $$$_);` with nothing said about
+either hole is every call with two or more arguments, and it reported sixteen
+findings on an eighteen-line file.
+
 That is the failure a rule cannot be read for, and a fixture is the only thing
 that finds it. If you are adding a rule beside an existing one that has no
 fixture, spend five minutes pointing the old one at code it should fire on
-before you assume the gap in coverage is where you think it is.
+before you assume the gap in coverage is where you think it is. In PHP that
+five minutes would have saved a corpus.

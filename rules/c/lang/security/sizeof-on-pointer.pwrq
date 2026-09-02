@@ -17,11 +17,16 @@
 #
 # So the rule needs to know the name is a pointer, and it gets that from a
 # declaration it can see: a parameter written with a star, or a local written
-# with one. Four readings of that - single parameter, one parameter among
-# several, initialised local, uninitialised local - are crossed with the
-# places a length is expected, which is the list of calls. Writing the cross
-# product out by hand would be two hundred lines, so it is built with map,
-# and scan_ast walks the tree once however many patterns come out.
+# with one. Three readings of that - a parameter among however many others,
+# an initialised local, an uninitialised one - are crossed with the places a
+# length is expected, which is the list of calls. Writing the cross product
+# out by hand would be a hundred and fifty lines, so it is built with map, and
+# scan_ast walks the tree once however many patterns come out.
+#
+# Three rather than four: `$FN($$$_, $T *$P, $$$_)` covers the one-parameter
+# function too, because an anonymous variadic matches nothing as readily as it
+# matches something. A pattern for the single parameter on its own would be
+# twenty more patterns finding what these twenty already find.
 
 ["memset($_, $_, sizeof($N));", "bzero($_, sizeof($N));",
  "explicit_bzero($_, sizeof($N));",
@@ -35,8 +40,7 @@
  "fread($_, $_, sizeof($N), $_);",
  "malloc(sizeof($N));", "calloc($_, sizeof($N));",
  "$_ = malloc(sizeof($N));", "$_ = calloc($_, sizeof($N));"] as $uses
-| ( ($uses | map("$RT $FN($T *$P) {\n$$$_\n" + . + "\n$$$_\n}"))
-    + ($uses | map("$RT $FN($$$_, $T *$P, $$$_) {\n$$$_\n" + . + "\n$$$_\n}"))
+| ( ($uses | map("$RT $FN($$$_, $T *$P, $$$_) {\n$$$_\n" + . + "\n$$$_\n}"))
     + ($uses | map("$T *$P = $_;\n$$$_\n" + .))
     + ($uses | map("$T *$P;\n$$$_\n" + .)) ) as $pats
 | scan_ast("*.[ch]"; $pats)

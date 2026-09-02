@@ -15,6 +15,10 @@
 # assignment, an address passed to something that fills it in - which is how
 # stat, scanf and read are called - and an if/else that assigns on both sides.
 #
+# va_start is in that list and does not look like it belongs: it takes its
+# va_list by name rather than by address, so nothing in the call says it
+# writes to it. It is a macro, and it does.
+#
 # A variable assigned on one path and read after it is *not* subtracted, and
 # that is deliberate: reading it is uninitialised on the other path, which is
 # the bug and not a false positive.
@@ -38,6 +42,8 @@
    "$T $V;\n$$$_\nif ($_) $V = $_; else $V = $_;",
    "$T $V;\n$$$_\nif ($_) { $V = $_; } else { $V = $_; }",
    "$T $V;\n$$$_\nmemset(&$V, $$$_);",
+   "$T $V;\n$$$_\nva_start($V, $_);",
+   "$T $V;\n$$$_\nva_copy($V, $_);",
    "$T $V;\n$$$_\nfor ($V = $_; $$$_) $$$_"] as $writes
 | scan_ast("*.[ch]"; $reads + $writes) as $all
 | ( $all | of($reads) | focus("V")

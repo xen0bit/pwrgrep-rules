@@ -24,6 +24,13 @@
 #
 # argv[1] is a subscript and a source at once, and is subtracted so that the
 # rule reports where the index was used rather than where it arrived.
+#
+# The finding is focused onto the index before the value is followed, which is
+# not only where the caret should sit. Following a value asks which names are
+# written inside the match, and the whole subscript contains the array's name
+# as well as the index's - so `buf[0]` in a function with a tainted `buf` came
+# back as a tainted index. Narrowed to the index, the question asked is the
+# question meant: is this number from outside.
 
 ["$A[$I]"] as $subscripts
 | ["atoi($$$_)", "atol($$$_)", "atoll($$$_)",
@@ -35,8 +42,9 @@
    "for ($_; $COND; $_) { $$$BODY }", "for ($_; $COND; $_) $$$BODY"] as $branches
 | scan_ast("*.[ch]"; $subscripts + $outside + $clamped + $branches) as $all
 | ( $all | of($subscripts)
-    | reaching($all | of($outside); $all | of($clamped))
     | not_at($all | of(["argv[$_]"]))
+    | focus("I")
+    | reaching($all | of($outside); $all | of($clamped))
     | outside($all | of($branches)
               | where_capture("COND"; "[<>]") | focus("BODY")) )
 | finding("c-unvalidated-array-index";

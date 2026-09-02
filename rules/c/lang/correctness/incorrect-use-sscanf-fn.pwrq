@@ -1,5 +1,6 @@
 # rules: incorrect-use-sscanf-fn
 # languages: c
+# fixture: c/CWE-20.c
 # from: c/lang/correctness/incorrect-use-sscanf-fn.yaml
 
 . as $root

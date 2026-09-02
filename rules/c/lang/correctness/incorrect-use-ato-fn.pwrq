@@ -1,5 +1,6 @@
 # rules: incorrect-use-ato-fn
 # languages: c
+# fixture: c/CWE-676.c
 # from: c/lang/correctness/incorrect-use-ato-fn.yaml
 
 . as $root

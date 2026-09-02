@@ -1,5 +1,6 @@
 # rules: insecure-use-strtok-fn
 # languages: c
+# fixture: c/CWE-663.c
 # from: c/lang/security/insecure-use-strtok-fn.yaml
 
 . as $root

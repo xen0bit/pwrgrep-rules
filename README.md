@@ -1,7 +1,7 @@
 # pwrgrep-rules
 
-The structural rule corpus for [pwrq](https://github.com/xen0bit/pwrq): 1837
-rules in 26 languages, each one a pwrq query and nothing else.
+The structural rule corpus for [pwrq](https://github.com/xen0bit/pwrq): 1815
+rules in 25 languages, each one a pwrq query and nothing else.
 
 A rule is a file and a header. There is no schema, no plugin API and nothing to
 rebuild — writing one is copying a file:
@@ -39,7 +39,7 @@ tools/validate.py    the check CI runs
 
 Rules are grouped by what they search rather than by who wrote them. The path
 is also how a rule is selected, so naming a directory narrows a run:
-`invoke_pwrgrep("."; "go/lang/security")` over a Go repository, not all 1837.
+`invoke_pwrgrep("."; "go/lang/security")` over a Go repository, not all 1815.
 
 ## Using it
 
@@ -114,3 +114,10 @@ family, each with a fixture of its own and prose saying where it departs from
 the rule it came from. They came first and are what the translator was written
 against. They are no longer kept apart: a rule is a rule, and they sit in the
 category they search, named for the id they report under.
+
+Each of them was written against an upstream rule that had also been
+translated, so the corpus carried both and reported two findings on one line
+under two ids. The generated twenty-two are gone; the hand-written rule is the
+one that stays, because it is the one checked against a fixture on every
+change. Which upstream rules each took over is in its `# from:` header, and the
+finding ids that left with them are in the commit that removed them.

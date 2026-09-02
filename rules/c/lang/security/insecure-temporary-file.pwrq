@@ -1,0 +1,32 @@
+# rules: c-insecure-temporary-file
+# languages: c
+# fixture: c/CWE-377.c
+# from: CWE-377 (Insecure Temporary File), CWE-379, CERT C FIO21-C
+#
+# tmpnam, tempnam and mktemp return a name that did not exist a moment ago
+# and say nothing about whether it exists now. Between the call and the open,
+# anyone who can write that directory can create the file, or a symlink
+# pointing somewhere better, and the program opens theirs. The fix is not a
+# better name but an atomic create: mkstemp opens the file it names, with
+# O_EXCL, and hands back the descriptor.
+#
+# The second half is the same race written by hand. A path under /tmp,
+# /var/tmp or /dev/shm spelled out in the source is a name every other user on
+# the machine also knows, so opening it - even with a careful mode - is
+# opening whatever is sitting there. O_EXCL is what closes it, which is why
+# the last `ok` line is one.
+
+["tmpnam($$$_)", "tmpnam_r($$$_)", "tempnam($$$_)",
+ "mktemp($$$_)", "mkstemps($$$_)"] as $named
+| ["fopen($PATH, $$$_)", "freopen($PATH, $$$_)", "open($PATH, $$$_)",
+   "open64($PATH, $$$_)", "openat($_, $PATH, $$$_)", "creat($PATH, $$$_)",
+   "unlink($PATH)", "mkdir($PATH, $$$_)"] as $paths
+| scan_ast("*.[ch]"; $named + $paths) as $all
+| ( ($all | of($named))
+    + ($all | of($paths)
+       | where_capture("PATH"; "^L?\"/(?:tmp|var/tmp|dev/shm|usr/tmp)/")) )
+| finding("c-insecure-temporary-file";
+    "this names a temporary file without creating it in the same breath, so "
+    + "anything can be sitting at that name by the time it is opened; "
+    + "mkstemp, or O_CREAT|O_EXCL on a path nobody else can guess")
+| report

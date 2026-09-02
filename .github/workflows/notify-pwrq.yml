@@ -1,8 +1,9 @@
 name: notify pwrq
 
-# pwrq embeds this corpus and should be carrying whatever is on main. It has a
-# daily sweep that goes and gets it (.github/workflows/rules.yml there), so
-# this is only the difference between "within a day" and "within a minute".
+# pwrq embeds this corpus and should be carrying whatever is on main. It also
+# sweeps for a new version every quarter hour (.github/workflows/rules.yml
+# there), so this is the difference between "within fifteen minutes" and
+# "within one".
 #
 # It needs a token that can act on xen0bit/pwrq, which GITHUB_TOKEN is not:
 # a repository's own token cannot dispatch to another repository. Set
@@ -15,6 +16,15 @@ name: notify pwrq
 on:
   push:
     branches: [main]
+    # Only what pwrq actually embeds. A README or a workflow edit here changes
+    # the module's version but not a byte of what pwrq ships, and dispatching
+    # for it spends a pull request and a full test run on nothing. The sweep
+    # picks such a change up on its own schedule regardless.
+    paths:
+      - "rules/**"
+      - "testdata/**"
+      - "rules.go"
+      - "go.mod"
   workflow_dispatch:
 
 permissions: {}

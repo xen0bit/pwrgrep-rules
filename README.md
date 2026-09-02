@@ -69,6 +69,36 @@ pwrq reads `$PWRQ_RULES`, then `~/.config/pwrq/rules`, then
 `/usr/share/pwrq/rules`, then its own copy, and a rule found earlier hides one
 with the same path found later — which is how a shipped rule is edited.
 
+## Getting a change into pwrq
+
+pwrq carries whatever is on this repository's main. Two things make that
+happen, and they are the same mechanism at two speeds.
+
+`.github/workflows/notify-pwrq.yml` tells pwrq the moment main moves, and
+pwrq's `.github/workflows/rules.yml` sweeps for a new version every quarter
+hour in case that message never arrives. Either way pwrq bumps its pin, runs
+its full suite against the new corpus, and opens a pull request - it does not
+merge on its own, because a corpus change can fail in pwrq in two ways this
+repository cannot see: a rule that does not compile against that binary's
+cmdlet vocabulary, and a rule naming a language its release build has no
+grammar for.
+
+The instant half needs a token, because a repository's own `GITHUB_TOKEN`
+cannot dispatch to another repository. Without it nothing breaks - the
+workflow logs a notice and skips, and the quarter-hour sweep does the job.
+
+To turn it on: create a [fine-grained personal access
+token](https://github.com/settings/personal-access-tokens/new) scoped to
+`xen0bit/pwrq` with **Contents: read and write** - the dispatches endpoint
+rejects a read-only token - and save it here as the repository secret
+`PWRQ_DISPATCH_TOKEN`:
+
+    gh secret set PWRQ_DISPATCH_TOKEN --repo xen0bit/pwrgrep-rules
+
+Then check it works without waiting for a rule change:
+
+    gh workflow run "notify pwrq" --repo xen0bit/pwrgrep-rules
+
 ## Validating
 
 ```

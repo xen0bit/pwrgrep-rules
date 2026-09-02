@@ -1,5 +1,6 @@
 # rules: ftp-use
 # languages: php
+# fixture: php/CWE-319.php
 # from: php/lang/security/ftp-use.yaml
 
 . as $root

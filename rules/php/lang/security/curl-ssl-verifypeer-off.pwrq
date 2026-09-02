@@ -1,5 +1,6 @@
 # rules: curl-ssl-verifypeer-off
 # languages: php
+# fixture: php/CWE-295.php
 # from: php/lang/security/curl-ssl-verifypeer-off.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: redirect-to-request-uri
 # languages: php
+# fixture: php/CWE-601.php
 # from: php/lang/security/redirect-to-request-uri.yaml
 
 . as $root

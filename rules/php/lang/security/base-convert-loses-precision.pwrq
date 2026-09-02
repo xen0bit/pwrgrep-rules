@@ -1,32 +1,34 @@
 # rules: base-convert-loses-precision
 # languages: php
-# from: php/lang/security/base-convert-loses-precision.yaml
+# fixture: php/CWE-682.php
+# from: php/lang/security/base-convert-loses-precision.yaml, CWE-682, CWE-331
+#
+# base_convert() converts through a 64-bit float, so anything longer than
+# about fifteen significant digits comes back rounded - quietly, with no
+# warning and a plausible-looking answer.
+#
+# That is an arithmetic bug until the input is a hash, and then it is an
+# entropy bug: `base_convert(md5($x), 16, 36)` looks like a compact
+# 128-bit token and is a number drawn from a far smaller set, because
+# everything past the fifteenth digit was rounded away before the conversion.
+# Tokens built this way collide, and an attacker who works out how they are
+# built can enumerate them.
+#
+# Which is why the rule is about the argument and not the call: base_convert
+# over a short literal is fine and base_convert over a digest is not, and the
+# call cannot tell you which. A digest truncated to something base_convert can
+# represent is fine too, which is the last `ok` line.
+#
+# The original said this with reaching over patterns that could not compile.
+# The hash is the argument, so there is nothing to follow.
 
-. as $root
-| ( ($root | scan_ast(["*.php"]; [
-      "$OBJ->get_random_bytes($N)",
-      "base_convert($$$_)",
-      "hash($$$_)",
-      "hash_hmac($$$_)",
-      "md5($$$_)",
-      "openssl_random_pseudo_bytes($N)",
-      "random_bytes($N)",
-      "sha1($$$_)",
-      "substr($$$_, $LENGTH)"
-    ])) as $all
-    | ( (($all | of(["base_convert($$$_)"])))
-          | reaching((($all | of(["hash($$$_)"]))
-              + ($all | of(["hash_hmac($$$_)"]))
-              + ($all | of(["sha1($$$_)"]))
-              + ($all | of(["md5($$$_)"]))
-              + ($all | of(["random_bytes($N)"])
-          | where_capture_compare("$N > 7"))
-              + ($all | of(["openssl_random_pseudo_bytes($N)"])
-          | where_capture_compare("$N > 7"))
-              + ($all | of(["$OBJ->get_random_bytes($N)"])
-          | where_capture_compare("$N > 7")));
-              (($all | of(["substr($$$_, $LENGTH)"])
-          | where_capture_compare("$LENGTH <= 7"))))
-        | finding("base-convert-loses-precision";
-            "The function base_convert uses 64-bit numbers internally, and does not correctly convert large numbers.") ) )
+["base_convert($N, $FROM, $TO)", "$_ = base_convert($N, $FROM, $TO);"] as $calls
+| scan_ast("*.php"; $calls)
+| where_capture("N";
+    "^(?:md5|sha1|hash|hash_hmac|crc32|bin2hex|hash_file)\\s*\\(")
+| focus("N")
+| finding("base-convert-loses-precision";
+    "base_convert works in 64-bit floats, so everything past about the "
+    + "fifteenth digit of $N is rounded away before it is converted; the "
+    + "result has a fraction of the entropy it looks like it has")
 | report

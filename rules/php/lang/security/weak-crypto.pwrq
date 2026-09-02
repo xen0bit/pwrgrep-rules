@@ -1,5 +1,6 @@
 # rules: weak-crypto
 # languages: php
+# fixture: php/CWE-327.php
 # from: php/lang/security/weak-crypto.yaml
 
 . as $root

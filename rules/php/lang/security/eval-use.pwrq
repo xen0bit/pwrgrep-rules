@@ -1,14 +1,30 @@
 # rules: eval-use
 # languages: php
-# from: php/lang/security/eval-use.yaml
+# fixture: php/CWE-95.php
+# from: php/lang/security/eval-use.yaml, CWE-95, CWE-94
+#
+# eval() compiles its argument as PHP and runs it here: same scope, same
+# includes, same database handle, same session. There is no sandbox and no
+# lesser version of the outcome - a string that reaches eval is the program,
+# so the only eval worth keeping is one whose argument is written in the file.
+#
+# The rule was `eval($$$_);` minus `eval('$$$_');`, and neither half worked. A
+# PHP pattern whose arguments contain no named hole is not read as PHP at all -
+# the grammar takes it for inline HTML text and the query looks for those
+# characters verbatim - so the first half matched nothing. The second is worse
+# than nothing: quotes and arity are both lost from it, leaving "any call with
+# any arguments", so had the first half worked the second would have subtracted
+# all of it. See GUIDE.md; this is the failure that ran through most of the PHP
+# corpus.
+#
+# What works is a hole in the function position and a guard on what it caught,
+# which is also the shape to write when a rule is about a list of names.
 
-. as $root
-| ( ($root | scan_ast(["*.php"]; [
-      "eval($$$_);",
-      "eval('$$$_');"
-    ])) as $all
-    | ( $all | of(["eval($$$_);"])
-          | not_at($all | of(["eval('$$$_');"]))
-        | finding("eval-use";
-            "Evaluating non-constant commands.") ) )
+["$F($CODE)", "$F($CODE, $$$_)"] as $calls
+| scan_ast("*.php"; $calls)
+| where_capture("F"; "^(?:eval|create_function)$")
+| where_capture_not("CODE"; "^(?:'[^'$\\\\]*'|\"[^\"$\\\\]*\")$")
+| finding("eval-use";
+    "this compiles $CODE as PHP and runs it in the current scope; anything "
+    + "that reaches it is the program from that line on")
 | report

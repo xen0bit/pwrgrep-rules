@@ -1,5 +1,6 @@
 # rules: assert-use-audit
 # languages: php
+# fixture: php/CWE-94.php
 # from: php/lang/security/audit/assert-use-audit.yaml
 
 . as $root

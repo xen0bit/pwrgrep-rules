@@ -1,15 +1,31 @@
 # rules: exec-use
 # languages: php
-# from: php/lang/security/exec-use.yaml
+# fixture: php/CWE-78.php
+# from: php/lang/security/exec-use.yaml, CWE-78, CWE-77
+#
+# All of these hand a string to /bin/sh. What makes the finding is that the
+# string is not written in the file: a shell reading text a program assembled
+# is a shell reading whatever ended up in it, and `;`, `|` and `$( )` are
+# ordinary characters until the moment they are not.
+#
+# escapeshellarg makes one argument safe and there is no function that makes a
+# command line safe, which is why a call whose command is built by
+# concatenation is reported and one whose arguments are individually escaped is
+# not. Interpolation counts as building it: "cat {$file}" is concatenation with
+# nicer syntax, and a double-quoted string with a $ in it is how PHP spells it.
+#
+# The rule was `$FUNC($$$_);` minus `$FUNC('$$$_', $$$_);`. The first half is
+# right. The second loses both the quotes and the arity when it compiles -
+# what is left is "a call with any arguments" - so it subtracted every match
+# the first half found, and the rule reported nothing at all. See GUIDE.md.
 
-. as $root
-| ( ($root | scan_ast(["*.php"]; [
-      "$FUNC($$$_);",
-      "$FUNC('$$$_', $$$_);"
-    ])) as $all
-    | ( $all | of(["$FUNC($$$_);"])
-          | not_at($all | of(["$FUNC('$$$_', $$$_);"]))
-          | where_capture("FUNC"; "^(?:exec|passthru|proc_open|popen|shell_exec|system|pcntl_exec)")
-        | finding("exec-use";
-            "Executing non-constant commands.") ) )
+["$F($CMD)", "$F($CMD, $$$_)"] as $calls
+| scan_ast("*.php"; $calls)
+| where_capture("F";
+    "^(?:exec|passthru|proc_open|popen|shell_exec|system|pcntl_exec)$")
+| where_capture_not("CMD"; "^(?:'[^'$\\\\]*'|\"[^\"$\\\\]*\")$")
+| where_capture_not("CMD"; "escapeshellarg|escapeshellcmd")
+| finding("exec-use";
+    "this runs a command the file does not contain; a shell reading a string "
+    + "the program assembled reads whatever ended up in it")
 | report

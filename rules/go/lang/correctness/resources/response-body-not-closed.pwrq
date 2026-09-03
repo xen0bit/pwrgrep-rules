@@ -1,0 +1,63 @@
+# rules: go-response-body-not-closed
+# languages: go
+# fixture: go/CWE-772.go
+# from: CWE-772 (Missing Release of Resource after Effective Lifetime), CWE-404
+#
+# net/http hands back a response whose Body is an open connection, and until
+# it is closed the connection cannot go back to the pool. A handler that
+# forgets holds one file descriptor and one socket per request it makes, which
+# works perfectly until the process is busy.
+#
+# Two things keep this off every SDK in the module cache, and the second one
+# is the whole rule.
+#
+# The method calls carry a guard on the receiver, because `$C.Get($U)` with
+# nothing said about $C is every two-value Get in the language.
+#
+# And the arity is written out, because the receiver guard is nowhere near
+# enough. go-github hangs its API off a field called `client`, so
+# `s.client.Do(ctx, req, repo)` passes any test on the name - and it reported
+# a thousand findings across that one module, on a client that closes the body
+# itself. net/http's Do takes one argument, its Post takes three and its
+# PostForm takes two; an SDK method that happens to be called Do takes a
+# context first. Writing the signature out is what tells them apart, and it is
+# the plainest instance in this corpus of arity being part of the pattern.
+#
+# What counts as released is asked of the whole function rather than of the
+# statement, and that is a deliberate coarsening. The release is written at
+# least five ways - deferred, plain, `_ =`-ed, and either of those inside a
+# deferred closure, which is how a program closes a body and tells a linter it
+# meant to drop the error - and it is as often written inside an `if` as
+# beside the request. On top of that a function that returns the body, or the
+# response, has not leaked it: it has handed it to its caller, which is how
+# every helper that hands back an io.ReadCloser is written, and go-github's
+# fetchMetricsReport says so in a comment.
+#
+# So the question asked is the one chroot-without-chdir asks: does this
+# function mention closing a body, or handing one back, anywhere at all. If it
+# does, the rule stops asking, because it is not going to tell a programmer
+# who closed the body that they did not. The cost is a function that makes two
+# requests and closes one of them, which is not reported and would be worth
+# reporting. That is the trade, and it is the right way round: the coarse
+# version is quiet on real code, and the precise version - the release matched
+# as a sibling of the request, tied to it by name - reported every response
+# closed one line further in than it expected.
+
+["$R, $E := http.Get($U)", "$R, $E := http.Post($U, $CT, $BODY)",
+ "$R, $E := http.PostForm($U, $DATA)", "$R, $E := http.Head($U)"] as $direct
+| ["$R, $E := $C.Do($REQ)", "$R, $E := $C.Get($U)",
+   "$R, $E := $C.Post($U, $CT, $BODY)", "$R, $E := $C.PostForm($U, $DATA)",
+   "$R, $E := $C.Head($U)"] as $viaClient
+| "(?i)client|^c$|^hc$|^httpc$" as $clientish
+| ["func $FN($$$_) $RT { $$$BODY }", "func $FN($$$_) { $$$BODY }",
+   "func ($$$_) $FN($$$_) $RT { $$$BODY }",
+   "func ($$$_) $FN($$$_) { $$$BODY }"] as $funcs
+| "\\.Body\\.Close\\(\\)|return\\s+[A-Za-z_][A-Za-z0-9_.]*\\.Body\\b" as $handled
+| scan_ast("*.go"; $direct + $viaClient + $funcs) as $all
+| ( ($all | of($direct) | focus("R"))
+    + ($all | of($viaClient) | where_capture("C"; $clientish) | focus("R")) )
+| outside($all | of($funcs) | where_capture("BODY"; $handled))
+| finding("go-response-body-not-closed";
+    "$R.Body is never closed, so this request holds its connection and its "
+    + "file descriptor until the process ends")
+| report

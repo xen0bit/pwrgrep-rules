@@ -1,0 +1,32 @@
+# rules: go-context-cancel-not-called
+# languages: go
+# fixture: go/CWE-459.go
+# from: CWE-459 (Incomplete Cleanup), CWE-772, go vet (lostcancel)
+#
+# WithCancel, WithTimeout and WithDeadline each return a cancel function, and
+# the context they return stays attached to its parent until that function is
+# called. Dropping it leaks the child, and everything watching it, for as long
+# as the parent lives - which for a server's background context is the life of
+# the process. A timeout does not save it: WithTimeout releases its own timer
+# when it fires, but the parent keeps the child until cancel runs.
+#
+# Discarding the function into `_` and never calling a function that was named
+# are the same bug, and one reading finds both: `_` can never be the name in a
+# later `defer _()`, so the subtraction that removes the released cases leaves
+# it behind on its own.
+#
+# The release has to be a sibling of the derivation. A cancel called inside an
+# if, or handed to something else to call, is reported.
+
+["$CTX, $CANCEL := context.WithCancel($$$_)",
+ "$CTX, $CANCEL := context.WithTimeout($$$_)",
+ "$CTX, $CANCEL := context.WithDeadline($$$_)"] as $derive
+| ( ($derive | map(. + "\n$$$_\ndefer $C()"))
+    + ($derive | map(. + "\n$$$_\n$C()")) ) as $released
+| scan_ast("*.go"; $derive + $released) as $all
+| ( ($all | of($derive) | focus("CANCEL"))
+    | not_at($all | of($released) | where_same("CANCEL"; "C") | focus("CANCEL")) )
+| finding("go-context-cancel-not-called";
+    "the cancel function returned with $CTX is never called, so $CTX stays "
+    + "attached to its parent until the parent is cancelled")
+| report

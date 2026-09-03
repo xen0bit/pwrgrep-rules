@@ -1,0 +1,52 @@
+# rules: go-unchecked-random-read
+# languages: go
+# fixture: go/CWE-252.go
+# from: CWE-252 (Unchecked Return Value), CWE-330, CWE-703
+#
+# crypto/rand.Read fills a buffer and returns how much it filled. If it fails,
+# and it can, the buffer keeps whatever it already had - for a freshly made
+# slice, zeros. A key, a token or an IV made this way is a constant, and
+# nothing about the program says so afterwards: it runs, it encrypts, and
+# every value it produces is the same one.
+#
+# Go will not let a return be dropped silently, so there are exactly two
+# spellings that throw it away, and they are asked for as two different
+# questions. A call whose value goes nowhere is a statement, so the first
+# reading is the bare call minus every place the value is used - an
+# assignment, a declaration, a return - which is the same subtraction the C
+# rules make about a checked return. The second is the value assigned to the
+# blank identifier, which is a program saying in as many words that it does
+# not care.
+#
+# The two readings are not held to the same standard, and the reason is a
+# count. A bare call is an oversight: Go let the return drop because nobody
+# said anything about it. `_, _ =` is a programmer writing down that they
+# considered the error and chose to drop it - which in a test that wants some
+# random bytes is the right call, and cloudflare/circl writes it 151 times
+# across its field-arithmetic tests, filling `x`, `y`, `k` and `msg`. So the
+# bare call is reported whatever it fills, and the deliberate spelling is
+# reported only when the buffer is named like key material. That misses a key
+# in a buffer called `b`; the alternative was a rule nobody would leave on.
+#
+# `rand` is joined to an import of crypto/rand, because math/rand spells its
+# Read the same way and an unchecked read there is a different rule's
+# business. It is the same join go-weak-hash makes, and for the same reason: a
+# call is not inside an import, it is in the same file as one.
+
+["rand.Read($B)", "io.ReadFull(rand.Reader, $B)"] as $calls
+| ["\"crypto/rand\""] as $imports
+| ( ($calls | map("$V, $E := " + .))
+    + ($calls | map("$V, $E = " + .))
+    + ($calls | map("return " + .)) ) as $assigned
+| scan_ast("*.go"; $calls + $assigned + $imports) as $all
+| "(?i)key|secret|token|iv$|^iv|nonce|salt|seed|passwd|password|material|entropy"
+  as $keyish
+| ( ( $all | of($calls) | outside($all | of($assigned)) )
+    + ( $all | of($assigned)
+        | where_capture("E"; "^_$")
+        | where_capture("B"; $keyish) ) )
+  | in_files_with($all | of($imports))
+| finding("go-unchecked-random-read";
+    "nothing here checks whether this read succeeded, and a read that fails "
+    + "leaves $B holding the zeros it was made with")
+| report

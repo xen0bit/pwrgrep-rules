@@ -1,0 +1,44 @@
+# rules: go-request-decides-the-host
+# languages: go
+# fixture: go/CWE-918.go
+# from: CWE-918 (Server-Side Request Forgery), CWE-441
+#
+# A URL that arrives in a parameter can name anything the server can reach,
+# and a server usually reaches more than its clients do: 127.0.0.1, the
+# private ranges, and on a cloud instance the metadata service at
+# 169.254.169.254 that hands out credentials to anyone who asks from the right
+# place. Fetching it makes the server a proxy into its own network.
+#
+# The sources are the request and nothing else, for the reason the path rule
+# gives: a URL from a configuration file is chosen by whoever runs the
+# program.
+#
+# No sanitizer is named, because none of them is syntax. Deciding a URL is
+# safe means resolving it and looking at the address, and a rule that cannot
+# see a resolver should not treat an allowlist it cannot read as one.
+#
+# The method calls carry a guard on the receiver and are written at net/http's
+# arity, for the reason go-response-body-not-closed sets out at length: an
+# SDK's `s.client.Get(ctx, url, v)` passes any test on the receiver's name and
+# is not this.
+
+
+["r.URL.Query().Get($_)", "$R.URL.Query().Get($_)",
+ "$R.FormValue($_)", "$R.PostFormValue($_)", "$R.Header.Get($_)",
+ "$R.PathValue($_)", "mux.Vars($_)[$_]"] as $outside
+| ["http.Get($U)", "http.Head($U)", "http.Post($U, $CT, $BODY)",
+   "http.PostForm($U, $DATA)",
+   "http.NewRequest($_, $U, $$$_)",
+   "http.NewRequestWithContext($_, $_, $U, $$$_)",
+   "net.Dial($_, $U)", "net.DialTimeout($_, $U, $$$_)"] as $direct
+| ["$C.Get($U)", "$C.Head($U)",
+   "$C.Post($U, $CT, $BODY)", "$C.PostForm($U, $DATA)"] as $viaClient
+| "(?i)client|^c$|^hc$|^httpc$" as $clientish
+| scan_ast("*.go"; $outside + $direct + $viaClient) as $all
+| ( ( ($all | of($direct) | focus("U"))
+      + ($all | of($viaClient) | where_capture("C"; $clientish) | focus("U")) )
+    | reaching($all | of($outside); []) )
+| finding("go-request-decides-the-host";
+    "$U came from the request, so whoever sent it chooses which host this "
+    + "server talks to - including 127.0.0.1 and the cloud metadata service")
+| report

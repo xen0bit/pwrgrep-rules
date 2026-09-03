@@ -276,6 +276,94 @@ constant however many dollars are in it — PEAR contains exactly that, and a
 "contains a `$`" test reported it. Double quotes are the opposite: a `$` or a
 `{` in one is code.
 
+## Go is the one that reads like C
+
+The Go pass expected to spend its first day on the same discovery PHP forced,
+and did not. Almost everything in "What the matcher will and will not take"
+transferred: a call with no named hole is read as Go, `gets($$$_)` style
+patterns compile, statement sequences work, and the trailing `$$$_` is dropped
+exactly as it is in C, so `resp.Body.Close()\n$$$_` still stops at the close
+and reaches forward to nothing.
+
+Two things are better than C, and are worth knowing before writing a rule
+around the absence of them:
+
+**A nested call in the only argument position matches.** `int32(len($S))`
+finds `int32(len(b))`, where the C equivalent compiles and finds nothing.
+`where_capture_ast` is still the tool when the hole may hold the call among
+other things, but the direct spelling is available and says more.
+
+**`reaching` follows a two-value assignment.** `n, err := strconv.Atoi(s)`
+taints `n`, which is what makes any rule about a parsed number possible at
+all. Go writes almost every interesting source that way, so a corpus that had
+to name the single-value form would have nothing to say.
+
+Three things are worse. All three are silent when the rule runs - the query
+compiles or is skipped, the pipeline produces an empty array - and only the
+first of them is something `ast_pattern` will tell you about, which is the
+argument for compiling a pattern the moment it comes back empty.
+
+**An anonymous ellipsis standing as a braced body collides with a standalone
+one.** This is the Go gotcha, it costs an afternoon, and the minimal pair is:
+
+```
+if $C { $$$_ }     invalid: "the item below an ellipsis taken into it"
+$$$_
+a()
+
+if $C { $$$BODY }  valid, and matches what it looks like it matches
+$$$_
+a()
+```
+
+Both ellipses read as a body ellipsis, so the standalone one is taken into the
+block rather than left as a gap. What is left will not scaffold into a
+function, and the query ends up rooted at `source_file` — where Go has no
+statements at all, so it can never match anything. `ast_pattern` says
+`Valid: false` and names the problem, which is the only reason this is an
+afternoon rather than a rule that reports nothing for as long as it exists. Naming the body hole fixes it in every case: `for`, `if`, `func` and
+`go func` all behave once the body is `$$$BODY` rather than `$$$_`. Two
+anonymous ellipses are only a problem when one of them is a body; `for $$$_ {
+$$$B }` beside a gap is fine.
+
+**`$NAME: $VALUE` is a labeled statement.** Go has labels, the grammar prefers
+them, and the pattern compiles to `(labeled_statement ...)` — valid, and never
+what a rule about struct fields meant. Write the literal around it:
+`$T{$NAME: $VALUE}` compiles to a `keyed_element` and matches.
+
+**A pattern rooted at the enclosing node gives one match per node.** Which
+means only the first field of a composite literal is ever bound:
+`$T{$$$_, $NAME: $VALUE, $$$_}` looks like it reads every keyed element and
+reads the first one, whatever the ellipses either side suggest. There is no
+spelling that roots the match at the element, so a rule about struct fields
+either matches single-field literals — `$T{$NAME: $VALUE}`, which is honest
+about what it finds — or says in its header that it reads one field. This is
+worth checking for in any language whose interesting construct is a list of
+children.
+
+A fourth was worse until this pass fixed it, and it is written down because
+the shape will come back in another grammar. `reaching` binds a source to the
+name of any assignment whose right-hand side contains it, and it used to ask
+that of every ancestor - so a source read inside a closure was reported as
+having been given to whatever the closure was assigned to:
+
+```
+inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        if r.Header.Get("X-Fail") != "" { ... }
+})
+ts := httptest.NewServer(logRequests(logger, inner))
+req, _ := http.NewRequest(http.MethodGet, ts.URL, nil)
+```
+
+`inner` was tainted by the header, `ts` by `inner`, and an SSRF rule reported a
+test server's own address. What `inner` was given is a function. The walk up
+from a source now stops at the function the source was written in - a node
+with both parameters and a body, which is what tells a closure from a `for`
+and from a Python comprehension, both of which have a body and are real paths
+a value travels along. If a rule of yours reports something built from a
+handler rather than from a request, check the binary is new enough to have
+this.
+
 ## The techniques
 
 ### Two statements as one construct
@@ -558,8 +646,28 @@ in the call says it is written to; it is a macro, and it does. And the taint
 question was being asked of a whole subscript rather than of its index. Both
 were one line to fix and neither was visible from inside the fixture.
 
+The Go pass had the same thing happen an order of magnitude louder, and it is
+the strongest argument in this document for doing this before you commit. A
+rule about unclosed HTTP response bodies passed its fixture, read correctly,
+and reported **a thousand findings in one module** - `google/go-github`, which
+hangs its whole API off a field called `client` and closes every body itself.
+`s.client.Do(ctx, req, repo)` satisfied `$C.Do($$$_)` with a receiver named
+`client`, and nothing about the rule or its fixture could ever have said so.
+
+The fix was arity. net/http's `Do` takes one argument; an SDK method called
+`Do` takes a context first. Writing the signature out - `$C.Do($REQ)`, not
+`$C.Do($$$_)` - took the module from a thousand findings to three. When a
+pattern names a method that a hundred libraries also define, the parameter
+list is the only thing in the syntax that says which one you meant.
+
+The remaining three were all one shape: the function dealt with the body
+somewhere the pattern could not see - in a branch, or by handing it back to
+its caller. That is what moved the question from the statement to the whole
+function body, and it is the same trade `chroot-without-chdir` makes.
+
 Also read the counts. A rule reporting a hundred findings in one file is
-telling you something about itself.
+telling you something about itself, and one reporting a thousand across a
+module is telling you it has matched a name rather than a thing.
 
 ## Before you commit
 

@@ -1,0 +1,46 @@
+# rules: go-integer-overflow-conversion
+# languages: go
+# fixture: go/CWE-190.go
+# from: CWE-190 (Integer Overflow or Wraparound), CWE-681, CWE-195, gosec G115
+#
+# Go does not range check a conversion. int32(x) of an int that does not fit
+# keeps the low bits, and uint32(x) of a negative int is a very large number.
+# Neither says anything at run time, and the wrapped value is almost always
+# used next as a size, a length or an index.
+#
+# Every narrowing conversion in a program is not a finding - most of them are
+# a programmer who knows the range - so the rule reports only the ones a value
+# from outside reaches, which is where the number is chosen by somebody else.
+#
+# The sources are the parses that do not bound their result: Atoi, and
+# ParseInt and ParseUint asked for 0 or 64 bits. strconv.ParseInt(s, 10, 32)
+# is deliberately not a source, because it has already refused anything that
+# does not fit in 32 bits and converting its result is the safe idiom rather
+# than the bug. That costs the narrower conversions of an already-bounded
+# parse - int8 of a 32-bit parse is not reported - which is the trade this
+# corpus makes every time: report less.
+#
+# A conversion that follows a guard comparing something is subtracted, not
+# because the comparison was checked to be the right one, but because a rule
+# that cannot read a range check should not tell a programmer who wrote one
+# that they did not. The guard has to be a sibling of the conversion, which is
+# where Go's early-return idiom puts it. Both readings are focused onto the
+# converted value so that the two spans coincide and the subtraction can
+# happen at all.
+
+["int8($X)", "int16($X)", "int32($X)",
+ "uint8($X)", "uint16($X)", "uint32($X)", "uint($X)"] as $narrow
+| ["strconv.Atoi($$$_)",
+   "strconv.ParseInt($_, $_, 0)", "strconv.ParseInt($_, $_, 64)",
+   "strconv.ParseUint($_, $_, 0)", "strconv.ParseUint($_, $_, 64)"] as $outside
+| ( ($narrow | map("return " + .))
+    + ($narrow | map("$V := " + .))
+    + ($narrow | map("$V = " + .)) ) as $stmts
+| ($stmts | map("if $COND { $$$GBODY }\n$$$_\n" + .)) as $guarded
+| scan_ast("*.go"; $narrow + $outside + $guarded) as $all
+| ( $all | of($narrow) | focus("X")
+    | reaching($all | of($outside); [])
+    | not_at($all | of($guarded) | where_capture("COND"; "[<>]") | focus("X")) )
+| finding("go-integer-overflow-conversion";
+    "$X came from outside the program and this conversion does not range check it")
+| report

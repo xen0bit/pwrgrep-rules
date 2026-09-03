@@ -1,0 +1,41 @@
+# rules: csharp-certificate-check-always-passes
+# languages: c_sharp
+# fixture: csharp/CWE-295.cs
+# from: CWE-295 (Improper Certificate Validation)
+#
+# A validation callback that returns true accepts every certificate: expired,
+# self-signed, issued for another host, or presented by whoever is sitting in
+# the middle of the connection. TLS still encrypts, so the traffic looks
+# protected in a packet capture, and it is protected from everyone except the
+# one attacker who matters.
+#
+# These are written to get past a certificate problem in development and then
+# not removed, which is why the rule is worth having even though nobody would
+# defend the line if asked about it. It is one of the very few findings a
+# reviewer never has to think about.
+#
+# Two properties, because .NET has two: the process-wide
+# `ServicePointManager.ServerCertificateValidationCallback`, which turns
+# validation off for every connection the process makes, and
+# `HttpClientHandler.ServerCertificateCustomValidationCallback`, which is
+# scoped to one client. The first is worse and both are reported.
+#
+# The test is that the body is the constant `true` - a lambda returning it, or
+# a `delegate` block whose only statement returns it. A callback that looks at
+# its arguments is doing something, even if what it does is wrong, and this
+# rule does not judge it: `e == SslPolicyErrors.None` in the fixture is the
+# correct check and stays quiet. Judging a callback that reads its arguments
+# needs to know what the check means, which a pattern cannot, and guessing
+# would put a finding on every pinning implementation in the corpus.
+
+["$O.$P = $CB;", "$P = $CB;"] as $assigned
+| scan_ast("*.cs"; $assigned) as $all
+| ($all | of($assigned))
+| where_capture("P"; "ServerCertificate(Validation|CustomValidation)Callback$")
+| focus("CB")
+| where_capture("CB"; "^(\\([^)]*\\)|[A-Za-z_][A-Za-z_0-9]*)\\s*=>\\s*true$|^delegate\\s*(\\([^)]*\\))?\\s*\\{\\s*return\\s+true\\s*;\\s*\\}$")
+| finding("csharp-certificate-check-always-passes";
+    "this accepts every certificate - expired, self-signed, or issued for "
+    + "another host - so the connection is encrypted against everyone except "
+    + "whoever is in the middle of it")
+| report

@@ -1,0 +1,61 @@
+# rules: csharp-command-from-request
+# languages: c_sharp
+# fixture: csharp/CWE-78.cs
+# from: CWE-78 (OS Command Injection)
+#
+# The caller decides part of a command line, which on Windows is worse than it
+# looks. `Process.Start(file, args)` hands the argument string to the operating
+# system as one string, and the callee splits it again by its own rules, so a
+# quote and a space are enough to add an argument nobody wrote. Where the
+# process is started through a shell - `cmd /c`, or UseShellExecute - a `&` or
+# a `|` adds a whole command instead.
+#
+# Three sinks, and they are three ways of saying the same thing: the two
+# argument overload of `Process.Start`, an assignment to `Arguments`, and an
+# assignment to `FileName`. `FileName` is a sink and not a lesser one: it
+# decides which program runs, so a caller who controls it does not need to
+# inject anything.
+#
+# The single argument `Process.Start($P)` is deliberately absent. It takes
+# either a ProcessStartInfo, which the Arguments and FileName sinks already
+# cover at the point the string was actually built, or a bare filename with no
+# arguments at all. Including it reported the harmless `Process.Start(psi)` on
+# the line after every real finding, twice per bug.
+#
+# There is no sanitizer list, because in .NET there is no sanitizer. The fix is
+# ArgumentList, which takes the arguments as separate strings and never builds
+# a command line at all - a different call rather than a cleaning of this one -
+# so a rule cannot recognise it as a treatment applied to the value here.
+#
+# The parameter source is confined to files that are actually MVC. This is the
+# lesson the corpus taught and it was expensive: `public $T $M($$$_, string $P,
+# $$$_) { $$$_ }` says "a public method taking a string", which in a controller
+# means the request and in a utility class means nothing at all. Run over
+# ShareX - a desktop application - the path rule reported twenty-seven
+# findings, every one of them a `string filePath` parameter of a file helper.
+# A file that imports ASP.NET MVC, or declares a class deriving from something
+# called Controller, is the test; a file that does neither has no request in it
+# and the parameter half of this rule is switched off there.
+
+["$T $V = $S;"] as $assigned
+| ["public $T $M($$$_, string $P, $$$_) { $$$_ }",
+   "public $T $M(string $P) { $$$_ }"] as $bound
+| ["using Microsoft.AspNetCore.Mvc;", "using System.Web.Mvc;",
+   "using System.Web.Http;", "using Microsoft.AspNetCore.Components;"] as $mvcImports
+| ["class $C : $B { $$$_ }"] as $classes
+| ["Process.Start($F, $A, $$$_);", "$T $V = Process.Start($F, $A, $$$_);",
+   "$P.Arguments = $A;", "$P.StartInfo.Arguments = $A;",
+   "$P.FileName = $A;", "$P.StartInfo.FileName = $A;",
+   "new ProcessStartInfo($F, $A, $$$_)"] as $sinks
+| "Request\\s*\\.\\s*(Query|Form|Headers|Cookies|QueryString|Params|RouteValues)\\b" as $fromRequest
+| scan_ast("*.cs"; $assigned + $bound + $mvcImports + $classes + $sinks) as $all
+| ( ($all | of($assigned) | where_capture("S"; $fromRequest) | focus("S"))
+    + ($all | of($bound) | focus("P")
+       | in_files_with( ($all | of($mvcImports))
+                        + ($all | of($classes) | where_capture("B"; "Controller")) )) ) as $untrusted
+| ($all | of($sinks) | focus("A"))
+| reaching($untrusted; [])
+| finding("csharp-command-from-request";
+    "the caller decides part of this command line, and the operating system "
+    + "splits it again on quotes and spaces after this code is done with it")
+| report

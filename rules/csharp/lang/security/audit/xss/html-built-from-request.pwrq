@@ -1,0 +1,72 @@
+# rules: csharp-html-built-from-request
+# languages: c_sharp
+# fixture: csharp/CWE-79.cs
+# from: CWE-79 (Cross-site Scripting)
+#
+# Razor encodes everything it renders, which is why ASP.NET applications have
+# so much less XSS than they used to and why the ones they still have are all
+# in the same three places: the calls that exist specifically to *not* encode.
+# `new HtmlString(s)` and `Html.Raw(s)` both mean "this is markup, render it as
+# is", and `Content(s, "text/html")` writes a response body with no view and no
+# encoder anywhere in the path.
+#
+# So the rule is narrow on purpose. It does not look at Razor expressions, at
+# `@Model.Name`, or at anything the framework will encode - those are the safe
+# majority and reporting them would bury the three that are not. What it looks
+# for is a value from the request arriving at one of the escape hatches.
+#
+# `HtmlEncode` is the sanitizer, in both its spellings: `WebUtility.HtmlEncode`
+# is the modern one, `HttpUtility.HtmlEncode` the System.Web one, and both do
+# the same thing. `Uri.EscapeDataString` is deliberately absent - it is URL
+# encoding, it does not escape `<`, and treating it as an HTML sanitizer is
+# itself a common bug.
+#
+# The sanitizer is spelled twice for one reason worth knowing about C#: a call
+# on a hole receiver cannot be written as a pattern on its own. `$E.HtmlEncode($X)`
+# is read by the grammar as a `qualified_name` - a type called
+# `something.HtmlEncode` - and refused. It needs a position: a statement, with
+# its semicolon, or the right-hand side of a declaration. Both are here because
+# an encoder is called in both, and `System.Net.WebUtility.HtmlEncode(name)` -
+# fully qualified, as the fixture writes it - is only reachable through the
+# hole, since a three-part literal receiver does not parse either.
+#
+# `Content($"...")` is worth a note. The two argument overload names the
+# content type, and only `text/html` matters here - `Content(s, "text/plain")`
+# is safe and common. The guard reads the second argument rather than assuming.
+#
+# The parameter source is confined to files that are actually MVC. This is the
+# lesson the corpus taught and it was expensive: `public $T $M($$$_, string $P,
+# $$$_) { $$$_ }` says "a public method taking a string", which in a controller
+# means the request and in a utility class means nothing at all. Run over
+# ShareX - a desktop application - the path rule reported twenty-seven
+# findings, every one of them a `string filePath` parameter of a file helper.
+# A file that imports ASP.NET MVC, or declares a class deriving from something
+# called Controller, is the test; a file that does neither has no request in it
+# and the parameter half of this rule is switched off there.
+
+["$T $V = $S;"] as $assigned
+| ["public $T $M($$$_, string $P, $$$_) { $$$_ }",
+   "public $T $M(string $P) { $$$_ }"] as $bound
+| ["using Microsoft.AspNetCore.Mvc;", "using System.Web.Mvc;",
+   "using System.Web.Http;", "using Microsoft.AspNetCore.Components;"] as $mvcImports
+| ["class $C : $B { $$$_ }"] as $classes
+| ["new HtmlString($H, $$$_)", "new HtmlContentBuilder($H, $$$_)",
+   "$X.Raw($H, $$$_)", "Html.Raw($H, $$$_)"] as $raw
+| ["Content($H, $CT, $$$_)", "$X.Content($H, $CT, $$$_);",
+   "return Content($H, $CT, $$$_);"] as $body
+| ["WebUtility.HtmlEncode($X, $$$_)", "HttpUtility.HtmlEncode($X, $$$_)",
+   "$T $V = $E.HtmlEncode($X, $$$_);", "$E.HtmlEncode($X, $$$_);",
+   "$E.Encode($X, $$$_);", "$T $V = $E.Encode($X, $$$_);"] as $clean
+| "Request\\s*\\.\\s*(Query|Form|Headers|Cookies|QueryString|Params|RouteValues)\\b" as $fromRequest
+| scan_ast("*.cs"; $assigned + $bound + $mvcImports + $classes + $raw + $body + $clean) as $all
+| ( ($all | of($assigned) | where_capture("S"; $fromRequest) | focus("S"))
+    + ($all | of($bound) | focus("P")
+       | in_files_with( ($all | of($mvcImports))
+                        + ($all | of($classes) | where_capture("B"; "Controller")) )) ) as $untrusted
+| ( ($all | of($raw) | focus("H"))
+    + ($all | of($body) | where_capture("CT"; "(?i)text/html") | focus("H")) )
+| reaching($untrusted; $all | of($clean))
+| finding("csharp-html-built-from-request";
+    "this is markup built from the request and handed to the one call that "
+    + "does not encode it, so a <script> in the value is a <script> in the page")
+| report

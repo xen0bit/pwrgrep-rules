@@ -493,6 +493,168 @@ Both are fixed in xen0bit/pwrq#49. Over three trees of real Python and Go the
 two changes together removed six findings and added none, and the flows the
 rules are actually for still fire.
 
+## C# is the one that thinks a fragment is a program
+
+Every pattern in this section compiled, reported `Valid: true`, and matched
+nothing. That is the whole character of the language: C# does not refuse the
+patterns it cannot read, it accepts them and answers no.
+
+**A statement is wrapped in a node that exists only at the top of a file.**
+Since C# 9 a file may be nothing but statements, so `Console.WriteLine($X);`
+parses standing alone — cleanly, no error, no complaint — and the least
+invasive scaffold therefore wins. But the grammar wraps each top-level
+statement in a `global_statement`, so the query is
+
+```
+(global_statement . (expression_statement . (invocation_expression ...) .) .)
+```
+
+which matches a file with no class in it and nothing else:
+
+```csharp
+class T { void f() { Console.WriteLine(q); } }   // no match
+Console.WriteLine(q);                            // match
+```
+
+**Ninety-four of the hundred and sixty-nine C# patterns in this corpus** —
+every call, every assignment, every `using` — compiled to that and found
+nothing in twenty-two thousand files. This is fixed in xen0bit/pwrq#53: the
+wrapped reading is replaced by the pattern read inside a function body, and
+for a member pattern inside a class body. Twenty-two patterns are still out of
+reach and none of them should be rescued; see below.
+
+**A dotted call needs its semicolon.** `$R.Execute($X)` is not C#. A dotted
+name at file scope is a *type* — `System.Console` — so the grammar reads the
+pattern as a `qualified_name` and reports an ERROR. `$R.Execute($X);` is the
+call. This one is loud, which makes it the friendliest trap in the language:
+
+```
+| ["$E.HtmlEncode($X, $$$_);", "$T $V = $E.HtmlEncode($X, $$$_);"] as $clean
+```
+
+Both spellings, because a hole receiver needs a *position* — a statement or
+the right-hand side of a declaration — and an encoder is called in both. A
+fully-qualified literal receiver does not parse either, so
+`System.Net.WebUtility.HtmlEncode($X)` has to be reached through the hole.
+
+**An indexer cannot stand alone.** `Request.Query[$K]` — the single most
+important taint source in ASP.NET — reads as an *array type*, `Request.Query[]`,
+and is refused. Read it off the right-hand side of a declaration instead:
+
+```
+| ["$T $V = $S;"] as $assigned
+| "Request\s*\.\s*(Query|Form|Headers|Cookies|QueryString)\b" as $fromRequest
+| ($all | of($assigned) | where_capture("S"; $fromRequest) | focus("S"))
+```
+
+**`try`/`catch` cannot be matched at all.** Every spelling —
+`try { $$$_ } catch ($T $E) { $$$_ }`, the catch alone, with or without the
+binding — compiles to a search for a *call to a function named `catch`*:
+
+```
+(invocation_expression function: (identifier) @_lit_4
+  arguments: (argument_list . (argument . (declaration_expression ...) .) .))
+(#eq? @_lit_4 "catch")
+```
+
+and reports itself valid. Java takes the same pattern correctly. There is no
+workaround inside the matcher; `scan_regex` is the honest tool, and the empty
+catch rule this corpus has for Java has no C# counterpart for that reason.
+
+**A single hole in argument position also matches any arity.** This is the one
+that will cost you a false positive rather than a silent miss, so it is worth
+internalising:
+
+```
+File.ReadAllText($P)        ->  binds "p", and also binds "(p, e)"
+File.ReadAllText($P, $$$_)  ->  binds "p", both times
+```
+
+The pattern compiles to two readings and the second is `arguments: (_) @P`,
+unanchored. `Path.Combine($P)` on `Path.Combine(root, name)` therefore reports
+`(root, name)`, at the wrong column and for the wrong reason. **Write `$$$_`
+beside every named argument hole in C#.**
+
+**A keyword in front of a statement can be dropped.** This was a bug in the
+first version of the reading fix and is worth knowing as a shape: anchoring
+descends past the nodes a grammar wraps a construct in, and it cannot tell
+those from the nodes that *say* something.
+
+```
+throw new $E($$$_);          ->  (object_creation_expression ...)
+using ($T $V = $E) { $$$_ }  ->  (variable_declaration ...)
+```
+
+— a search for every `new` and for every declaration in the program. Both are
+now refused rather than answered wrongly, so `using ($T $V = $E) { $$$_ }`
+works and `throw new $E($$$_);` finds nothing.
+
+**Three things have no reading, and should not get one.** The C# 8 using
+declaration (`using var s = ...;`), a property with an initialiser
+(`public string S { get; set; } = "x";`, whose reading anchors to a class whose
+body is that one property), and any multi-statement pattern —
+`$A = 1;\n$$$_\n$B = 2;` is read with `$B` for a type and the assignment for a
+declarator. Where you need one of those, guard on the method's text instead
+and say in the header that you did:
+
+```
+| "\\.\\s*(?:Dispose|Close)\\s*\\(|\\busing\\s+var\\b" as $disposes
+| outside($all | of($methods) | where_capture("BODY"; $disposes))
+```
+
+That is coarser than a structural test — a method that closes one stream and
+leaks another goes unreported — and erring quiet is the right direction for a
+resource rule.
+
+### A method body's text includes its comments
+
+Not a C# fact, but this is where it bit. A rule guarded on `where_capture("BODY"; ...)`
+reads the comments too, so a guard looking for the word `secret` matched the
+fixture's own `// ok:` annotation and the rule fired on the line asserting it
+must not. Guard on the names — `$M`, `$V` — when the question is about names:
+
+```
+| within( ($all | of($methods) | where_capture("M"; $namesASecret))
+          + ($all | of($assigned) | where_capture("V"; $namesASecret)) )
+```
+
+### Two more holes in the taint engine, and C# had no dataflow without them
+
+`reaching` returned nothing for any C# file, for two independent reasons, and
+the eight corpus rules that use it were dead on both counts as well as on the
+reading one.
+
+**A C# declaration binds no value.** `variable_declarator` gives the name a
+field and leaves the initialiser an ordinary child:
+
+```
+variable_declarator [name=identifier] "name = Request.Query[\"n\"]"
+  identifier                          "name"
+  element_access_expression           "Request.Query[\"n\"]"
+```
+
+so none of the `left`/`right`, `name`/`value` pairs the engine knows match, and
+a declaration — how nearly every value in a C# program is introduced — carried
+nothing. Same hole `declarator`/`value` was added to fill for C, one step
+further along: there the field existed under another name, here there is no
+field.
+
+**A source that *is* a name tainted nothing.** ASP.NET binds a controller
+action's arguments from the query string, the route and the body:
+
+```csharp
+public IActionResult ByCity(string city)
+```
+
+`city` came from the caller, and there is no accessor in the method to point at
+instead — which is how every C# web framework written since about 2016 spells
+it. The walk up from a source asks what the source was *given to*, and a
+parameter was given to nothing. A rule that knew only `Request.Query` missed
+every controller written this decade.
+
+Both are fixed in xen0bit/pwrq#53, and the parameter half helps every language:
+`focus("P")` on a method pattern is now a usable source anywhere.
+
 ## The techniques
 
 ### Two statements as one construct
@@ -857,6 +1019,53 @@ from inside a fixture.
 Also read the counts. A rule reporting a hundred findings in one file is
 telling you something about itself, and one reporting a thousand across a
 module is telling you it has matched a name rather than a thing.
+
+The C# pass is the third data point and the ratio was the worst yet: **fifty-one
+findings over two hundred and fifty files, of which forty-five were wrong**.
+Three sources, all invisible from inside a fixture.
+
+**A parameter source needs to know it is in a web application.** The rule said
+"a value that arrives as a parameter of a public method is untrusted", which is
+true of a controller action and true of nothing else. Over ShareX — a desktop
+screenshot tool — the path-traversal rule reported **twenty-seven** findings,
+every one a `string filePath` parameter of a file helper. The fix is a file
+level guard, and the measurement that it is the right one: over two hundred and
+fifty real ASP.NET files the guard keeps 179 of 216 parameter sources, and over
+ShareX it removes all 27.
+
+```
+| ($all | of($bound) | focus("P")
+   | in_files_with( ($all | of($mvcImports))
+                    + ($all | of($classes) | where_capture("B"; "Controller")) ))
+```
+
+**A name that names the thing is not the thing.** The credential rule fired on
+fourteen literals and one was a credential. `ConnectionString` as a *field name*
+is not a secret — `"Data Source=test.db"` has nothing in it — so the connection
+string is caught by reading its value for a `Password=` instead. A `"Password"`
+literal beside `"Mode"` and `"Cache"` is a keyword table. `"oauth_token"` is a
+protocol parameter. `"https://oauth2.googleapis.com/token"` is an endpoint. The
+shape that separates all four from `hunter2` is that they are letters and
+separators with a credential word inside them, and a password with digits in it
+is not.
+
+**A rule can be right about a construct and wrong about a type.** The zip rule
+read `.FullName`, which `ZipArchiveEntry` has and so do `FileInfo` and
+`DirectoryInfo` — where it is a resolved absolute path rather than an
+attacker's string. `Path.Combine(target.FullName, fi.Name)` in a recursive
+directory copy was reported. Narrowing the source to a receiver *named* like an
+entry, in a file that imports an archive library at all, is the cheap fix.
+
+And one that is worth knowing because the rule was *right* and still had to be
+quietened: ShareX's `ZipManager` does the correct root check —
+`Path.GetFullPath` then `StartsWith` — which a value-following rule cannot see,
+because it is a comparison rather than a call. A method that does both is now
+left alone. That is coarse, and quiet is the right direction to be coarse in.
+
+After all three, fifty-one findings became six, and all six are the weak-hash
+rule reporting real MD5 and SHA-1 — a checksum tool offering both to the user,
+and two APIs whose protocols require them. That rule's header says the
+judgement is the reader's, which is the honest place for it to land.
 
 ## Before you commit
 

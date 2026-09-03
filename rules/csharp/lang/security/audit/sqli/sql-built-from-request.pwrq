@@ -1,0 +1,74 @@
+# rules: csharp-sql-built-from-request
+# languages: c_sharp
+# fixture: csharp/CWE-89.cs
+# from: CWE-89 (SQL Injection)
+#
+# The command text is assembled from something the caller sent, so the caller
+# writes SQL. `'; DROP TABLE Orders --` in a query string is the whole attack
+# and it has not needed anything cleverer for twenty years.
+#
+# The two sources are the two ways ASP.NET hands a request to a method, and
+# both are needed. `Request.Query["name"]` is the old spelling and is caught by
+# reading the right-hand side of a declaration, because `Request.Query[$K]`
+# cannot be written as a pattern on its own - the C# grammar reads it standing
+# alone as an array type, `Request.Query[]`, and says so. The modern spelling
+# is a parameter: MVC binds `Get(string city)` from the query string, the route
+# or the body, so the parameter *is* the request and there is no accessor
+# anywhere in the method to find. A rule that knew only the first source missed
+# every controller written since 2016.
+#
+# The sinks are the three ways a raw string becomes SQL: the command object,
+# Entity Framework's two escape hatches, and an assignment to CommandText.
+# `FromSqlRaw` and `ExecuteSqlRaw` are named for what they do, and their safe
+# siblings - `FromSqlInterpolated`, `ExecuteSqlInterpolated` - are deliberately
+# not here: they take a FormattableString and parameterise the holes, so the
+# interpolation that looks identical in the source is the safe one. Reporting
+# those would teach people the distinction is noise.
+#
+# What is not a sanitizer is worth saying too. `Parameters.AddWithValue` sits
+# in the fixture beside a parameterised query and the rule stays quiet there,
+# but not because the call was seen - because nothing untrusted reached the
+# command text in the first place. A rule that treated the call as a sanitizer
+# would go quiet on a method that parameterises one hole and concatenates the
+# next, which is the shape most of these bugs actually have.
+#
+# Every argument hole is written beside a `$$$_`, and in C# it has to be. A
+# call pattern with a single hole in argument position compiles to two
+# readings, and the second binds the hole to the whole argument list whatever
+# its length - so `new SqlCommand($Q)` reports `("...", conn)` on a two
+# argument call, at the wrong column and for the wrong reason. See the guide.
+#
+# The parameter source is confined to files that are actually MVC. This is the
+# lesson the corpus taught and it was expensive: `public $T $M($$$_, string $P,
+# $$$_) { $$$_ }` says "a public method taking a string", which in a controller
+# means the request and in a utility class means nothing at all. Run over
+# ShareX - a desktop application - the path rule reported twenty-seven
+# findings, every one of them a `string filePath` parameter of a file helper.
+# A file that imports ASP.NET MVC, or declares a class deriving from something
+# called Controller, is the test; a file that does neither has no request in it
+# and the parameter half of this rule is switched off there.
+
+["$T $V = $S;"] as $assigned
+| ["public $T $M($$$_, string $P, $$$_) { $$$_ }",
+   "public $T $M(string $P) { $$$_ }"] as $bound
+| ["using Microsoft.AspNetCore.Mvc;", "using System.Web.Mvc;",
+   "using System.Web.Http;", "using Microsoft.AspNetCore.Components;"] as $mvcImports
+| ["class $C : $B { $$$_ }"] as $classes
+| ["new SqlCommand($Q, $$$_)",
+   "new NpgsqlCommand($Q, $$$_)", "new MySqlCommand($Q, $$$_)",
+   "new OleDbCommand($Q, $$$_)", "new OdbcCommand($Q, $$$_)",
+   "$D.FromSqlRaw($Q, $$$_);", "$T $V = $D.FromSqlRaw($Q, $$$_);",
+   "$D.ExecuteSqlRaw($Q, $$$_);", "$T $V = $D.ExecuteSqlRaw($Q, $$$_);",
+   "$C.CommandText = $Q;"] as $sinks
+| "Request\\s*\\.\\s*(Query|Form|Headers|Cookies|QueryString|Params|RouteValues)\\b" as $fromRequest
+| scan_ast("*.cs"; $assigned + $bound + $mvcImports + $classes + $sinks) as $all
+| ( ($all | of($assigned) | where_capture("S"; $fromRequest) | focus("S"))
+    + ($all | of($bound) | focus("P")
+       | in_files_with( ($all | of($mvcImports))
+                        + ($all | of($classes) | where_capture("B"; "Controller")) )) ) as $untrusted
+| ($all | of($sinks) | focus("Q"))
+| reaching($untrusted; [])
+| finding("csharp-sql-built-from-request";
+    "this command text is assembled from the request, so the caller decides "
+    + "what SQL runs rather than what it runs against")
+| report

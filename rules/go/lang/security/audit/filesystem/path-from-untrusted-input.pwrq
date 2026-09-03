@@ -1,0 +1,40 @@
+# rules: go-path-from-untrusted-input
+# languages: go
+# fixture: go/CWE-22.go
+# from: CWE-22 (Path Traversal), CWE-73, gosec G304
+#
+# A name that arrives in a request may be "../../etc/passwd" as easily as
+# "avatar.png". filepath.Join does not object, because it cleans its result
+# rather than refusing it: Join("/srv/files", "../../etc/passwd") is
+# "/etc/passwd", and the handler serves it.
+#
+# filepath.Clean is not named as a sanitizer, and that is deliberate rather
+# than an omission - Clean("../../etc/passwd") is "../../etc/passwd". It is
+# the call people reach for here and it does nothing about this. Base is a
+# sanitizer, because it throws away every component but the last, after which
+# there is nothing left to traverse with.
+#
+# The sources are the request and nothing else. A path from an environment
+# variable or from the command line is chosen by whoever runs the program,
+# which is a different question from one chosen by whoever sent the request:
+# for a CLI it is the entire point of the argument. Including them reported
+# every tool in reach opening the file it was told to open.
+
+["r.URL.Query().Get($_)", "$R.URL.Query().Get($_)",
+ "$R.FormValue($_)", "$R.PostFormValue($_)", "$R.Header.Get($_)",
+ "$R.PathValue($_)", "mux.Vars($_)[$_]"] as $outside
+| ["os.Open($P)", "os.OpenFile($P, $$$_)", "os.Create($P)",
+   "os.ReadFile($P)", "os.WriteFile($P, $$$_)",
+   "ioutil.ReadFile($P)", "ioutil.WriteFile($P, $$$_)",
+   "os.Remove($P)", "os.RemoveAll($P)", "os.Mkdir($P, $$$_)",
+   "os.MkdirAll($P, $$$_)", "os.Rename($P, $$$_)", "os.Stat($P)",
+   "http.ServeFile($_, $_, $P)", "http.Dir($P)"] as $opens
+| ["filepath.Base($$$_)", "path.Base($$$_)"] as $clean
+| scan_ast("*.go"; $outside + $opens + $clean) as $all
+| ( $all | of($opens) | focus("P")
+    | reaching($all | of($outside); $all | of($clean)) )
+| finding("go-path-from-untrusted-input";
+    "$P came from the request, and a path from outside may be \"../..\" as "
+    + "easily as a filename; filepath.Clean resolves the \"..\" rather than "
+    + "refusing it, so check where the path landed before opening it")
+| report

@@ -1,0 +1,30 @@
+# rules: go-waitgroup-add-inside-goroutine
+# languages: go
+# fixture: go/CWE-362.go
+# from: CWE-362 (Race Condition), CWE-366
+#
+# wg.Add(1) written inside the goroutine races the wg.Wait() that is supposed
+# to be waiting for it. The scheduler is under no obligation to start the
+# goroutine before the calling function reaches Wait, so Wait can see a
+# counter of zero, return immediately, and let the program carry on while the
+# work it was waiting for has not started. It passes on a busy machine and
+# fails on an idle one.
+#
+# Add belongs before the `go`, where being on the same goroutine as Wait is
+# what orders it against Wait.
+#
+# The receiver's name is what tells a WaitGroup from an atomic counter, whose
+# Add is spelled identically and whose correct place is exactly here, inside
+# the goroutine. There is no other signal available: the matcher does not
+# resolve types, and both are a selector call on a name.
+
+["$W.Add($N)"] as $adds
+| ["go func($$$_) { $$$GBODY }($$$_)"] as $goroutines
+| scan_ast("*.go"; $adds + $goroutines) as $all
+| ( $all | of($adds)
+    | where_capture("W"; "(?i)^wg|waitgroup|group$")
+    | within($all | of($goroutines)) )
+| finding("go-waitgroup-add-inside-goroutine";
+    "$W.Add runs on the new goroutine, so Wait can reach a counter of zero "
+    + "and return before this work has started; count before the `go`")
+| report

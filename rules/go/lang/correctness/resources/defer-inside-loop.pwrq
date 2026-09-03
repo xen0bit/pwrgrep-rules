@@ -1,0 +1,30 @@
+# rules: go-defer-inside-loop
+# languages: go
+# fixture: go/CWE-404.go
+# from: CWE-404 (Improper Resource Shutdown or Release), CWE-772
+#
+# defer is scoped to the function, not to the block it is written in. A defer
+# in a loop body queues one more call for the end of the function and releases
+# nothing in the meantime, so a loop over a directory holds every file open
+# until it finishes and a loop that takes a lock deadlocks on its second turn.
+#
+# The defer is reported rather than the loop, because the defer is the line
+# that has to change and the loop is usually right.
+#
+# A defer inside a function literal inside the loop is subtracted, and it is
+# the case that decides whether this rule is worth having: `go func() { defer
+# wg.Done(); ... }()` is the correct spelling of exactly this pattern, it sits
+# inside a loop, and a rule that only asks "is there a defer in this loop
+# body" reports every worker pool ever written.
+
+["defer $D"] as $defers
+| ["for $$$_ { $$$BODY }"] as $loops
+| ["func($$$_) { $$$FBODY }"] as $literals
+| scan_ast("*.go"; $defers + $loops + $literals) as $all
+| ( $all | of($defers)
+    | within($all | of($loops))
+    | outside($all | of($literals)) )
+| finding("go-defer-inside-loop";
+    "defer runs when the function returns, not when this loop body ends, so "
+    + "every iteration queues another $D and releases nothing until the end")
+| report

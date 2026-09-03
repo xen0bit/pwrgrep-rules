@@ -1,0 +1,32 @@
+# rules: go-unbounded-request-body-read
+# languages: go
+# fixture: go/CWE-770.go
+# from: CWE-770 (Allocation of Resources Without Limits or Throttling), CWE-400
+#
+# io.ReadAll grows a buffer until the reader stops, and a request body stops
+# when the client decides to stop sending. A handler that reads one is
+# offering to allocate whatever the client feels like sending, and a few
+# concurrent requests of a few gigabytes each is the whole process.
+#
+# The reader is told apart from a response body by its name, because that is
+# the only thing here that says which it is - the matcher does not resolve
+# types, and `io.ReadAll(x.Body)` is the same syntax either way. Reading a
+# response the program asked for is not the same question, so `resp.Body` is
+# left alone and `r.Body` and `req.Body` are not.
+#
+# http.MaxBytesReader assigned over the body before the read is subtracted; it
+# is the fix as well as the exclusion. Wrapping the reader inline -
+# io.ReadAll(http.MaxBytesReader(w, r.Body, n)) - never matches the pattern in
+# the first place, because the argument is a call rather than a selector.
+
+["$V, $E := io.ReadAll($R.Body)", "$V, $E := ioutil.ReadAll($R.Body)",
+ "$V, $E = io.ReadAll($R.Body)", "$V, $E = ioutil.ReadAll($R.Body)",
+ "return io.ReadAll($R.Body)", "return ioutil.ReadAll($R.Body)"] as $reads
+| ($reads | map("$B.Body = http.MaxBytesReader($$$_)\n$$$_\n" + .)) as $capped
+| scan_ast("*.go"; $reads + $capped) as $all
+| ( ($all | of($reads) | where_capture("R"; "^r$|[Rr]eq") | focus("R"))
+    | not_at($all | of($capped) | where_same("B"; "R") | focus("R")) )
+| finding("go-unbounded-request-body-read";
+    "this reads the whole request body into memory, and the client decides "
+    + "how big that is; wrap it in http.MaxBytesReader first")
+| report

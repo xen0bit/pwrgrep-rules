@@ -1,0 +1,41 @@
+# rules: go-server-without-timeouts
+# languages: go
+# fixture: go/CWE-400.go
+# from: CWE-400 (Uncontrolled Resource Consumption), CWE-1088, gosec G112
+#
+# net/http applies no deadline of its own. A connection that sends one byte of
+# a request header and then nothing occupies a goroutine and a file descriptor
+# for ever, and a few thousand of those - one cheap script - is the server.
+# That is Slowloris, and it is a configuration line rather than a bug in any
+# handler.
+#
+# http.ListenAndServe is reported wherever it appears, because it builds a
+# server whose timeout fields cannot be reached: there is no argument for them
+# and no value returned to set them on. Writing out the http.Server is both
+# the fix and the place the fix goes.
+#
+# Only the unadorned composite literal is matched. `&http.Server{...}` matches
+# it too, as the literal inside the unary expression, and listing both spelt
+# every server twice under two spans that report could not tell were the same
+# code.
+#
+# A WriteTimeout on its own is still reported: it does not bound the time a
+# client can take to finish sending its headers, which is the half Slowloris
+# uses.
+
+["http.ListenAndServe($$$_)", "http.ListenAndServeTLS($$$_)"] as $shorthand
+| ["http.Server{$$$FIELDS}"] as $servers
+| scan_ast("*.go"; $shorthand + $servers) as $all
+| ( ( $all | of($shorthand)
+      | finding("go-server-without-timeouts";
+          "this builds a server whose timeout fields cannot be reached, so a "
+          + "client that sends a header slowly holds a goroutine and a file "
+          + "descriptor for ever; write out an http.Server and set "
+          + "ReadHeaderTimeout") )
+    + ( $all | of($servers)
+        | where_text_not("ReadTimeout|ReadHeaderTimeout")
+        | finding("go-server-without-timeouts";
+            "this server sets no deadline for reading a request, so a client "
+            + "that sends a header slowly holds a goroutine and a file "
+            + "descriptor for ever; set ReadHeaderTimeout") ) )
+| report

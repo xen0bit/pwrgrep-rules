@@ -19,15 +19,17 @@
 # focused onto the right-hand side of the assignment, which is the spelling
 # the PHP section of the guide sets out and the reason it is spelled that way.
 #
-# What this cannot report is the common one:
+# The second reading covers the common spelling as well:
 #
-#	private static final byte[] KEY = "hunter2".getBytes();
+#	private static final String KEY = "hunter2";
+#	...
+#	new SecretKeySpec(KEY.getBytes(), "AES");
 #
-# A field declaration is not a shape a pattern can name in this engine - a
-# bare `$T $F = $E;` is read as a local, and wrapping it in a class anchors it
-# to the first member of the body. That is a gap in the matcher rather than a
-# judgement about the code, and it is written here so the next reader does not
-# assume it was an oversight.
+# A declaration pattern reads a field as well as a local, and a field's scope
+# for the purpose of following a value is the class body - so a constant
+# declared at the top of a class reaches a method underneath it. That used to
+# be out of reach, and this rule's header used to say so; xen0bit/pwrq#51
+# taught the matcher the other two names Java has for a declaration.
 
 ["new SecretKeySpec($K, $ALG)", "new SecretKeySpec($K, $_, $_, $ALG)",
  "new IvParameterSpec($K)", "new IvParameterSpec($K, $_, $_)",

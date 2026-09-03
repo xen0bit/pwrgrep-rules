@@ -298,7 +298,7 @@ taints `n`, which is what makes any rule about a parsed number possible at
 all. Go writes almost every interesting source that way, so a corpus that had
 to name the single-value form would have nothing to say.
 
-Four things are worse. All four are silent when the rule runs - the query
+Three things are worse. All three are silent when the rule runs - the query
 compiles or is skipped, the pipeline produces an empty array - and only the
 first of them is something `ast_pattern` will tell you about, which is the
 argument for compiling a pattern the moment it comes back empty.
@@ -341,9 +341,11 @@ about what it finds — or says in its header that it reads one field. This is
 worth checking for in any language whose interesting construct is a list of
 children.
 
-**Taint escapes through a closure bound to a name.** `reaching` binds a source
-to the name of any assignment whose right-hand side contains it, and in Go a
-handler is often exactly such an assignment:
+A fourth was worse until this pass fixed it, and it is written down because
+the shape will come back in another grammar. `reaching` binds a source to the
+name of any assignment whose right-hand side contains it, and it used to ask
+that of every ancestor - so a source read inside a closure was reported as
+having been given to whatever the closure was assigned to:
 
 ```
 inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -353,16 +355,14 @@ ts := httptest.NewServer(logRequests(logger, inner))
 req, _ := http.NewRequest(http.MethodGet, ts.URL, nil)
 ```
 
-The source is inside the closure, the closure is the right-hand side of
-`inner := ...`, so `inner` is tainted; `ts` is built from `inner`, so `ts` is
-tainted; and `ts.URL` mentions `ts`, so an SSRF rule reports a test server's
-own address. A handler declared as a function, or passed inline to
-`HandleFunc`, does not do this — the leak needs the assignment. It is a
-property of the engine rather than of Go, it will be found again in any
-language that assigns closures, and the rules in this pass say so in their
-headers rather than papering over it with a sanitizer that would blind them
-inside every closure they meet.
-
+`inner` was tainted by the header, `ts` by `inner`, and an SSRF rule reported a
+test server's own address. What `inner` was given is a function. The walk up
+from a source now stops at the function the source was written in - a node
+with both parameters and a body, which is what tells a closure from a `for`
+and from a Python comprehension, both of which have a body and are real paths
+a value travels along. If a rule of yours reports something built from a
+handler rather than from a request, check the binary is new enough to have
+this.
 
 ## The techniques
 

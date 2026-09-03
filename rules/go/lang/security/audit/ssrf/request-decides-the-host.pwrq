@@ -21,14 +21,7 @@
 # arity, for the reason go-response-body-not-closed sets out at length: an
 # SDK's `s.client.Get(ctx, url, v)` passes any test on the receiver's name and
 # is not this.
-#
-# One shape reports where it should not, and it is worth knowing about rather
-# than working around. `reaching` binds a source to the name of any assignment
-# whose right-hand side contains it, and a handler closure is such an
-# assignment: `inner := http.HandlerFunc(func(w, r) { ... r.Header.Get(..) })`
-# makes `inner` tainted, and then anything built from it. A handler declared
-# as a function, or passed inline to HandleFunc, does not do this - only one
-# bound to a name.
+
 
 ["r.URL.Query().Get($_)", "$R.URL.Query().Get($_)",
  "$R.FormValue($_)", "$R.PostFormValue($_)", "$R.Header.Get($_)",

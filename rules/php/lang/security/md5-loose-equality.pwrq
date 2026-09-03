@@ -1,5 +1,6 @@
 # rules: md5-loose-equality
 # languages: php
+# fixture: php/CWE-697.php
 # from: php/lang/security/md5-loose-equality.yaml
 
 . as $root

@@ -1,0 +1,58 @@
+# rules: php-sql-built-by-concatenation
+# languages: php
+# fixture: php/CWE-89.php
+# from: CWE-89 (SQL Injection), CWE-943, OWASP A03
+#
+# PHP has no query type. A query is a string, and the templating is
+# concatenation or interpolation, so the injection is literally the `.` or the
+# `{$x}`: the database receives one string and nothing in it says which half
+# the program wrote.
+#
+# A prepared statement is the fix, and it is not a quoting convention. The
+# value is sent apart from the statement and never becomes part of it, so
+# there is no escaping to get wrong and no character set in which the escaping
+# is different. PDO::prepare, mysqli_prepare and $wpdb->prepare all do this.
+#
+# The test is on how the query was written, in two readings, because the
+# string is not always in the call. Inline, the argument itself has to read
+# like SQL and have a variable in it. Assembled first and passed by name, the
+# assignment is the source and the call is the sink, and the value is followed
+# from one to the other.
+#
+# It has to be followed rather than matched as two statements: in PHP a $$$_
+# between statements does not mean "and anything else here", it compiles to a
+# call to something with empty parentheses, so a two-statement pattern with a
+# gap in it can never match. See GUIDE.md. Focusing the source onto the string
+# is what makes the following work - the span has to sit inside the
+# assignment's right-hand side for the name on the left to pick the taint up.
+#
+# A query with no variable in it is a constant, whatever it says, and is not
+# reported. That is what makes the last three `ok` lines pass and is the same
+# test c-sql-built-by-sprintf applies in C.
+#
+# $wpdb->prepare is the exception the interpolation test cannot see: it takes
+# a format and the values apart, so its argument is full of SQL and full of
+# variables and is exactly right. It is subtracted by name.
+
+"(?i)\\b(?:select|insert|update|delete|replace|merge|union|drop|create|"
+  + "alter|truncate)\\b" as $sql
+| "\\$" as $interpolated
+| ["$O->query($Q)", "$O->exec($Q)", "$O->get_results($Q)", "$O->get_row($Q)",
+   "$O->get_var($Q)", "$O->get_col($Q)", "$O->unprepared($Q)",
+   "mysqli_query($_, $Q)", "mysqli_real_query($_, $Q)",
+   "mysqli_multi_query($_, $Q)", "mysql_query($Q)",
+   "pg_query($_, $Q)", "sqlite_query($_, $Q)"] as $sinks
+| ["$V = $S;"] as $assignments
+| scan_ast("*.php"; $sinks + $assignments) as $all
+| ( $all | of($assignments)
+    | where_capture("S"; $sql) | where_capture("S"; $interpolated)
+    | focus("S") ) as $assembled
+| ( ($all | of($sinks)
+     | where_capture("Q"; $sql) | where_capture("Q"; $interpolated)
+     | where_capture_not("Q"; "->prepare\\s*\\(|^(?:mysqli_prepare|pg_prepare)\\b"))
+    + ($all | of($sinks) | reaching($assembled; [])) )
+| focus("Q")
+| finding("php-sql-built-by-concatenation";
+    "this builds a query by pasting values into it, so the database cannot "
+    + "tell the statement from the data; prepare the statement and bind them")
+| report

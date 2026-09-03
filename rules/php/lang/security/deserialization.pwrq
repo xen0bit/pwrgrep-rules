@@ -1,18 +1,30 @@
 # rules: extract-user-data
 # languages: php
-# from: php/lang/security/deserialization.yaml
+# fixture: php/CWE-621.php
+# from: php/lang/security/deserialization.yaml, CWE-621, CWE-473
+#
+# extract() turns the keys of an array into local variables, so
+# extract($_POST) hands the request the naming of the variables in this
+# function. The interesting case is not the variable it creates but the one it
+# overwrites: $is_admin, $user, the $config the file loaded two lines up. The
+# overwriting happens before any of the code that reads them, so every check
+# after this line is checking a value the request supplied.
+#
+# EXTR_SKIP refuses to overwrite an existing variable and EXTR_PREFIX_ALL puts
+# every name in its own namespace; both take the answer away from the request
+# and both are left alone. EXTR_OVERWRITE is the default named out loud.
+#
+# The original said this with reaching and patterns that could not compile.
+# The relationship does not need following: the superglobal is the argument,
+# right there in the call.
 
-. as $root
-| ( ($root | scan_ast(["*.php"]; [
-      "$_FILES[$$$_]",
-      "$_GET[$$$_]",
-      "$_POST[$$$_]",
-      "extract($$$_)",
-      "extract($VAR, EXTR_SKIP,$$$_)"
-    ])) as $all
-    | ( (($all | of(["extract($$$_)"])))
-          | reaching((($all | of(["$_GET[$$$_]","$_FILES[$$$_]","$_POST[$$$_]"])));
-              (($all | of(["extract($VAR, EXTR_SKIP,$$$_)"]))))
-        | finding("extract-user-data";
-            "Do not call 'extract()' on user-controllable data.") ) )
+["extract($SRC)", "extract($SRC, $MODE)", "extract($SRC, $MODE, $$$_)"] as $calls
+| scan_ast("*.php"; $calls) as $all
+| ( ($all | of(["extract($SRC)"]))
+    + ($all | of(["extract($SRC, $MODE)", "extract($SRC, $MODE, $$$_)"])
+       | where_capture_not("MODE"; "EXTR_SKIP|EXTR_PREFIX")) )
+| where_capture("SRC"; "^\\$_(?:GET|POST|REQUEST|COOKIE|FILES|SERVER)\\b")
+| finding("extract-user-data";
+    "this lets the request name the local variables, overwriting whatever "
+    + "was already called that; EXTR_SKIP, or read the keys you want")
 | report

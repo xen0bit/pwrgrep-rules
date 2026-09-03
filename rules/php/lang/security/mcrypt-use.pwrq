@@ -1,5 +1,6 @@
 # rules: mcrypt-use
 # languages: php
+# fixture: php/CWE-1104.php
 # from: php/lang/security/mcrypt-use.yaml
 
 . as $root

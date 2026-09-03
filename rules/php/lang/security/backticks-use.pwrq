@@ -1,12 +1,30 @@
 # rules: backticks-use
 # languages: php
-# from: php/lang/security/backticks-use.yaml
+# fixture: php/CWE-77.php
+# from: php/lang/security/backticks-use.yaml, CWE-77, CWE-78
+#
+# Backticks are shell_exec spelled with punctuation. `du -sh $dir` runs
+# /bin/sh with whatever $dir holds, and the reason it is worth its own rule
+# rather than folding into exec-use is that it does not look like a call to
+# anything - a reviewer scanning for exec, system and shell_exec scans past
+# it, and so does a grep.
+#
+# A backtick string with no interpolation in it is a fixed command and is left
+# alone, which is the same test exec-use applies to its argument.
+#
+# The original was ``$$$_`;`` - a PHP pattern with no named hole, which the
+# grammar reads as inline HTML text rather than as PHP, so the query looked
+# for those characters verbatim and matched nothing. The shell string has no
+# node of its own that a pattern can name either, so what works is to match
+# the assignment and read what was assigned: a value whose text starts with a
+# backtick is a shell command, and one with a $ in it is a shell command
+# somebody else helped write.
 
-. as $root
-| ( ($root | scan_ast(["*.php"]; [
-      "`$$$_`;"
-    ])) as $all
-    | ( $all | of(["`$$$_`;"])
-        | finding("backticks-use";
-            "Backticks use may lead to command injection vulnerabilities.") ) )
+["$V = $CMD;"] as $assignments
+| scan_ast("*.php"; $assignments)
+| where_capture("CMD"; "^`")
+| where_capture("CMD"; "^`[^`]*[${]")
+| finding("backticks-use";
+    "backticks run this through /bin/sh, and $CMD is not written out here; "
+    + "it reads like a string and behaves like shell_exec")
 | report

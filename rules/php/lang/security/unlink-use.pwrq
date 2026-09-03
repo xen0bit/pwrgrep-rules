@@ -1,14 +1,30 @@
 # rules: unlink-use
 # languages: php
-# from: php/lang/security/unlink-use.yaml
+# fixture: php/CWE-73.php
+# from: php/lang/security/unlink-use.yaml, CWE-73, CWE-22
+#
+# unlink() deletes the path it is given and asks nothing about it. Where the
+# path is assembled rather than written, the request is choosing which file
+# goes, and "../" is a sequence PHP has no opinion about - a prefix of
+# /var/cache/ is not a boundary, it is a string.
+#
+# basename() is treated as an answer because it throws away everything but the
+# last component, after which there is nothing left to traverse with. It is
+# not a check on its own; what it buys is that a check becomes possible.
+#
+# The rule was `unlink($$$_)` minus `unlink("$$$_",$$$_)`. Neither half works:
+# a PHP pattern with no named hole in its arguments is read as inline text
+# rather than as PHP, and the second half loses its quotes and its arity when
+# it compiles, leaving "any call with any arguments" - which would have
+# subtracted everything had the first half found anything. See GUIDE.md.
 
-. as $root
-| ( ($root | scan_ast(["*.php"]; [
-      "unlink(\"$$$_\",$$$_)",
-      "unlink($$$_)"
-    ])) as $all
-    | ( $all | of(["unlink($$$_)"])
-          | not_at($all | of(["unlink(\"$$$_\",$$$_)"]))
-        | finding("unlink-use";
-            "Using user input when deleting files with `unlink()` is potentially dangerous.") ) )
+["$F($PATH)", "$F($PATH, $$$_)"] as $calls
+| "^(?:'(?:[^'\\\\]|\\\\.)*'|\"[^\"$\\\\{]*\")$" as $written_here
+| scan_ast("*.php"; $calls)
+| where_capture("F"; "^(?:unlink|wp_delete_file)$")
+| where_capture_not("PATH"; $written_here)
+| where_capture_not("PATH"; "^(?:basename|realpath)\\s*\\(")
+| finding("unlink-use";
+    "this deletes a path the file does not contain; whoever decides $PATH "
+    + "decides which file goes, and a directory prefix is not a boundary")
 | report

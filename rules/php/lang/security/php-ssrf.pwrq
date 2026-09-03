@@ -1,13 +1,41 @@
 # rules: php-ssrf
 # languages: php
-# from: php/lang/security/php-ssrf.yaml
+# fixture: php/CWE-918.php
+# from: php/lang/security/php-ssrf.yaml, CWE-918
+#
+# The server fetches a URL the request chose, and from inside the network that
+# URL reaches what the client cannot: 169.254.169.254 for cloud instance
+# credentials, 127.0.0.1 for the admin interface that trusts localhost, and
+# file:// for the disk, because PHP's stream wrappers make every one of these
+# functions a URL fetcher whether or not it was meant as one.
+#
+# A blocklist of hostnames is not a fix. The name is resolved after it is
+# checked, so DNS can answer with a private address the second time; the
+# defence is an allowlist of destinations, resolved once and connected to by
+# address.
+#
+# Neither end of this is a finding on its own - fetching a URL is what a
+# server does and reading the query string is what a request handler does - so
+# the rule follows the value from one to the other.
+#
+# What was here before matched `$FUNCS($$$_,$DATA, $$$_);` with no guard on
+# either hole, which is every call with two or more arguments: it reported
+# sixteen findings on an eighteen-line file, all of them wrong. Two holes with
+# nothing said about them is not a pattern, it is a shape.
 
-. as $root
-| ( ($root | scan_ast(["*.php"]; [
-      "$FUNCS($$$_,$DATA, $$$_);",
-      "$VAR=$DATA;\n$$$_\n$FUNCS($$$_,$VAR, $$$_);"
-    ])) as $all
-    | ( $all | of(["$VAR=$DATA;\n$$$_\n$FUNCS($$$_,$VAR, $$$_);","$FUNCS($$$_,$DATA, $$$_);"])
-        | finding("php-ssrf";
-            "The web server receives a URL or similar request from an upstream component and retrieves the contents of this URL, but it does not sufficiently ensure that the request is being sent to the expected destination.") ) )
+["file_get_contents($URL)", "file_get_contents($URL, $$$_)",
+ "file($URL)", "file($URL, $$$_)",
+ "readfile($URL)", "readfile($URL, $$$_)",
+ "fopen($URL, $$$_)", "getimagesize($URL)",
+ "simplexml_load_file($URL)", "copy($URL, $$$_)",
+ "curl_setopt($_, CURLOPT_URL, $URL)"] as $fetches
+| ["$_GET[$K]", "$_POST[$K]", "$_REQUEST[$K]", "$_COOKIE[$K]"] as $outside
+| ["filter_var($$$A)", "intval($$$A)", "in_array($$$A)"] as $checked
+| scan_ast("*.php"; $fetches + $outside + $checked) as $all
+| ( $all | of($fetches)
+    | reaching($all | of($outside); $all | of($checked))
+    | focus("URL") )
+| finding("php-ssrf";
+    "$URL came from the request, and this fetches it from inside the network "
+    + "- where 169.254.169.254, 127.0.0.1 and file:// are all reachable")
 | report

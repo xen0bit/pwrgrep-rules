@@ -1,14 +1,36 @@
 # rules: unserialize-use
 # languages: php
-# from: php/lang/security/unserialize-use.yaml
+# fixture: php/CWE-502.php
+# from: php/lang/security/unserialize-use.yaml, CWE-502
+#
+# unserialize() does not read data, it builds objects - of whatever class the
+# string names, with whatever properties the string gives them - and PHP then
+# calls __wakeup on them and __destruct when they go. So the attacker is not
+# choosing a value, they are choosing which code runs, and a chain through
+# classes the application already loads gets from there to a file write or a
+# command without any of those classes containing a bug. Every major PHP
+# framework has had one.
+#
+# `allowed_classes => false` turns it into a data decoder, which is what most
+# callers wanted; an explicit list of classes is the same decision made
+# narrowly. Both are left alone. `allowed_classes => true` is the default
+# spelled out and is reported like the default.
+#
+# json_decode is the alternative when the format is a choice, because it
+# produces arrays and never objects.
+#
+# The rule was `unserialize($$$_)`, which is a PHP pattern with no named hole
+# in its arguments - not read as PHP, compiled to a search for those
+# characters as text, matched nothing anywhere. See GUIDE.md.
 
-. as $root
-| ( ($root | scan_ast(["*.php"]; [
-      "unserialize(\"$$$_\",$$$_)",
-      "unserialize($$$_)"
-    ])) as $all
-    | ( $all | of(["unserialize($$$_)"])
-          | not_at($all | of(["unserialize(\"$$$_\",$$$_)"]))
-        | finding("unserialize-use";
-            "Calling `unserialize()` with user input in the pattern can lead to arbitrary code execution.") ) )
+["$F($DATA)", "$F($DATA, $OPTS)"] as $calls
+| scan_ast("*.php"; $calls) as $all
+| ( ($all | of(["$F($DATA)"]))
+    + ($all | of(["$F($DATA, $OPTS)"])
+       | where_capture_not("OPTS"; "'allowed_classes'\\s*=>\\s*(?:false|\\[)")) )
+| where_capture("F"; "^(?:unserialize|maybe_unserialize)$")
+| finding("unserialize-use";
+    "this builds objects of whatever class $DATA names and then lets PHP call "
+    + "their __wakeup and __destruct; pass ['allowed_classes' => false], or "
+    + "json_decode if the format is yours to choose")
 | report

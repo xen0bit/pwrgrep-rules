@@ -1,12 +1,25 @@
 # rules: phpinfo-use
 # languages: php
-# from: php/lang/security/phpinfo-use.yaml
+# fixture: php/CWE-497.php
+# from: php/lang/security/phpinfo-use.yaml, CWE-497, CWE-200
+#
+# phpinfo() prints the whole configuration to the response: absolute paths,
+# extension versions, and every environment variable - which in a
+# containerised application is where the database password and the API keys
+# are. It also prints the superglobals. Nothing about the call is
+# authenticated, so a phpinfo page that survives to production is a
+# reconnaissance endpoint anyone can read.
+#
+# The rule was `phpinfo($$$_);`, which is a PHP pattern with no named hole in
+# its arguments. The grammar does not read such a pattern as PHP at all - it
+# takes it for inline HTML text - so the query looked for those characters
+# verbatim and found them nowhere. A hole in the function position and a guard
+# on the name is the spelling that works. See GUIDE.md.
 
-. as $root
-| ( ($root | scan_ast(["*.php"]; [
-      "phpinfo($$$_);"
-    ])) as $all
-    | ( $all | of(["phpinfo($$$_);"])
-        | finding("phpinfo-use";
-            "The 'phpinfo' function may reveal sensitive information about your environment.") ) )
+["$F($$$A)"] as $calls
+| scan_ast("*.php"; $calls)
+| where_capture("F"; "^phpinfo$")
+| finding("phpinfo-use";
+    "this prints the whole PHP configuration into the response, environment "
+    + "variables included, and nothing about it is authenticated")
 | report

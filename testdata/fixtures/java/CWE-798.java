@@ -24,6 +24,29 @@ import java.util.Properties;
 
 class Cwe798 {
 
+    // The spelling people actually write, and the one that used to be out of
+    // reach: a declaration read as a field rather than as a local.
+    // ruleid: java-credential-is-a-literal
+    private static final String DB_PASSWORD = "s3cr3t-prod-pw";
+
+    // A name for somewhere the value lives is the fix, not the bug.
+    // ok: java-credential-is-a-literal
+    private static final String PASSWORD_ENV = "APP_DB_PASSWORD";
+
+    // A constant that names a form field is not a password.
+    // ok: java-credential-is-a-literal
+    private static final String PASSWORD_PARAM = "j_password";
+
+    // A local called `password` holding a literal is a value in flight, which
+    // is what test data looks like. The credential this rule is about is the
+    // one declared on the class.
+    Connection connectWithLocals() throws SQLException {
+        String username = "app";
+        // ok: java-credential-is-a-literal
+        String password = "letmein-for-the-test";
+        return DriverManager.getConnection("jdbc:h2:mem:test", username, password);
+    }
+
     Connection connect() throws SQLException {
         // ruleid: java-credential-is-a-literal
         return DriverManager.getConnection("jdbc:postgresql://db/app", "app", "s3cr3t-prod-pw");

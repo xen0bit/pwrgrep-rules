@@ -380,7 +380,7 @@ a value travels along. If a rule of yours reports something built from a
 handler rather than from a request, check the binary is new enough to have
 this.
 
-## Java is the one where the class body is out of reach
+## Java is the one where a declaration has three names
 
 Java was the easiest grammar in this corpus to write patterns against and the
 one with the most surprising hole in it. Almost everything compiles the way
@@ -399,27 +399,45 @@ forty-nine in Python and forty-eight in JavaScript — in the language whose
 entire security literature is "untrusted input reaches a dangerous sink". The
 rules were there; the shape that makes them worth having was not.
 
-**A field declaration cannot be matched.** This is the one to know before you
-plan a rule.
+**A declaration is three node types, and a pattern is read as all of them.**
+This one was a limitation first and is now a feature, and the story is worth
+having because the limitation was invisible.
 
 ```
-$T $F = $E;                         → (local_variable_declaration ...)
-private static final $T $F = $E;    → (local_variable_declaration ...)
+$T $F = $E;    → (local_variable_declaration ...)   a local
+               → (field_declaration ...)            a field
+               → (constant_declaration ...)         a constant in an interface
 ```
 
-A pattern that is not a whole Java file is wrapped in a scaffold, and the
-block scaffold (`{ ... }`) is tried before the class one, so a declaration
-always reads as a local. `private` on a local is not legal Java and the
-grammar takes it anyway, so even the modifiers do not push it over. Wrapping
-it yourself does not help either: `class $CN { $T $F = $E; }` does compile to
-a `field_declaration`, but anchored as the *only* member of the class body,
-and putting `$$$_` beside it is either an error or reads the ellipsis into the
-field's own type.
+The first of those is what the pattern compiles to on its own, because
+tree-sitter-java takes a bare statement at the top of a file — so the pattern
+parses, reports no problem, and no scaffolded reading is ever reached for. The
+identical text inside a class body is a `field_declaration`: the same children
+under a different name, and a query for one matches neither of the others.
 
-So `private static final String PASSWORD = "hunter2";` — the canonical
-spelling of the weakness — is not reachable, and two rules in this pass say so
-in their headers rather than pretending otherwise. What is reachable is the
-local, the argument and the expression, which is what those rules ask about.
+Nothing said so. `ast_pattern` showed a valid query, the rule ran, and
+`private static final String PASSWORD = "hunter2"` — the shape every
+hardcoded-credential rule in the world is about — was not reported, for the
+same reason a typo is not reported. Two rules in the Java pass documented it
+in their headers, which is the right thing to do about a limit you cannot fix
+and the wrong thing to leave standing when you can.
+
+It is fixed in xen0bit/pwrq#51. A pattern is now read a second time inside the
+things a grammar lets hold members, and where the same children come back
+under a different node type that type becomes another reading. `compiled`
+already held a list of readings for exactly this — C's `gets($BUF)` has been
+read as a call and as a declaration since the beginning — so a match under any
+of them is a match, and the same span found twice is one finding.
+
+The other names are measured rather than listed, which is what keeps it from
+being a table of 206 grammars: a language that calls a declaration the same
+thing in both places produces the same head and gets no second reading, and
+that is every language in this build except the ones shaped like Java.
+
+**So check `Queries`, not `Query`.** `ast_pattern` reports the first reading in
+`Query` and all of them in `Queries`, and for a pattern with more than one the
+first is not the whole story — which is the failure this whole document is
+about, arrived at from inside the tool meant to prevent it.
 
 **A modifier list is compared as one string.** `private static final $T $F`
 compiles to `(modifiers) @_lit_1` with `(#eq? @_lit_1 "private static final")`,
@@ -447,8 +465,9 @@ it happens, because it is the cheapest kind of exclusion there is.
 
 ### Two engine bugs Java found, and both were everybody's
 
-Neither of these is a Java problem. Java was just the first language in this
-corpus whose rules leaned on `reaching` hard enough to hit them.
+Neither of these is a Java problem — the declaration one above is Java's, and
+these two are not. Java was just the first language in this corpus whose rules
+leaned on `reaching` hard enough to hit them.
 
 **A loop never bound its variable.** `for (ZipEntry entry : zip.entries())` is
 an assignment — the grammar says `name`/`value` — but the node that assigns
@@ -728,9 +747,11 @@ Concretely, in this pass:
   says which came first, and the direction that costs a false positive is
   better than the one that costs a predictable key.
 - `java-credential-is-a-literal` does not report `""` (a local database with no
-  password), `${db.password}` (a placeholder, which is the fix) or the word
-  `"password"` itself. It does report `"changeit"`, which is the default
-  password of every Java keystore and is the point.
+  password), `${db.password}` (a placeholder, which is the fix), the word
+  `"password"` itself, or a constant whose value is the name of somewhere the
+  value lives — `"APP_DB_PASSWORD"`, `"spring.datasource.password"`,
+  `"Access-Control-Allow-Credentials"`. It does report `"changeit"`, which is
+  the default password of every Java keystore and is the point.
 
 And a rule that a wider rule strictly contains should go. Two rules reporting
 one line under two ids is worse than one, and the README records the precedent
@@ -815,6 +836,17 @@ one of them was a rule saying something slightly different from what it meant:
   path is not a host. Wrong sources, not a wrong sink.
 - and the lone anonymous hole above, which is the one that could not have been
   found by reading.
+
+The second Java pass — the one that taught the matcher a declaration's other
+two names — added a rule that reads a constant field, and running *that* over
+the same six repositories found two more of the same kind in an afternoon.
+Guava's `ACCESS_CONTROL_ALLOW_CREDENTIALS = "Access-Control-Allow-Credentials"`
+is a credential-shaped name holding a header's name; and
+`"password".toCharArray()` slipped past an exclusion anchored to the end of the
+literal, because the placeholder had a method call after it. Both are the same
+lesson as the rest: **an exclusion has to be written against the text the
+capture actually holds**, and the only way to find out what that is, is to run
+it over somebody else's code.
 
 Two hundred and fifty-six became fifty-four, spring-petclinic — a clean
 application — reported nothing at all, and the single finding in the whole of

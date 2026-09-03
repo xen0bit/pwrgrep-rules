@@ -45,6 +45,14 @@
 # both, so a stream returned out of an `if` is still reported. That is the
 # usual limit of a two-statement reading and it costs a false positive rather
 # than a missed leak.
+#
+# Only a stream declared inside a method is asked about. A `$T $V = $E;`
+# pattern now reads a field as well as a local, which is what makes
+# java-credential-is-a-literal possible - but a field holding a stream is a
+# different question, because its lifetime is the object's and whatever closes
+# it is somewhere this rule cannot see. `within` the method declarations is how
+# the rule says "a local", and it costs the stream opened in a constructor or
+# an initialiser block, neither of which is a method_declaration.
 
 ["FileInputStream", "FileOutputStream", "FileReader", "FileWriter",
  "RandomAccessFile", "Socket", "ServerSocket", "ZipFile", "JarFile"] as $opens
@@ -63,6 +71,7 @@
 | scan_ast("*.java"; $opened + $wrapped + $returned + $methods) as $all
 | ( ( ($all | of($opened) | focus("V"))
       + ($all | of($wrapped) | where_capture("ARG"; $fresh) | focus("V")) )
+    | within($all | of($methods))
     | not_at($all | of($returned) | where_same("V"; "R") | focus("V"))
     | outside($all | of($methods) | where_capture("BODY"; $closes)) )
 | finding("java-stream-never-closed";

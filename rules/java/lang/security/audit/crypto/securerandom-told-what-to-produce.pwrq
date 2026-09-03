@@ -1,0 +1,40 @@
+# rules: java-securerandom-told-what-to-produce
+# languages: java
+# fixture: java/CWE-338.java
+# from: CWE-338 (Use of Cryptographically Weak PRNG), CWE-330, CWE-336
+#
+# SecureRandom is the right class, and seeding it by hand undoes the reason
+# for reaching for it. With no argument it seeds itself from the operating
+# system. Given a byte array, or told `setSeed` before it has produced
+# anything, it produces exactly the sequence that seed determines - so a
+# constant in the source means every installation generates the same session
+# identifiers, the same reset tokens and the same nonces, in the same order,
+# for as long as the program exists.
+#
+# The clock counts as a constant here. `System.currentTimeMillis()` is a
+# number an attacker can bracket to a second or two, which is a few thousand
+# candidate sequences, which is not a search.
+#
+# `new byte[16]` is in the guard because an uninitialised Java array is
+# sixteen zeroes and not a seed. It is easy to read as "sixteen random bytes"
+# and it is the shape that gets written when someone means to fill it and does
+# not.
+#
+# Deliberately over-reported: `setSeed` *after* the generator has produced
+# output is defined to supplement its state rather than replace it, and is
+# harmless. Nothing in the syntax says which came first, so both are reported.
+# That direction costs a false positive rather than a predictable key, and the
+# fix for the harmless case is to delete a line that was doing nothing.
+#
+# java-weak-random already reports `java.util.Random`, so Random is not named
+# here; two ids on one line is worse than one.
+
+["new SecureRandom($SEED)", "$SR.setSeed($SEED)"] as $seeded
+| "^\"|^[0-9]|^'|^new byte\\[|^\\{|currentTimeMillis\\(\\)|nanoTime\\(\\)|getTime\\(\\)|hashCode\\(\\)" as $determined
+| scan_ast("*.java"; $seeded)
+| where_capture("SEED"; $determined)
+| focus("SEED")
+| finding("java-securerandom-told-what-to-produce";
+    "this decides what the generator produces, so every run of the program "
+    + "produces the same tokens in the same order")
+| report

@@ -1,0 +1,47 @@
+# rules: java-key-from-a-literal
+# languages: java
+# fixture: java/CWE-321.java
+# from: CWE-321 (Use of Hard-coded Cryptographic Key), CWE-798, CWE-329
+#
+# A key written into a class is not a secret. It is in version control, in
+# every build artifact and in the container image, and Java keeps string
+# constants intact in bytecode, so `strings` on the jar prints it. Everyone
+# who has ever cloned the repository has the key, and it cannot be rotated
+# without shipping a release.
+#
+# A fixed IV is the same finding for a different reason. CBC and GCM both
+# require the IV to be unpredictable per message; a constant one makes equal
+# plaintexts encrypt equally, and in GCM a repeated nonce under one key gives
+# away the authentication subkey and with it the ability to forge.
+#
+# Two readings. The literal written into the call, and the literal that
+# reached it through a local - the second is `reaching` with the source
+# focused onto the right-hand side of the assignment, which is the spelling
+# the PHP section of the guide sets out and the reason it is spelled that way.
+#
+# What this cannot report is the common one:
+#
+#	private static final byte[] KEY = "hunter2".getBytes();
+#
+# A field declaration is not a shape a pattern can name in this engine - a
+# bare `$T $F = $E;` is read as a local, and wrapping it in a class anchors it
+# to the first member of the body. That is a gap in the matcher rather than a
+# judgement about the code, and it is written here so the next reader does not
+# assume it was an oversight.
+
+["new SecretKeySpec($K, $ALG)", "new SecretKeySpec($K, $_, $_, $ALG)",
+ "new IvParameterSpec($K)", "new IvParameterSpec($K, $_, $_)",
+ "new GCMParameterSpec($_, $K)",
+ "new PBEKeySpec($K)", "new PBEKeySpec($K, $$$_)",
+ "new DESKeySpec($K)", "new SecretKeySpec($K, $_)"] as $specs
+| ["String $V = $LIT;", "$V = $LIT;",
+   "byte[] $V = $LIT;", "char[] $V = $LIT;"] as $assigned
+| "^\"[^\"]" as $literal
+| scan_ast("*.java"; $specs + $assigned) as $all
+| ( $all | of($assigned) | where_capture("LIT"; $literal) | focus("LIT") ) as $constants
+| ( ($all | of($specs) | where_capture("K"; $literal) | focus("K"))
+    + ($all | of($specs) | focus("K") | reaching($constants; [])) )
+| finding("java-key-from-a-literal";
+    "this key material is written into the program, so it is in version "
+    + "control and in the jar, and rotating it means shipping a release")
+| report

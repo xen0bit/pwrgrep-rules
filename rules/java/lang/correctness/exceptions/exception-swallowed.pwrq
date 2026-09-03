@@ -1,0 +1,47 @@
+# rules: java-exception-swallowed
+# languages: java
+# fixture: java/CWE-390.java
+# from: CWE-390 (Detection of Error Condition Without Action), CWE-391
+#
+# An empty catch block is a decision written as an absence. The program
+# carries on with whatever the failed operation left behind - a null, a
+# half-written file, a connection that never opened - and the reason is gone.
+# When the consequence arrives, three frames later in a different method,
+# there is nothing in the log joining the two.
+#
+# Two things have to be true, and both of them are somebody *not* saying why.
+#
+# The block has to be completely empty. The two characters between `{}` and
+# `{ /* why */ }` are the whole of that test: a comment in a catch is a
+# decision - `// best effort`, `// the file may not exist` - and reporting
+# those is how a rule teaches people to skip it.
+#
+# And the exception has to be bound to a name that says nothing. This one was
+# learned from Guava, which writes `catch (ClassCastException tolerated) {}`
+# and `catch (NullPointerException optional) {}` a hundred and fifty times:
+# the name *is* the comment, and it is a better one than a comment because the
+# compiler keeps it next to the type. A rule that could not read it reported
+# a hundred and fifty deliberate decisions in one repository.
+#
+# So the guard is an inclusion list - `e`, `ex`, `exception`, `t`, `throwable`,
+# `error` and the rest of the names that carry no information - rather than a
+# list of the names that do. The set of throwaway names is small and closed;
+# the set of meaningful ones is neither, and a rule built the other way round
+# would report every convention nobody has thought of yet.
+#
+# The block's text is what the guard reads, because a catch body is a `block`
+# node whether or not it has statements in it, and its byte range includes any
+# comment. So "empty" is a question about the text and is asked as one.
+#
+# The finding lands on the catch clause rather than on the try, which is the
+# line a reader has to change.
+
+["try { $$$B } catch ($T $E) { $$$C }"] as $caught
+| scan_ast("*.java"; $caught)
+| where_capture("C"; "^\\{\\s*\\}$")
+| where_capture("E"; "(?i)^(e|ex|exc|exce?ption|t|th|thr|throwable|err|error)[0-9]?$")
+| focus("C")
+| finding("java-exception-swallowed";
+    "this catches the failure and does nothing with it, so the program "
+    + "carries on with whatever state the failure left and no record of why")
+| report

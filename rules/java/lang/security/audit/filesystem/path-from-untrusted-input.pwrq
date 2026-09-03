@@ -1,0 +1,65 @@
+# rules: java-path-from-untrusted-input
+# languages: java
+# fixture: java/CWE-22.java
+# from: CWE-22 (Path Traversal), CWE-23, CWE-73
+#
+# A servlet parameter is a String, and so is a path, and nothing between them
+# objects. `new File(uploads, name)` resolves `../../../etc/shadow` without
+# complaint and hands back a File outside the directory the program meant.
+#
+# The sources are the request and nothing else. A path out of a properties
+# file or off the command line was chosen by whoever runs the program, which
+# is a different question, and mixing the two buries this one.
+#
+# `getFileName()` and `FilenameUtils.getName()` are sanitizers because after
+# either there is one component and no separator left, which is a fact a rule
+# can check. `normalize()` and `getCanonicalPath()` are not: both resolve `..`
+# rather than rejecting it, so the path they return is still outside the
+# directory - it just says so tidily. A program that canonicalises and *then*
+# compares is safe, and the comparison is the part that makes it safe; this
+# rule cannot see it, and reports the open. That is the honest under-read: see
+# "Name sanitizers honestly".
+#
+# Every sink is focused onto the path before the value is followed, and both
+# argument positions are written out. `new File(base, name)` and
+# `Paths.get(base, name)` put the interesting half second, and a reading that
+# only asked about the first would have found the constant.
+#
+# One bug, one finding. A method that builds a path and then opens it holds
+# two sinks in the same chain - `new File(base, name)` and then
+# `new FileInputStream(wanted)` - and reporting both says the same thing
+# twice, on the line that matters and on the line after it. So the builders
+# are always reported, and an opener is reported only in a method that never
+# builds a path, which is exactly the case where the request's string went
+# straight into the open. The test is the method body read as text, and it
+# costs the second half of a method that builds one path and opens another.
+#
+# jax-rs-path-traversal asks a narrower version of this question of @PathParam
+# specifically. A file that reaches for HttpServletRequest inside a JAX-RS
+# resource could be reported by both; the sources do not otherwise overlap.
+
+["$R.getParameter($K)", "$R.getParameterValues($K)", "$R.getHeader($K)",
+ "$R.getQueryString()", "$R.getPathInfo()", "$R.getPathTranslated()",
+ "$R.getRequestURI()"] as $outside
+| ["new File($P)", "new File($_, $P)",
+   "Paths.get($P)", "Paths.get($_, $P)",
+   "Path.of($P)", "Path.of($_, $P)",
+   "$D.resolve($P)"] as $builders
+| ["new FileInputStream($P)", "new FileOutputStream($P)",
+   "new FileReader($P)", "new FileWriter($P)",
+   "new RandomAccessFile($P, $_)",
+   "Files.readAllBytes($P)", "Files.readAllLines($P)",
+   "Files.newInputStream($P, $$$_)", "Files.newOutputStream($P, $$$_)",
+   "Files.delete($P)", "Files.deleteIfExists($P)"] as $openers
+| ["FilenameUtils.getName($X)", "$X.getFileName()"] as $clean
+| ["$RT $M($$$_) { $$$BODY }"] as $methods
+| "new File\\s*\\(|Paths\\.get\\s*\\(|Path\\.of\\s*\\(|\\.resolve\\s*\\(" as $assembles
+| scan_ast("*.java"; $builders + $openers + $clean + $methods + $outside) as $all
+| ( ($all | of($builders) | focus("P"))
+    + ($all | of($openers) | focus("P")
+       | outside($all | of($methods) | where_capture("BODY"; $assembles))) )
+| reaching($all | of($outside); $all | of($clean))
+| finding("java-path-from-untrusted-input";
+    "$P came from the request, so a caller who sends ../ reads or writes "
+    + "outside the directory this was meant to stay in")
+| report

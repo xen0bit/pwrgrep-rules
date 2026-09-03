@@ -1,0 +1,67 @@
+# rules: java-xml-parser-left-at-its-defaults
+# languages: java
+# fixture: java/CWE-611.java
+# from: CWE-611 (Improper Restriction of XML External Entity Reference), CWE-827
+#
+# Every JAXP factory resolves external entities by default, because that is
+# what the XML specification asks for. So a document handed to an untouched
+# DocumentBuilderFactory may say
+# `<!ENTITY x SYSTEM "file:///etc/shadow">` and be answered, or name an
+# http:// URL and make the parsing host fetch it. One default gives away a
+# file read and a server-side request forgery together.
+#
+# Three rules in this corpus already report XXE, and all three report a
+# program that turns a protection *off* - `setFeature(disallow-doctype-decl,
+# false)`. Almost nobody writes that. The bug in the wild is the default, and
+# its shape is a factory created and used with nothing said in between.
+#
+# XMLInputFactory is deliberately left out: xmlinputfactory-possible-xxe
+# already asks this question of that one class, and two ids on one line is
+# worse than one.
+#
+# Two conditions, and both are the method body read as text rather than a
+# pattern - see "The function body as text". The method has to parse
+# something, so that a factory built to be configured and handed back is not
+# reported; and it must not mention hardening, so that a method which has had
+# someone think about this is left alone even when the four calls it needs are
+# inside a helper block or a try/catch for ParserConfigurationException.
+#
+# Coarse is the right resolution for the second test. The alternative is to
+# name the exact features that suffice, which differs per parser and per JDK,
+# and to report a programmer who hardened their parser slightly differently
+# from the way the rule expected. That is the finding people learn to skip.
+#
+# A third condition arrived from Spring's test suite, which produced fifty-
+# eight findings in four files: XML the program assembled in memory as a
+# String is XML the program wrote, and an entity in it would have to have been
+# put there by the program. `new StringReader(...)` and
+# `new ByteArrayInputStream(...)` in the method body say that, and where they
+# do the rule stops asking. What survives it, in the whole of
+# spring-framework, is one factory in main source - the one Spring's own
+# authors annotated with a comment explaining why they accepted it.
+#
+# What it costs: a factory created in one method and hardened in another is
+# reported, and so is one hardened by a helper the rule cannot follow into.
+# The name of the helper is usually `secure`- or `harden`-something, and those
+# are in the regex for that reason.
+
+["DocumentBuilderFactory.newInstance($$$_)",
+ "SAXParserFactory.newInstance($$$_)",
+ "TransformerFactory.newInstance($$$_)",
+ "SchemaFactory.newInstance($$$_)",
+ "XMLReaderFactory.createXMLReader($$$_)",
+ "new SAXBuilder($$$_)",
+ "new SAXReader($$$_)"] as $factories
+| ["$RT $M($$$_) { $$$BODY }"] as $methods
+| "\\.parse\\s*\\(|\\.transform\\s*\\(|newDocumentBuilder\\s*\\(|newSAXParser\\s*\\(|newTransformer\\s*\\(|newSchema\\s*\\(|newXMLReader\\s*\\(|\\.build\\s*\\(|\\.read\\s*\\(" as $parses
+| "setFeature|setProperty|setXIncludeAware|setExpandEntityReferences|setEntityResolver|setAttribute|FEATURE_SECURE_PROCESSING|ACCESS_EXTERNAL|disallow-doctype-decl|(?i)harden|(?i)secure[A-Z_]" as $hardened
+| "new StringReader\\s*\\(|new ByteArrayInputStream\\s*\\(|parseText\\s*\\(" as $inMemory
+| scan_ast("*.java"; $factories + $methods) as $all
+| ( $all | of($factories)
+    | within($all | of($methods) | where_capture("BODY"; $parses))
+    | outside($all | of($methods) | where_capture("BODY"; $hardened))
+    | outside($all | of($methods) | where_capture("BODY"; $inMemory)) )
+| finding("java-xml-parser-left-at-its-defaults";
+    "this parser resolves external entities because nothing here told it not "
+    + "to, so a document can make it read a local file or fetch a URL")
+| report

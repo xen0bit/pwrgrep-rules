@@ -1,0 +1,37 @@
+# rules: java-xpath-built-from-the-request
+# languages: java
+# fixture: java/CWE-643.java
+# from: CWE-643 (XPath Injection), CWE-91
+#
+# XPath has no prepared statement. There is no placeholder, no bind call and
+# no escaping function in the standard library, so an expression built from a
+# parameter is built the only way there is - by concatenation - and
+# `//user[name/text()='` + name + `']` closes its own quote for anyone who
+# sends `' or '1'='1`. What comes back is the whole document, which for the
+# documents people keep in XML is usually the credentials.
+#
+# No sanitizer is named because the fix is not a function: it is to compile
+# the expression once with a variable in it and bind the variable through an
+# XPathVariableResolver. A rule cannot check that a resolver resolves what the
+# expression asked for, so it says nothing about it.
+#
+# `compile` is guarded on its receiver and `evaluate` is not, and the
+# difference is which name each one shares. `Pattern.compile` is the same word
+# for a different thing and is common enough to bury this rule, so the
+# receiver has to look like an XPath; `evaluate` and `selectSingleNode` are
+# not words other libraries reach for.
+
+["$R.getParameter($K)", "$R.getParameterValues($K)", "$R.getHeader($K)",
+ "$R.getQueryString()", "$R.getPathInfo()", "$R.getRequestURI()"] as $outside
+| ["$X.evaluate($E, $$$_)", "$X.evaluateExpression($E, $$$_)",
+   "$X.selectNodes($E)", "$X.selectSingleNode($E)",
+   "$X.selectNodes($_, $E)", "$X.selectSingleNode($_, $E)"] as $unguarded
+| ["$X.compile($E)"] as $guarded
+| scan_ast("*.java"; $outside + $unguarded + $guarded) as $all
+| ( ($all | of($unguarded) | focus("E"))
+    + ($all | of($guarded) | where_capture("X"; "(?i)xpath|^xp$") | focus("E")) )
+| reaching($all | of($outside); [])
+| finding("java-xpath-built-from-the-request";
+    "this expression is assembled from the request, and a quote in the "
+    + "parameter closes the predicate and selects the whole document")
+| report

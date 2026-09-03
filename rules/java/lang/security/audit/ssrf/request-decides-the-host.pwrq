@@ -1,0 +1,69 @@
+# rules: java-request-decides-the-host
+# languages: java
+# fixture: java/CWE-918.java
+# from: CWE-918 (Server-Side Request Forgery), CWE-441
+#
+# A URL that arrives in a parameter can name anything the server can reach,
+# and a server reaches more than its clients do: 127.0.0.1, the private
+# ranges, and on a cloud instance the metadata service at 169.254.169.254 that
+# hands credentials to anyone who asks from the right place. Fetching it makes
+# the server a proxy into its own network.
+#
+# The sources are the request and nothing else, because a URL out of a
+# properties file was chosen by whoever runs the program. No sanitizer is
+# named: deciding a URL is safe means resolving it and looking at the address,
+# and a rule that cannot see a resolver should not treat an allowlist it
+# cannot read as one.
+#
+# Every sink is focused onto the URL before the value is followed. Without
+# that, `new Socket(host, port)` asks the question of the whole argument list
+# and a constant port beside a tainted host would answer for a constant host
+# beside a tainted port - see "Following a value".
+#
+# `getRequestURI` and `getPathInfo` are not sources for this rule even though
+# they are for the path one, because neither returns a host - both return a
+# path under the host the client already reached. Spring builds a
+# `URI.create(request.getRequestURI())` twice in spring-webmvc to fill in a
+# ProblemDetail's `instance` field, and reporting that as "the request chose
+# the host" was wrong about both halves of the sentence.
+#
+# Spring's `@RequestParam String url` is not a source here, and cannot be:
+# following a value starts at an assignment, and a formal parameter is not
+# one. A controller that takes the URL straight into its signature is the same
+# bug and is not reported. That is a limit of the flow engine rather than a
+# judgement, and the servlet spellings below cover the case it can see.
+#
+# getForObject and friends are named without a guard on the receiver because
+# they are RestTemplate's own vocabulary and nothing else defines them. The
+# generic spellings that other libraries share - `execute`, `send`, `uri` -
+# are deliberately absent, for the reason set out at length in
+# go-response-body-not-closed: a method name a hundred libraries define
+# matches a name rather than a thing. `execute` was in this list once and
+# Apache Struts reported twenty-two findings on `model.execute(...)` in the
+# Tiles plugin, none of which fetched anything.
+#
+# The source holes are named rather than written `$_`, and that is not a
+# style choice. A single anonymous hole standing for a whole argument list
+# compiles to `arguments: (_)` with no anchors, so `getParameter($_)` matches
+# a call of *any* arity - including Tiles' own three-argument
+# `runtime.getParameter("value", Object.class, null)`, which is not a servlet
+# request. Naming it produces `(_ . (_) @K .)` and pins the arity. Two
+# anonymous holes anchor correctly; it is only the lone one that does not.
+
+["$R.getParameter($K)", "$R.getParameterValues($K)", "$R.getHeader($K)",
+ "$R.getQueryString()", "$R.getPart($K)", "$R.getCookies()"] as $outside
+| ["new URL($U)", "new URI($U)", "URI.create($U)",
+   "new HttpGet($U)", "new HttpPost($U)", "new HttpHead($U)",
+   "new HttpPut($U)", "new HttpDelete($U)",
+   "HttpRequest.newBuilder().uri($U)",
+   "new Socket($U, $PORT)", "new InetSocketAddress($U, $PORT)"] as $direct
+| ["$RT.getForObject($U, $$$_)", "$RT.getForEntity($U, $$$_)",
+   "$RT.postForObject($U, $$$_)", "$RT.postForEntity($U, $$$_)",
+   "$RT.exchange($U, $$$_)"] as $rest
+| scan_ast("*.java"; $outside + $direct + $rest) as $all
+| ( ($all | of($direct + $rest) | focus("U"))
+    | reaching($all | of($outside); []) )
+| finding("java-request-decides-the-host";
+    "$U came from the request, so whoever sent it chooses which host this "
+    + "server talks to - including 127.0.0.1 and the cloud metadata service")
+| report

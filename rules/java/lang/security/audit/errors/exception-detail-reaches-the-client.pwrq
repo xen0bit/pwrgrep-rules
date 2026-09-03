@@ -1,0 +1,56 @@
+# rules: java-exception-detail-reaches-the-client
+# languages: java
+# fixture: java/CWE-209.java
+# from: CWE-209 (Generation of Error Message Containing Sensitive Information), CWE-497
+#
+# A Java exception message is written for whoever runs the program, not for
+# whoever called it. It carries absolute paths, class and method names, the
+# SQL that failed with its table and column names, and frequently the value
+# that failed to parse. Sending it to the client turns every malformed request
+# into a free map of the application, and it is free because the program
+# volunteered it.
+#
+# What separates this from careful code is the *destination*, and that is the
+# one thing here that is syntax. A logger and `System.out` are where an
+# exception's detail belongs and both are ordinary inside a catch, so the rule
+# names the response explicitly - `getWriter`, `getOutputStream`, `sendError`
+# - and reports nothing else. `sendError(code)` with no message is the fix and
+# has a different arity, so it is left alone by construction.
+#
+# The exception is recognised by what is asked of it rather than by its type,
+# because a catch parameter's type is whatever the method throws and the rule
+# would have to know every one of them. `getMessage`, `toString`,
+# `getLocalizedMessage`, `getStackTrace` and `getCause` are the five ways to
+# ask an exception what went wrong, and they are what the guard tests for.
+#
+# The writer taken into a local first - `PrintWriter w = response.getWriter()`
+# and then `w.println(...)` further down - is a second reading of the same
+# code, with the two holes required to be the same name. It has to be a
+# sibling of the write to be seen, which is the usual limit of a two-statement
+# pattern - a writer taken before a `try` and written inside the `catch` is in
+# a different statement list and is not reported. The shape that does read as
+# siblings is Spring's @ExceptionHandler, which is handed the exception rather
+# than catching it, and that is the common one.
+
+( "getMessage\\(\\)|getLocalizedMessage\\(\\)|getStackTrace\\(\\)|"
+  + "getCause\\(\\)|getSQLState\\(\\)|getErrorCode\\(\\)|"
+  + "(?i)\\b(e|ex|exc|exce?ption|err|error|t|th|throwable|cause)[0-9]?"
+  + "\\.toString\\(\\)" ) as $detail
+| ["$R.getWriter().print($M)", "$R.getWriter().println($M)",
+   "$R.getWriter().write($M)", "$R.getWriter().append($M)",
+   "$R.getOutputStream().print($M)", "$R.getOutputStream().println($M)",
+   "$R.getOutputStream().write($M)",
+   "$R.sendError($_, $M)"] as $toResponse
+| ["PrintWriter $W = $R.getWriter();\n$$$_\n$W.print($M);",
+   "PrintWriter $W = $R.getWriter();\n$$$_\n$W.println($M);",
+   "PrintWriter $W = $R.getWriter();\n$$$_\n$W.write($M);"] as $throughALocal
+| ["$E.printStackTrace($R.getWriter())",
+   "$E.printStackTrace($R.getOutputStream())"] as $traces
+| scan_ast("*.java"; $toResponse + $throughALocal + $traces) as $all
+| ( ($all | of($toResponse) | where_capture("M"; $detail) | focus("M"))
+    + ($all | of($throughALocal) | where_capture("M"; $detail) | focus("M"))
+    + ($all | of($traces) | focus("E")) )
+| finding("java-exception-detail-reaches-the-client";
+    "this sends the exception's own account of what went wrong to whoever "
+    + "caused it - paths, class names and the failing value included")
+| report

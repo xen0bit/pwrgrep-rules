@@ -1,0 +1,71 @@
+# rules: java-stream-never-closed
+# languages: java
+# fixture: java/CWE-772.java
+# from: CWE-772 (Missing Release of Resource), CWE-404
+#
+# A stream holds a file descriptor, and a descriptor is not memory, so
+# nothing about running out of them makes the garbage collector run. A server
+# that leaks one per request stops being able to open files or accept
+# connections after a few thousand requests, and the failure surfaces as
+# `Too many open files` somewhere unrelated.
+#
+# Java's answer is try-with-resources, and the grammar gives it a node of its
+# own: a resource declared in a `try (...)` header is not a
+# local_variable_declaration, so the pattern here does not match it and no
+# subtraction is needed for the correct spelling. That is a rare case of the
+# safe form being invisible to the rule by construction rather than by a
+# guard, and it is why this rule is short.
+#
+# A wrapper is not a resource. `new InputStreamReader(input, charset)` and
+# `new BufferedWriter(out)` hold no descriptor of their own - they hold
+# somebody else's, and closing one closes the stream its caller owns, which in
+# a copy utility is precisely the bug. commons-io's CopyUtils is six methods
+# of exactly that shape and the first version of this rule reported all six.
+#
+# So the wrapper types are matched only where their argument opens something
+# fresh: `new BufferedReader(new FileReader(f))` is one resource written as
+# two constructors and is reported, and `new BufferedReader(reader)` is not
+# reported at all. The test is a regex over the argument rather than a nested
+# pattern because what it asks is "does this open a descriptor", which is a
+# question about a handful of class names and not about structure.
+#
+# Two more things are subtracted, and both are the reading that says "someone
+# else is dealing with it":
+#
+#   - a method that mentions `close` anywhere. Coarse on purpose - it covers
+#     the `finally` blocks written before try-with-resources existed, and
+#     `IOUtils.closeQuietly`, and a close inside a branch. See "The function
+#     body as text".
+#   - a stream that is returned. It belongs to the caller now. This is a
+#     second, strictly longer reading of the same declaration with the return
+#     spliced onto it, focused onto the declared name so that the two spans
+#     coincide and the subtraction lands - see "focus, job two".
+#
+# The declaration and the return have to be siblings for one pattern to see
+# both, so a stream returned out of an `if` is still reported. That is the
+# usual limit of a two-statement reading and it costs a false positive rather
+# than a missed leak.
+
+["FileInputStream", "FileOutputStream", "FileReader", "FileWriter",
+ "RandomAccessFile", "Socket", "ServerSocket", "ZipFile", "JarFile"] as $opens
+| ["BufferedReader", "BufferedWriter", "PrintWriter", "Scanner",
+   "InputStreamReader", "OutputStreamWriter",
+   "ObjectInputStream", "ObjectOutputStream"] as $wraps
+| ($opens | map("$T $V = new " + . + "($$$_);")
+   + ["$T $V = DriverManager.getConnection($$$_);"]) as $opened
+| ($wraps | map("$T $V = new " + . + "($ARG);")
+   + ($wraps | map("$T $V = new " + . + "($ARG, $$$_);"))) as $wrapped
+| "^new\\s+(?:File(?:Input|Output)Stream|FileReader|FileWriter|"
+  + "RandomAccessFile|Socket|ZipFile|JarFile)\\s*\\(|^\"" as $fresh
+| (($opened + $wrapped) | map(. + "\n$$$_\nreturn $R;")) as $returned
+| ["$RT $M($$$_) { $$$BODY }"] as $methods
+| "\\.close\\s*\\(|closeQuietly|closeSilently|IOUtils\\.close" as $closes
+| scan_ast("*.java"; $opened + $wrapped + $returned + $methods) as $all
+| ( ( ($all | of($opened) | focus("V"))
+      + ($all | of($wrapped) | where_capture("ARG"; $fresh) | focus("V")) )
+    | not_at($all | of($returned) | where_same("V"; "R") | focus("V"))
+    | outside($all | of($methods) | where_capture("BODY"; $closes)) )
+| finding("java-stream-never-closed";
+    "nothing here closes $V, so it holds its descriptor until the process "
+    + "ends; try-with-resources closes it on every path out")
+| report

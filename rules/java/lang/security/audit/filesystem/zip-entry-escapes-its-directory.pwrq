@@ -1,0 +1,52 @@
+# rules: java-zip-entry-escapes-its-directory
+# languages: java
+# fixture: java/CWE-22-archive.java
+# from: CWE-22 (Path Traversal), CWE-24 - the weakness published as Zip Slip
+#
+# An entry name lives inside the archive, and the archive was written by
+# whoever sent it. Nothing in the zip format forbids
+# `../../../../home/app/.ssh/authorized_keys`, and
+# `new File(destination, entry.getName())` will resolve it happily: the file
+# lands wherever the archive said. That is Zip Slip, and in 2018 it was
+# present in a few thousand projects at once because every one of them had
+# written the same four lines.
+#
+# The source is the archive rather than the entry name, which is what makes
+# this checkable. `getName()` is a method on almost every class in Java and
+# guarding on the receiver's spelling would be a guess; `getNextEntry` and
+# `entries` belong to the archive classes and to nothing else. Following the
+# value from there reaches `entry.getName()` because the name of the entry is
+# written inside it.
+#
+# The safe shape puts its check *after* the construction:
+#
+#	File out = new File(destination, entry.getName());
+#	if (!out.getCanonicalPath().startsWith(destination.getCanonicalPath()))
+#	        throw new IOException(...);
+#
+# so no reading of the statements in order separates the checked case from the
+# unchecked one - the two are identical up to the line that matters. The test
+# is the whole method read as text, which is coarse on purpose: a method that
+# mentions `getCanonicalPath` or `startsWith` at all has had someone think
+# about this, and telling that programmer they thought about it in the wrong
+# order is the finding people learn to skip. See "The function body as text".
+#
+# Only the construction is reported, not the write that follows it, for the
+# reason path-from-untrusted-input sets out: one bug, one finding.
+
+["$Z.getNextEntry()", "$Z.getNextJarEntry()", "$Z.getNextTarEntry()",
+ "$Z.entries()", "$Z.getEntries()"] as $archive
+| ["new File($P)", "new File($_, $P)",
+   "Paths.get($P)", "Paths.get($_, $P)",
+   "Path.of($P)", "Path.of($_, $P)",
+   "$D.resolve($P)"] as $builders
+| ["$RT $M($$$_) { $$$BODY }"] as $methods
+| "getCanonicalPath|getCanonicalFile|toRealPath|startsWith|isSameFile|(?i)sanitiz|(?i)validate" as $checked
+| scan_ast("*.java"; $archive + $builders + $methods) as $all
+| ( $all | of($builders) | focus("P")
+    | reaching($all | of($archive); [])
+    | outside($all | of($methods) | where_capture("BODY"; $checked)) )
+| finding("java-zip-entry-escapes-its-directory";
+    "$P is whatever name the archive chose, and an archive may say ../ - "
+    + "nothing here checks the file stayed under the directory")
+| report

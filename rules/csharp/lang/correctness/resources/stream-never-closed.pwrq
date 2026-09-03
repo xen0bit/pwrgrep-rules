@@ -1,0 +1,75 @@
+# rules: csharp-stream-never-closed
+# languages: c_sharp
+# fixture: csharp/CWE-772.cs
+# from: CWE-772 (Missing Release of Resource), CWE-404
+#
+# A stream holds an operating system handle. The garbage collector will run the
+# finalizer eventually and the handle will close eventually, and neither of
+# those is a schedule: on Windows the file stays locked until it happens, so
+# the next write fails with a sharing violation rather than anything that names
+# the leak. Under load the process runs out of handles instead. Both symptoms
+# appear a long way from this line.
+#
+# C# has one right answer and it is syntax, which makes this rule unusually
+# clean to write. `using (var s = ...)` and, since C# 8, `using var s = ...`
+# both dispose at the end of the scope whatever happens in between, exceptions
+# included. So the rule is: a stream was constructed in a declaration that is
+# not a `using`, and nothing disposed it.
+#
+# Three things stop it firing, and each is a real way of being correct:
+#
+#   - the declaration is a `using`, in either spelling.
+#   - `Dispose` or `Close` is called on the name somewhere in the method.
+#   - the method's return type is a stream. Then whatever it opens is the
+#     caller's to close, and the method is a factory rather than a leak.
+#     Reporting those is how a resource rule gets a reputation for crying wolf,
+#     because every `OpenRead` helper in every codebase looks like this.
+#     Reading the return type rather than looking for `return s;` in the body
+#     matters: the body test would have to be a regex, `return\s+\w+;` matches
+#     `return null;` and `return true;` as well, and those are common enough
+#     that the rule would have gone quiet nearly everywhere.
+#
+# Two of those three are asked of the method's text rather than of its shape,
+# and the reason is a C# limitation worth stating. The C# 8 using declaration -
+# `using var r = new StreamReader(path);` - has no reading: written as a
+# pattern the grammar drops the `using` and matches every declaration in the
+# file, so the matcher refuses it rather than answering wrongly. There is
+# therefore no way to say "this declaration is a using" structurally, and the
+# same goes for "this method returns the name this declaration made", which in
+# Java is one pattern with two holes and `where_same` and here is a
+# multi-statement pattern, which C# has no reading for either.
+#
+# So a method containing any `using` at all, a `.Dispose(` or a `.Close(` is
+# left alone entirely. The `using` half has to be that broad because C# spells
+# it four ways and only one of them has a reading: `using (x) {}`, `using var
+# x = ...`, `using FileStream x = ...`, and `await using` in front of any of
+# those. ShareX and Jellyfin between them used three of the four, and a rule
+# that knew only `using var` reported all three as leaks. That is coarser than it should be: a
+# method that closes one stream and leaks another goes unreported. It errs the
+# quiet way on purpose - a resource rule that reports a factory method is one
+# people turn off - and the cost is written here rather than hidden.
+#
+# What it also cannot see is a field. A stream assigned to `this._stream` and closed
+# in `Dispose()` is the correct implementation of IDisposable and is not
+# reported, because the constructor is not a `using` and the disposal is in
+# another method - so the rule is confined to declarations inside a method
+# body, which is where the leaks actually are.
+
+["$RT $M($$$_) { $$$BODY }"] as $methods
+| ["$T $V = new $S($$$_);"] as $opened
+| ["using ($T $V = new $S($$$_)) { $$$_ }", "using $T $V = new $S($$$_);"] as $scoped
+| "\\.\\s*(?:Dispose|DisposeAsync|Close)\\s*\\(|\\busing\\s*[\\(A-Za-z_]" as $disposes
+| "(?:Stream|Reader|Writer|Connection|Client|MemoryMappedFile)$" as $isAStreamType
+| "^(?:FileStream|StreamWriter|StreamReader|BinaryWriter|BinaryReader|MemoryMappedFile|NamedPipeClientStream|NamedPipeServerStream|SqlConnection|HttpClient|TcpClient|UdpClient|SocketStream|GZipStream|DeflateStream|CryptoStream)$" as $isAStream
+| scan_ast("*.cs"; $methods + $opened + $scoped) as $all
+| ($all | of($opened) | where_capture("S"; $isAStream))
+| within($all | of($methods))
+| outside($all | of($scoped))
+| outside($all | of($methods) | where_capture("BODY"; $disposes))
+| outside($all | of($methods) | where_capture("RT"; $isAStreamType))
+| where_capture_not("V"; "^_")
+| finding("csharp-stream-never-closed";
+    "this stream is never disposed, so the handle stays open until the "
+    + "finalizer runs - on Windows the file stays locked until then, and "
+    + "under load the process runs out of handles first")
+| report

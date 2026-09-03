@@ -1,0 +1,53 @@
+# rules: csharp-weak-hash-algorithm
+# languages: c_sharp
+# fixture: csharp/CWE-327.cs
+# from: CWE-327 (Broken or Risky Cryptographic Algorithm), CWE-328
+#
+# MD5 and SHA-1 are both broken for the thing a hash is usually chosen for.
+# Collisions in MD5 are minutes on a laptop and have been since 2008; SHA-1
+# fell to a chosen-prefix collision in 2019 and is refused by every certificate
+# authority. Where the hash decides whether two things are the same - a
+# signature, a token, a content address, an integrity check - a collision is
+# the whole attack.
+#
+# The rule reports the choice rather than the use, and that is deliberate. The
+# call that picks the algorithm is one line and is what a fix changes;
+# `ComputeHash` is where the work happens and may be a different method, a
+# different file, or in a loop. Reporting the choice puts the finding on the
+# line somebody edits.
+#
+# Three spellings, because .NET accumulated three. `MD5.Create()` is the modern
+# factory. `new MD5CryptoServiceProvider()` is the .NET Framework spelling and
+# still compiles. `HashAlgorithm.Create("MD5")` names the algorithm in a string,
+# which is how a configuration file's value ends up here, and is the one worth
+# reading carefully - the guard is anchored so that "MD5" matches and
+# "MD5-something-else-we-wrote" does not.
+#
+# What this rule does not say is that every MD5 is a bug. A hash used as a
+# bucket key, a cache tag, or a non-security checksum is fine, and the corpus
+# is full of them. That judgement needs the call site and the rule does not
+# have it, so the message says what is true - this algorithm is broken for
+# anything that has to be unforgeable - and leaves the reader to decide whether
+# this one has to be. A rule that claimed more would be wrong more often than
+# it was right.
+#
+# Every reading is focused onto the algorithm's own name before it is reported.
+# The three spellings above overlap - a `using` holding a declaration holding a
+# call matches all three patterns at once - so without it one choice of MD5 was
+# three findings, on the same line, saying the same thing. Focusing them all
+# onto `$H` makes them one span, which is what deduplication compares.
+
+["$H.Create($$$_);", "$T $V = $H.Create($$$_);",
+ "using ($T $V = $H.Create($$$_)) { $$$_ }",
+ "new $H($$$_)", "$T $V = new $H($$$_);",
+ "using ($T $V = new $H($$$_)) { $$$_ }"] as $made
+| ["HashAlgorithm.Create($N, $$$_)", "CryptoConfig.CreateFromName($N, $$$_)"] as $byName
+| scan_ast("*.cs"; $made + $byName) as $all
+| ( ($all | of($made) | focus("H")
+      | where_capture("H"; "^(?:MD5|SHA1|MD4|MD2|RIPEMD160|MD5CryptoServiceProvider|SHA1CryptoServiceProvider|SHA1Managed|RIPEMD160Managed)$"))
+    + ($all | of($byName) | focus("N")
+      | where_capture("N"; "(?i)^\"(?:MD5|SHA1?|SHA-1|MD4|MD2|RIPEMD160|System\\.Security\\.Cryptography\\.(?:MD5|SHA1))\"$")) )
+| finding("csharp-weak-hash-algorithm";
+    "MD5 and SHA-1 both have practical collisions, so anything that decides "
+    + "two inputs are the same by comparing this digest can be forged")
+| report

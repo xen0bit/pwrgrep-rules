@@ -1,0 +1,92 @@
+# rules: csharp-zip-entry-escapes-its-directory
+# languages: c_sharp
+# fixture: csharp/CWE-22-archive.cs
+# from: CWE-22 (Path Traversal), the archive form, sometimes called Zip Slip
+#
+# An entry name inside an archive is attacker-controlled data in a file the
+# program chose to open, which is what makes this different from the ordinary
+# traversal rule: nothing came from a request, so a reader looking for a
+# tainted parameter finds none, and the archive looks like something the
+# operator supplied deliberately. The name inside it was not supplied by
+# anybody the operator trusts.
+#
+# `ZipArchiveEntry.FullName` is the path as it was written into the archive,
+# separators and all, and .NET does not check it. `../../etc/cron.d/x` is a
+# legal entry name; so is `..\..\Windows\System32\x` on the other platform.
+# Joining it to an output directory and extracting produces a write outside
+# that directory, and `ExtractToFile` will follow it.
+#
+# The entry name is a source in two shapes, and both are needed. Usually it is
+# read into a local first - `string name = entry.FullName;` - and the walk from
+# the declaration follows it. But `Path.Combine(dir, entry.FullName)` never
+# names it, and `$E.FullName` cannot be written as a pattern on its own: the C#
+# grammar reads a dotted name standing alone as a type, `qualified_name`, and
+# refuses it. So the second shape is the join's own argument, matched where it
+# sits and used as its own source.
+#
+# `Name` is deliberately not a source beside `FullName`. It is the leaf alone -
+# the framework has already thrown the directories away - so a program using it
+# is doing the safe thing, and reporting it would say the opposite.
+#
+# The sanitizer is `Path.GetFileName`, for the same reason it is in the
+# ordinary traversal rule and with the same limit: it flattens the entry into a
+# name, which is right for a program extracting a flat archive and wrong for
+# one meant to preserve directories. The other correct fix - resolving the
+# combined path and comparing it against the root - is a comparison rather than
+# a call, so a rule that follows values cannot see it, and this reports it.
+# That last one is no longer quite true, and the corpus is why. ShareX's
+# `ZipManager` does exactly the right thing -
+#
+#     string fullPath = Path.GetFullPath(Path.Combine(fullName, entryName));
+#     if (fullPath.StartsWith(fullName, StringComparison.OrdinalIgnoreCase))
+#
+# - and was reported. So a method that both resolves a path and compares it
+# against something is left alone. It is a text test on the body rather than a
+# reading of the `if`, and it is coarse in the usual direction: a method that
+# calls `GetFullPath` for one reason and `StartsWith` for another goes
+# unreported. Being quiet about a checked extraction is worth more than being
+# right about an unchecked one that also happens to call both.
+#
+# The source is narrowed twice for the same reason. `DirectoryInfo` and
+# `FileInfo` have a `FullName` too, and there it is a resolved absolute path
+# rather than an attacker's string: `Path.Combine(target.FullName, fi.Name)`
+# in a recursive directory copy was reported by the first draft. So the
+# receiver has to be named like an entry, and the file has to import an
+# archive library at all.
+#
+# The sinks are split the way the traversal rule's are, and here it matters
+# more. Building the path and extracting to it are two statements one line
+# apart, and both hold the tainted value, so reporting both gave two findings
+# for one bug every time. The join is always reported; the extract only in a
+# method that never joins, which is the case where the entry name is used whole
+# and there is no other line to report instead.
+
+["$T $V = $S;"] as $assigned
+| ["$RT $M($$$_) { $$$BODY }"] as $methods
+| ["Path.Combine($$$_, $P)", "Path.Combine($P, $$$_)"] as $builders
+| ["$E.ExtractToFile($P, $$$_);", "ZipFileExtensions.ExtractToFile($E, $P, $$$_);",
+   "new FileStream($P, $$$_)", "File.OpenWrite($P, $$$_)",
+   "File.WriteAllBytes($P, $$$_)"] as $openers
+| ["Path.GetFileName($X, $$$_)"] as $clean
+| "(?i)\\bentry[A-Za-z0-9_]*\\s*\\.\\s*FullName\\b" as $entryName
+| "Path\\s*\\.\\s*Combine\\s*\\(" as $assembles
+| "GetFullPath" as $resolves
+| "StartsWith|IsSubPathOf|\\bContains\\s*\\(" as $comparesToTheRoot
+| ["using System.IO.Compression;", "using SharpCompress.Archives;",
+   "using ICSharpCode.SharpZipLib.Zip;"] as $archiveImports
+| scan_ast("*.cs"; $assigned + $methods + $builders + $openers + $clean + $archiveImports) as $all
+| ( ($all | of($assigned) | where_capture("S"; $entryName) | focus("S"))
+    + ($all | of($builders) | focus("P") | where_capture("P"; $entryName)) ) as $fromArchive
+| ( ($all | of($builders) | focus("P"))
+    + ($all | of($openers) | focus("P")
+       | outside($all | of($methods) | where_capture("BODY"; $assembles))) )
+| in_files_with($all | of($archiveImports))
+| outside( $all | of($methods)
+           | where_capture("BODY"; $resolves)
+           | where_capture("BODY"; $comparesToTheRoot) )
+| reaching($fromArchive; $all | of($clean))
+| finding("csharp-zip-entry-escapes-its-directory";
+    "this path is built from an archive entry's own name, and an entry may be "
+    + "called ../../etc/cron.d/x, so extracting writes outside the directory "
+    + "it was meant to go in")
+| report

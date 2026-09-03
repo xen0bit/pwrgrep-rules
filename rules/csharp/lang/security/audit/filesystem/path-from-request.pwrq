@@ -1,0 +1,69 @@
+# rules: csharp-path-from-request
+# languages: c_sharp
+# fixture: csharp/CWE-22.cs
+# from: CWE-22 (Path Traversal)
+#
+# The path is built from something the caller sent, so `..%2f..%2fetc%2fpasswd`
+# in a query string reads a file the application never meant to serve. On
+# Windows the same bug has a second spelling - a rooted path, `C:\Windows\...`,
+# which `Path.Combine` will happily return whole, discarding the directory it
+# was given. That second one is why `Path.Combine` is a sink rather than a
+# defence, and it surprises people: combining an attacker's absolute path with
+# your safe root yields the attacker's path.
+#
+# `Path.GetFileName` is the sanitizer, and it is the only one here. It throws
+# away every directory separator and every drive letter, which is exactly the
+# question this rule is asking, and it is what the framework's own guidance
+# says to use. `Path.GetFullPath` is deliberately not a sanitizer: it resolves
+# the `..` rather than rejecting it, so it turns a traversal into a clean
+# absolute path outside the root and makes the bug harder to see.
+#
+# Both sinks and builders are reported, because in C# they are usually the same
+# statement - `File.ReadAllText(Path.Combine(root, name))` - and the corpus
+# writes the combine and the open on one line often enough that splitting them
+# the way the Java rule does would report a line twice for one bug.
+#
+# Every argument hole is written beside a `$$$_`, and in C# it has to be: a
+# single hole in argument position compiles to a second reading that binds it
+# to the whole argument list whatever its length, so `Path.Combine($P)` on a
+# two argument call reports `(root, name)` rather than `name`. See the guide.
+#
+# The parameter source is confined to files that are actually MVC. This is the
+# lesson the corpus taught and it was expensive: `public $T $M($$$_, string $P,
+# $$$_) { $$$_ }` says "a public method taking a string", which in a controller
+# means the request and in a utility class means nothing at all. Run over
+# ShareX - a desktop application - the path rule reported twenty-seven
+# findings, every one of them a `string filePath` parameter of a file helper.
+# A file that imports ASP.NET MVC, or declares a class deriving from something
+# called Controller, is the test; a file that does neither has no request in it
+# and the parameter half of this rule is switched off there.
+
+["$T $V = $S;"] as $assigned
+| ["public $T $M($$$_, string $P, $$$_) { $$$_ }",
+   "public $T $M(string $P) { $$$_ }"] as $bound
+| ["using Microsoft.AspNetCore.Mvc;", "using System.Web.Mvc;",
+   "using System.Web.Http;", "using Microsoft.AspNetCore.Components;"] as $mvcImports
+| ["class $C : $B { $$$_ }"] as $classes
+| ["Path.Combine($$$_, $P)", "Path.Combine($P, $$$_)",
+   "File.ReadAllText($P, $$$_)", "File.ReadAllBytes($P, $$$_)",
+   "File.ReadAllLines($P, $$$_)",
+   "File.WriteAllText($P, $$$_)", "File.WriteAllBytes($P, $$$_)",
+   "File.Open($P, $$$_)", "File.OpenRead($P, $$$_)",
+   "File.OpenWrite($P, $$$_)", "File.Delete($P, $$$_)",
+   "File.Copy($P, $$$_)", "File.Move($P, $$$_)",
+   "new FileStream($P, $$$_)",
+   "new StreamReader($P, $$$_)", "new StreamWriter($P, $$$_)"] as $sinks
+| ["Path.GetFileName($X, $$$_)"] as $clean
+| "Request\\s*\\.\\s*(Query|Form|Headers|Cookies|QueryString|Params|RouteValues)\\b" as $fromRequest
+| scan_ast("*.cs"; $assigned + $bound + $mvcImports + $classes + $sinks + $clean) as $all
+| ( ($all | of($assigned) | where_capture("S"; $fromRequest) | focus("S"))
+    + ($all | of($bound) | focus("P")
+       | in_files_with( ($all | of($mvcImports))
+                        + ($all | of($classes) | where_capture("B"; "Controller")) )) ) as $untrusted
+| ($all | of($sinks) | focus("P"))
+| reaching($untrusted; $all | of($clean))
+| finding("csharp-path-from-request";
+    "this path came from the request, so a caller who sends ../ - or, on "
+    + "Windows, a rooted path that Path.Combine returns whole - reads or "
+    + "writes outside the directory this was meant to stay in")
+| report

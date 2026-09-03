@@ -1,0 +1,55 @@
+# rules: c-uninitialized-read
+# languages: c
+# fixture: c/CWE-457.c
+# from: CWE-457 (Use of Uninitialized Variable), CWE-908, CERT C EXP33-C
+#
+# A local with no initialiser holds whatever the last function to use that
+# part of the frame left behind. Not zero, not random, and not the same twice
+# - so a program built on one is correct in the test that called it directly
+# and wrong under the call that happened to leave a large number there. Where
+# the value is a length or a pointer, the previous call decides what this one
+# does with memory.
+#
+# The rule reads the declaration and a use of the same name together, and
+# subtracts every way of giving the name a value that a pattern can see: an
+# assignment, an address passed to something that fills it in - which is how
+# stat, scanf and read are called - and an if/else that assigns on both sides.
+#
+# va_start is in that list and does not look like it belongs: it takes its
+# va_list by name rather than by address, so nothing in the call says it
+# writes to it. It is a macro, and it does.
+#
+# A variable assigned on one path and read after it is *not* subtracted, and
+# that is deliberate: reading it is uninitialised on the other path, which is
+# the bug and not a false positive.
+#
+# The declaration and the use have to be siblings, so a use nested inside a
+# loop or a branch is not reported. That is the direction to be wrong in here,
+# because the same narrowness is what keeps the initialisations in view: a
+# rule that looked further for the use without looking further for the
+# assignment would report every careful function in the file.
+
+["$T $V;\n$$$_\nreturn $V;",
+ "$T $V;\n$$$_\n$F($V, $$$_);",
+ "$T $V;\n$$$_\n$F($$$_, $V, $$$_);",
+ "$T $V;\n$$$_\n$_ = $V;",
+ "$T $V;\n$$$_\n$_ = $V $_ $_;",
+ "$T $V;\n$$$_\n$_[$V] = $_;"] as $reads
+| ["$T $V;\n$$$_\n$V = $_;",
+   "$T $V;\n$$$_\n$V = {$$$_};",
+   "$T $V;\n$$$_\n$F(&$V, $$$_);",
+   "$T $V;\n$$$_\n$F($$$_, &$V, $$$_);",
+   "$T $V;\n$$$_\nif ($_) $V = $_; else $V = $_;",
+   "$T $V;\n$$$_\nif ($_) { $V = $_; } else { $V = $_; }",
+   "$T $V;\n$$$_\nmemset(&$V, $$$_);",
+   "$T $V;\n$$$_\nva_start($V, $_);",
+   "$T $V;\n$$$_\nva_copy($V, $_);",
+   "$T $V;\n$$$_\nfor ($V = $_; $$$_) $$$_"] as $writes
+| scan_ast("*.[ch]"; $reads + $writes) as $all
+| ( $all | of($reads) | focus("V")
+    | not_at($all | of($writes) | focus("V")) )
+| finding("c-uninitialized-read";
+    "$V is declared without a value and read before it is given one, so what "
+    + "it holds is whatever the last call to use this part of the frame left "
+    + "there")
+| report

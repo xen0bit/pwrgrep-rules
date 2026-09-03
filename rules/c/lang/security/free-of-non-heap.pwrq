@@ -1,0 +1,39 @@
+# rules: c-free-of-non-heap
+# languages: c
+# fixture: c/CWE-590.c
+# from: CWE-590 (Free of Memory not on the Heap), CWE-761, CERT C MEM34-C
+#
+# free() does not check anything. It is handed an address and reads the
+# allocator's bookkeeping from in front of it, so a stack address, a static
+# array or a pointer into the middle of a block all become "whatever bytes are
+# at address minus one header" - a corrupted free list, and one of the older
+# ways into a heap exploit.
+#
+# Four spellings, and the first two are decidable on the line: `free(&x)`
+# takes the address of something that has a name, which is never something
+# malloc returned, and `free(p + 1)` is not the pointer that was allocated
+# even when p was.
+#
+# The other two need the declaration in view. An array declared here, or a
+# pointer from alloca - which allocates in the frame and is undone by the
+# return, not by free - are matched together with the free that follows and
+# the finding is moved onto the free with focus, because that is the line to
+# delete.
+#
+# In view means in the same statement list, which is what a pattern spanning
+# statements can see. A file-scope array freed inside a function is the same
+# bug and is not reported: the declaration and the free are not siblings, and
+# there is no reading of them that makes them so.
+
+["$T $B[$$$_];\n$$$_\nfree($R);",
+ "$T $B[$_][$_];\n$$$_\nfree($R);",
+ "$T *$B = alloca($$$_);\n$$$_\nfree($R);",
+ "$B = alloca($$$_);\n$$$_\nfree($R);"] as $paired
+| ["free(&$X)", "free($P + $_)", "free($P - $_)"] as $onsight
+| scan_ast("*.[ch]"; $paired + $onsight) as $all
+| ( ($all | of($paired) | where_same("B"; "R") | focus("R"))
+    + ($all | of($onsight)) )
+| finding("c-free-of-non-heap";
+    "this is not an address malloc returned, and free reads the allocator's "
+    + "bookkeeping from in front of whatever it is given")
+| report

@@ -1,0 +1,44 @@
+# rules: c-privilege-drop-out-of-order
+# languages: c
+# fixture: c/CWE-696.c
+# from: CWE-696 (Incorrect Behavior Order), CWE-271, CERT C POS36-C
+#
+# setuid is the step that takes away the ability to take anything else away.
+# After it succeeds the process is not root any more, so a setgid or a
+# setgroups written after it fails - for want of privilege, which is the one
+# failure the code was written on the assumption could not happen.
+#
+# What is left is a process running as an unprivileged user that is still in
+# the root group, or still in every supplementary group it inherited, which is
+# most of the access it was supposed to have given up. It looks dropped from
+# the outside: `id -u` says nobody.
+#
+# The order is setgroups, then setgid, then setuid.
+#
+# Two spellings, because a careful program writes each call inside an `if`
+# that checks it and a hurried one writes them bare. The bare form is matched
+# as two statements; the checked form is matched as two `if`s with a guard on
+# what each condition mentions, which is a regex because "the condition calls
+# setuid" is a claim about text and a pattern that asked it structurally would
+# have to enumerate every way of comparing an integer to zero.
+
+["setuid($U);\n$$$_\nsetgid($_);", "setuid($U);\n$$$_\nsetegid($_);",
+ "setuid($U);\n$$$_\nsetgroups($$$_);", "setuid($U);\n$$$_\ninitgroups($$$_);",
+ "seteuid($U);\n$$$_\nsetgid($_);", "seteuid($U);\n$$$_\nsetegid($_);",
+ "seteuid($U);\n$$$_\nsetgroups($$$_);",
+ "setresuid($U, $$$_);\n$$$_\nsetresgid($$$_);",
+ "setreuid($U, $$$_);\n$$$_\nsetregid($$$_);"] as $bare
+| ["if ($FIRST) $$$_\n$$$_\nif ($THEN) $$$_"] as $checked
+| scan_ast("*.[ch]"; $bare + $checked) as $all
+| ( ($all | of($bare) | focus("U"))
+    + ($all | of($checked)
+       | where_capture("FIRST"; "\\bset(?:res|re)?e?uid\\s*\\(")
+       | where_capture("THEN";
+           "\\bset(?:res|re)?e?gid\\s*\\(|\\b(?:set|init)groups\\s*\\(")
+       | focus("FIRST")) )
+| finding("c-privilege-drop-out-of-order";
+    "the user id is dropped here and a group is dropped after it, which is "
+    + "the one order that cannot work: after this line the process no longer "
+    + "has the privilege the later call needs. setgroups, then setgid, then "
+    + "setuid")
+| report

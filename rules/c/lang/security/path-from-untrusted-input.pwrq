@@ -1,0 +1,47 @@
+# rules: c-path-from-untrusted-input
+# languages: c
+# fixture: c/CWE-22.c
+# from: CWE-22 (Path Traversal), CWE-73, CERT C FIO02-C
+#
+# A path that came from outside the program may contain "..", and each one
+# steps a directory further out of wherever the program meant to stay.
+# Prefixing a base directory is not a defence, because "/var/data/" +
+# "../../etc/shadow" is /etc/shadow; neither is rejecting "../", because
+# "....//" survives one pass of removing it.
+#
+# Neither end of this is a finding on its own. Reading argv is what a program
+# does and opening a file is what a program does, and the finding is that the
+# one reached the other - so the rule is written with reaching rather than
+# with a pattern, and it says what a pattern cannot: this open is opening
+# that argument.
+#
+# realpath and basename are named as sanitizers because they answer the
+# question the traversal asks. realpath resolves the "..", after which the
+# path can be compared against the directory it is supposed to be under;
+# basename throws away everything but the last component, after which there
+# is nothing to traverse with. Neither is a check on its own - realpath
+# resolves "..", it does not forbid it - so what they buy is the chance to
+# check, and the rule stops there because that is where syntax stops.
+#
+# The flow is intraprocedural, and it does not follow a value through a
+# buffer: a path built with snprintf into a char array is the same bug and is
+# not reported, because the taint went in through an out-parameter and came
+# back out as a name the analysis never saw assigned.
+
+["argv[$_]", "getenv($$$_)", "optarg",
+ "getenv_s($$$_)", "secure_getenv($$$_)"] as $outside
+| ["fopen($PATH, $$$_)", "freopen($PATH, $$$_)", "open($PATH, $$$_)",
+   "open64($PATH, $$$_)", "openat($_, $PATH, $$$_)", "creat($PATH, $$$_)",
+   "opendir($PATH)", "unlink($PATH)", "remove($PATH)", "rmdir($PATH)",
+   "rename($PATH, $$$_)", "chmod($PATH, $$$_)", "chown($PATH, $$$_)",
+   "truncate($PATH, $$$_)", "symlink($_, $PATH)", "link($_, $PATH)",
+   "mkdir($PATH, $$$_)", "stat($PATH, $$$_)", "lstat($PATH, $$$_)"] as $opens
+| ["realpath($$$_)", "basename($$$_)", "canonicalize_file_name($$$_)"] as $clean
+| scan_ast("*.[ch]"; $outside + $opens + $clean) as $all
+| ( $all | of($opens)
+    | reaching($all | of($outside); $all | of($clean)) )
+| finding("c-path-from-untrusted-input";
+    "$PATH came from outside the program, and a path from outside may be "
+    + "\"../..\" as easily as a filename; resolve it with realpath and check "
+    + "where it landed before opening it")
+| report

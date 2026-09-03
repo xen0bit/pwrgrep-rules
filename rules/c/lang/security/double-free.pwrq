@@ -1,6 +1,17 @@
 # rules: double-free
 # languages: c
-# from: c/lang/security/double-free.yaml
+# fixture: c/CWE-415.c
+# from: c/lang/security/double-free.yaml, CWE-415, CERT C MEM30-C
+#
+# The second free is given an address the allocator already took back, so
+# what it reads as a chunk header is whatever is in that memory now. It
+# corrupts the free list, and a corrupted free list is how a later malloc
+# is made to return a pointer into memory that is still in use.
+#
+# The two exclusions are the two ways the second free is not a second free:
+# the pointer was set to NULL in between, which makes free() a no-op, or it
+# was given a new block, which makes the second free the first free of that
+# block.
 
 . as $root
 | ( ($root | scan_ast(["*.c"]; [

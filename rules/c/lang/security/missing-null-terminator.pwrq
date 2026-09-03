@@ -1,0 +1,43 @@
+# rules: c-missing-null-terminator
+# languages: c
+# fixture: c/CWE-170.c
+# from: CWE-170 (Improper Null Termination), CWE-787, CERT C STR32-C
+#
+# strncpy is not a bounded strcpy, whatever its name suggests. It writes
+# exactly n bytes and no more: NUL padding if the source is shorter, and no
+# terminator at all if the source is n bytes or longer. So `strncpy(buf, src,
+# sizeof buf)` cannot overflow buf and cannot terminate it either, and the
+# next strlen, strcat or %s reads past the end of it.
+#
+# The safe spelling leaves room: `sizeof buf - 1` and then a terminator
+# written by hand, or strlcpy or snprintf, which both terminate. The rule
+# therefore asks one question - is the length the whole of the destination -
+# and it asks it by requiring the name inside sizeof to be the name being
+# written to, which is what makes `sizeof(note) - 1` pass and `sizeof(name)`
+# fail.
+#
+# It is asked twice because `sizeof x` and `sizeof(x)` are different syntax
+# and the unparenthesised reading catches both, binding the parentheses along
+# with the name when they are there.
+#
+# strncat is worse than strncpy and is here for a different reason: its n is
+# how much to append, not how big the destination is, so `sizeof(dst)` is
+# already one whole buffer too many before the terminator is considered.
+#
+# The finding is moved onto the destination, so that subtracting the calls
+# that do write a terminator has two spans to compare.
+
+["strncpy($D, $_, sizeof($N));", "wcsncpy($D, $_, sizeof($N));",
+ "strncat($D, $_, sizeof($N));", "wcsncat($D, $_, sizeof($N));",
+ "strncpy($D, $_, sizeof $N);", "wcsncpy($D, $_, sizeof $N);",
+ "strncat($D, $_, sizeof $N);", "wcsncat($D, $_, sizeof $N);"] as $whole
+| ($whole | map(.[0:-1] + "\n$$$_\n$T[$$$_] = '\\0';")) as $terminated
+| scan_ast("*.[ch]"; $whole + $terminated) as $all
+| ( ($all | of($whole) | where_same("D"; "N") | focus("D"))
+    | not_at($all | of($terminated)
+             | where_same("D"; "N") | where_same("D"; "T") | focus("D")) )
+| finding("c-missing-null-terminator";
+    "the length here is the whole of $D, so a source that fills it leaves no "
+    + "room for the terminator and strncpy writes none; every str* call after "
+    + "this one reads past the end")
+| report

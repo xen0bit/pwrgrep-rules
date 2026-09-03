@@ -1,0 +1,38 @@
+# rules: c-chroot-without-chdir
+# languages: c
+# fixture: c/CWE-243.c
+# from: CWE-243 (chroot Jail Without Changing Working Directory), CERT C POS05-C
+#
+# chroot changes what `/` means and does not change where the process is
+# standing. If the working directory was outside the new root - and it was,
+# because it was wherever the program started - the process is still holding
+# an open handle to a directory the jail is supposed to exclude, and a
+# relative path from there walks out of it. The jail is built with the door
+# left open behind it.
+#
+# `chdir("/")` after the chroot is the whole fix, and it has to be after: done
+# before, it changes to the old root and the chroot then moves out from under
+# it.
+#
+# Whether it is there is a question about the function rather than about the
+# next statement, because the two calls are almost always written inside
+# separate `if`s that check them. So the guard is the function body read as
+# text: a chroot in a function that never mentions chdir("/") is the finding,
+# and where the body does mention it the rule stops asking - it is not going
+# to tell a program that checks both calls that it checked them in the wrong
+# order.
+#
+# Worth saying beside this: chroot is not a security boundary for a process
+# that is still root, which can chroot again from inside and walk out. The
+# privileges have to go too, which is what c-unchecked-privilege-drop is about.
+
+["chroot($DIR);"] as $jails
+| ["$RT $FN($$$_) { $$$BODY }"] as $funcs
+| scan_ast("*.[ch]"; $jails + $funcs) as $all
+| ( $all | of($jails)
+    | outside($all | of($funcs)
+              | where_capture("BODY"; "chdir\\s*\\(\\s*\"/\"\\s*\\)")) )
+| finding("c-chroot-without-chdir";
+    "this changes the root and leaves the working directory outside it, so a "
+    + "relative path walks back out; chdir(\"/\") immediately after")
+| report

@@ -1,5 +1,6 @@
 # rules: insecure-use-memset
 # languages: c
+# fixture: c/CWE-226.c
 # from: c/lang/security/insecure-use-memset.yaml
 
 . as $root

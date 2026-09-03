@@ -1,13 +1,35 @@
 # rules: c-string-equality
-# from: c/lang/correctness/c-string-equality.yaml
+# languages: c
+# fixture: c/CWE-595.c
+# from: c/lang/correctness/c-string-equality.yaml, CWE-595, CERT C EXP15-C
+#
+# `a == b` on two char pointers compares addresses. It compiles without a
+# word, because comparing two pointers is a perfectly ordinary thing to do,
+# and it answers a question about identity where the program meant to ask one
+# about text: false for two buffers holding the same string, true for two
+# names for one buffer. strcmp is the comparison that reads the characters.
+#
+# Nothing in `a == b` says the operands are strings, so the rule takes the two
+# places where the source says so itself. A cast to `char *` on both sides is
+# somebody writing down what the values are, and a string literal on either
+# side is unanswerable - the address of a literal is never equal to the
+# address of anything the program owns, so the comparison is not merely the
+# wrong question, it is a constant.
+#
+# This was a regex rule that looked for `(char *a) == (char *b)`, which is not
+# how a cast is written and matched nothing. The casts are syntax and are
+# matched as syntax now.
 
-. as $root
-| ( ($root | scan_regex(["*.c"]; [
-      "\\(char\\s+\\*(?P<X>\\S+)\\)\\s+==\\s+\\(char\\s+\\*(?P<Y>\\S+)\\)"
-    ])) as $all
-    | ( $all | of(["\\(char\\s+\\*(?P<X>\\S+)\\)\\s+==\\s+\\(char\\s+\\*(?P<Y>\\S+)\\)"])
-          | where_capture_compare("$X != 0")
-          | where_capture_compare("$Y != 0")
-        | finding("c-string-equality";
-            "Using == on char* performs pointer comparison, use strcmp instead") ) )
+["(char *)$X == (char *)$Y", "(char *)$X != (char *)$Y",
+ "(const char *)$X == (const char *)$Y",
+ "(const char *)$X != (const char *)$Y",
+ "(unsigned char *)$X == (unsigned char *)$Y",
+ "(char *)$X == $Y", "$X == (char *)$Y"] as $casts
+| ["$X == $LIT", "$X != $LIT", "$LIT == $Y", "$LIT != $Y"] as $literals
+| scan_ast("*.[ch]"; $casts + $literals) as $all
+| ( ($all | of($casts))
+    + ($all | of($literals) | where_capture("LIT"; "^L?\"")) )
+| finding("c-string-equality";
+    "this compares addresses, not characters; two buffers holding the same "
+    + "string are not equal and never will be - strcmp reads them")
 | report

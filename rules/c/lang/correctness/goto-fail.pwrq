@@ -1,5 +1,6 @@
 # rules: double_goto
 # languages: c
+# fixture: c/CWE-483.c
 # from: c/lang/correctness/goto-fail.yaml
 
 . as $root

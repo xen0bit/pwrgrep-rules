@@ -1,0 +1,34 @@
+# rules: c-uncontrolled-format-string
+# languages: c
+# fixture: c/CWE-134.c
+# from: CWE-134 (Use of Externally-Controlled Format String), CERT C FIO30-C
+#
+# The format string decides how many arguments a printf-family call reads off
+# the stack, and %n decides what it writes back, so a format an attacker
+# supplies is a read of memory it does not own and a write into memory it does
+# not own. The finding is not "user data is printed" - it is that the user
+# data arrived in the argument the conversion specifiers are read from.
+#
+# What makes this checkable without following data is that the safe spelling
+# is a literal and nothing else. Every call here is written twice, once for
+# the arity the format sits at, because a pattern says how many arguments a
+# call has; $$$_ then takes the variadic tail, which is empty for the calls
+# that pass no arguments at all - which are exactly the dangerous ones.
+#
+# A literal is a quote, a wide literal is L before a quote, and a translated
+# literal is _( or N_( around one; a hole that caught any of those is the
+# programmer writing the format, so it is let through.
+
+["printf($FMT, $$$_)", "vprintf($FMT, $$$_)", "warnx($FMT, $$$_)"] as $arg1
+| ["fprintf($_, $FMT, $$$_)", "dprintf($_, $FMT, $$$_)",
+   "sprintf($_, $FMT, $$$_)", "asprintf($_, $FMT, $$$_)",
+   "syslog($_, $FMT, $$$_)", "vfprintf($_, $FMT, $$$_)",
+   "vsprintf($_, $FMT, $$$_)", "err($_, $FMT, $$$_)",
+   "errx($_, $FMT, $$$_)", "warn($_, $FMT, $$$_)"] as $arg2
+| ["snprintf($_, $_, $FMT, $$$_)", "vsnprintf($_, $_, $FMT, $$$_)"] as $arg3
+| scan_ast("*.[ch]"; $arg1 + $arg2 + $arg3)
+| where_capture_not("FMT"; "^(?:L?\"|u8\"|[uU]\"|_\\(\\s*L?\"|N_\\(\\s*L?\")")
+| finding("c-uncontrolled-format-string";
+    "$FMT is the format argument, and it is not a literal; whoever controls "
+    + "it controls how much of the stack this call reads and, with %n, writes")
+| report

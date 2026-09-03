@@ -1,0 +1,39 @@
+# rules: c-world-writable-permissions
+# languages: c
+# fixture: c/CWE-732.c
+# from: CWE-732 (Incorrect Permission Assignment for Critical Resource), CERT C FIO06-C
+#
+# A file mode in C is an octal literal, and the question this rule asks is one
+# digit of it: does the last digit - the bits everyone else on the machine
+# gets - carry write. 2, 3, 6 and 7 do; 0, 1, 4 and 5 do not. That is the
+# whole test, and it is why the mode is checked with a regex on how the
+# literal is written rather than with a comparison: 0644 and 0620 are not
+# ordered by how dangerous they are, and only one of them is dangerous.
+#
+# umask is the same decision inverted, and inverting it is the part that gets
+# written wrong. The mask says which bits to take away, so a mask *without*
+# the other-write bit is the permissive one, and umask(0) - the spelling that
+# looks like "no special permissions, please" - is the most permissive setting
+# there is. The last digit is read the same way and the answers swap over.
+#
+# Symbolic modes are matched too, because S_IRWXO and ACCESSPERMS are the same
+# bits spelled for a reader.
+
+["chmod($_, $MODE)", "fchmod($_, $MODE)", "lchmod($_, $MODE)",
+ "fchmodat($_, $_, $MODE, $$$_)",
+ "mkdir($_, $MODE)", "mkdirat($_, $_, $MODE)",
+ "mkfifo($_, $MODE)", "mkfifoat($_, $_, $MODE)",
+ "mknod($_, $MODE, $_)", "creat($_, $MODE)",
+ "open($_, $_, $MODE)", "open64($_, $_, $MODE)",
+ "openat($_, $_, $_, $MODE)",
+ "shm_open($_, $_, $MODE)", "sem_open($_, $_, $MODE, $$$_)"] as $grants
+| ["umask($MODE)"] as $masks
+| scan_ast("*.[ch]"; $grants + $masks) as $all
+| ( ($all | of($grants)
+     | where_capture("MODE"; "^0[0-7]*[2367]$|S_IWOTH|S_IRWXO|ACCESSPERMS"))
+    + ($all | of($masks)
+     | where_capture("MODE"; "^0[0-7]*[0145]$|^0$")) )
+| finding("c-world-writable-permissions";
+    "$MODE leaves the world-write bit set, so every other account on the "
+    + "machine may rewrite what this creates")
+| report

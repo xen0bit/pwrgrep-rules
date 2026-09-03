@@ -1,0 +1,55 @@
+# rules: c-sql-built-by-sprintf
+# languages: c
+# fixture: c/CWE-89.c
+# from: CWE-89 (SQL Injection), CWE-943, CERT C
+#
+# C has no string type and no query builder, so a query is a char buffer and
+# the templating is sprintf. That makes the injection literally a %s: the
+# value is pasted into the sentence, the database is handed one string, and
+# nothing in that string says which half the program wrote.
+#
+# A prepared statement is the fix and it is available in every one of these
+# libraries - sqlite3_prepare_v2 with ?, mysql_stmt_prepare, PQexecParams. The
+# placeholder is not a quoting convention; the value never becomes part of the
+# statement at all, so there is no quoting to get wrong.
+#
+# The rule reads two statements together, because neither says much alone. A
+# sprintf into a buffer is how C builds any string, and a query call taking a
+# buffer is how any of these libraries are used; the finding is that it is the
+# same buffer, and $BUF and $Q are written apart and required to match to say
+# so.
+#
+# Two guards keep the format honest: it has to read like SQL, and it has to
+# have a conversion specifier in it. A format with no specifier is a constant
+# query that happened to be copied into a buffer, and there is nothing being
+# injected into it.
+#
+# The finding is moved onto the buffer in the sprintf, which is both the line
+# to change and what makes the count right: "anything else here" between the
+# two statements will pair one sprintf with every later query call in the same
+# block, and focused onto the same buffer those pairings are one finding
+# rather than four.
+
+["sprintf($BUF, $FMT, $$$_);\n$$$_\n$EXEC($_, $Q, $$$_);",
+ "sprintf($BUF, $FMT, $$$_);\n$$$_\n$EXEC($_, $Q, $$$_)",
+ "snprintf($BUF, $_, $FMT, $$$_);\n$$$_\n$EXEC($_, $Q, $$$_);",
+ "snprintf($BUF, $_, $FMT, $$$_);\n$$$_\n$EXEC($_, $Q, $$$_)",
+ "asprintf($BUF, $FMT, $$$_);\n$$$_\n$EXEC($_, $Q, $$$_);",
+ "vsnprintf($BUF, $_, $FMT, $$$_);\n$$$_\n$EXEC($_, $Q, $$$_);"] as $built
+| scan_ast("*.[ch]"; $built)
+| where_same("BUF"; "Q")
+| where_capture("EXEC";
+    "^(?:mysql_query|mysql_real_query|mysql_send_query|mysql_stmt_prepare"
+    + "|sqlite3_exec|sqlite3_prepare|sqlite3_prepare_v2|sqlite3_prepare_v3"
+    + "|sqlite3_get_table|PQexec|PQsendQuery|PQprepare"
+    + "|SQLExecDirect|SQLPrepare|dbcmd|dbsqlexec)$")
+| where_capture("FMT";
+    "(?i)\\b(?:select|insert|update|delete|replace|merge|union|drop|"
+    + "create|alter|truncate|exec)\\b")
+| where_capture("FMT"; "%[-#0-9.*hlLqjzt]*[diouxXeEfgGaAcsp]")
+| focus("BUF")
+| finding("c-sql-built-by-sprintf";
+    "this builds a query by pasting values into $FMT and hands the buffer to "
+    + "a database, which then cannot tell the statement from the data; bind "
+    + "the values to placeholders instead")
+| report

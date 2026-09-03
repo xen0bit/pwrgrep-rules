@@ -1,5 +1,6 @@
 # rules: insecure-use-scanf-fn
 # languages: c
+# fixture: c/CWE-120.c
 # from: c/lang/security/insecure-use-scanf-fn.yaml
 
 . as $root

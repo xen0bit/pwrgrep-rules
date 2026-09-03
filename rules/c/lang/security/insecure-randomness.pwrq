@@ -1,0 +1,34 @@
+# rules: c-insecure-randomness
+# languages: c
+# fixture: c/CWE-330.c
+# from: CWE-330 (Insufficiently Random Values), CWE-338 (Cryptographically Weak PRNG), CERT C MSC30-C, MSC32-C
+#
+# rand() and the drand48 family are linear congruential generators, and a
+# linear congruential generator is a published recurrence: a handful of
+# outputs recovers the state and the state gives every output after it. That
+# is fine for a simulation and fatal for a token, a session id, a nonce or a
+# temporary filename, and nothing in the call says which one this is - so the
+# rule reports the generator and lets the reader say what it was for.
+#
+# The seed calls are here for a second reason. srand(time(NULL)) does not just
+# use a weak generator, it starts it from a value the attacker also has, which
+# makes the whole sequence reproducible rather than merely predictable. That
+# is worth its own line even where the generator is only being used to pick a
+# retry delay.
+#
+# RAND_pseudo_bytes is OpenSSL's own deprecated "may be predictable" entry
+# point and sits with them. RAND_bytes, getrandom and arc4random are the ones
+# that do not, so they are not reported.
+
+["rand()", "rand_r($$$_)", "random()",
+ "srand($$$_)", "srandom($$$_)",
+ "drand48()", "erand48($$$_)", "lrand48()", "nrand48($$$_)",
+ "mrand48()", "jrand48($$$_)", "srand48($$$_)", "seed48($$$_)",
+ "lcong48($$$_)", "initstate($$$_)", "setstate($$$_)",
+ "RAND_pseudo_bytes($$$_)"] as $weak
+| scan_ast("*.[ch]"; $weak)
+| finding("c-insecure-randomness";
+    "this generator is a published recurrence, so its output is predictable "
+    + "from its output; getrandom, arc4random_buf or RAND_bytes for anything "
+    + "an attacker must not guess")
+| report

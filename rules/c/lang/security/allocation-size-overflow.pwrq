@@ -1,0 +1,38 @@
+# rules: c-allocation-size-overflow
+# languages: c
+# fixture: c/CWE-190.c
+# from: CWE-190 (Integer Overflow or Wraparound), CWE-131, CERT C INT30-C, MEM07-C
+#
+# `malloc(count * size)` is the canonical heap overflow of the last thirty
+# years, and it is not a mistake in the allocation - the allocation does
+# exactly what it is asked. size_t arithmetic wraps, so a large enough count
+# produces a small product, malloc succeeds, and the loop that fills the
+# buffer writes count items into room for a handful.
+#
+# calloc takes the two factors separately and fails rather than wrapping, and
+# reallocarray does the same for a resize. That the safe spellings exist is
+# what makes the multiplying spelling worth reporting on sight, even though
+# most instances of it are over counts nothing external can reach.
+#
+# A product of two literals cannot wrap, so `malloc(4 * 1024)` is left alone:
+# one operand has to be something the compiler cannot evaluate for the
+# question to arise at all.
+#
+# Addition is held to a stricter test - both operands non-constant - because
+# `malloc(len + 1)` is how a C program leaves room for a NUL and reporting it
+# would bury the case that matters, which is two lengths summed.
+
+["malloc($A * $B)", "realloc($_, $A * $B)", "alloca($A * $B)",
+ "aligned_alloc($_, $A * $B)", "mmap($_, $A * $B, $$$_)",
+ "OPENSSL_malloc($A * $B)", "g_malloc($A * $B)"] as $products
+| ["malloc($A + $B)", "realloc($_, $A + $B)", "alloca($A + $B)"] as $sums
+| scan_ast("*.[ch]"; $products + $sums) as $all
+| ( ($all | of($products) | where_capture_not("A"; "^[0-9]"))
+    + ($all | of($products) | where_capture_not("B"; "^[0-9]"))
+    + ($all | of($sums)
+       | where_capture_not("A"; "^[0-9]") | where_capture_not("B"; "^[0-9]")) )
+| finding("c-allocation-size-overflow";
+    "this computes an allocation size with arithmetic that wraps; a large "
+    + "enough $A makes the request small and the write that follows large - "
+    + "calloc and reallocarray take the factors apart and fail instead")
+| report

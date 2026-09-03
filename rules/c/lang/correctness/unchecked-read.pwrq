@@ -1,0 +1,42 @@
+# rules: c-unchecked-read
+# languages: c
+# fixture: c/CWE-252.c
+# from: CWE-252 (Unchecked Return Value), CWE-908, CERT C FIO34-C, EXP12-C
+#
+# read() returns how much it read, and how much it read is not how much was
+# asked for. On a regular file a short read is unusual; on a socket, a pipe or
+# a terminal it is the normal case, and a program that ignores the count
+# carries on with a buffer that was filled partway - the rest of it holding
+# whatever was there before, which on the stack is the previous call's data
+# and on the heap is the previous allocation's.
+#
+# fgets is worse in a quieter way: at end of file it returns NULL and leaves
+# the buffer entirely untouched, so a loop that does not check reprocesses the
+# last line for ever.
+#
+# What "checked" means here is where the call was written rather than what was
+# written around it: a call whose value goes nowhere is a statement, and a
+# call whose value is used sits in a condition, an initialiser or a return.
+# The condition is subtracted focused onto itself, so that a read inside an if
+# body is still unchecked while a read inside an if condition is not - see
+# c-unchecked-privilege-drop, which is the same reading of the same question.
+
+["read", "pread", "readv", "recv", "recvfrom", "recvmsg",
+ "fread", "fgets", "fgetws", "getline", "getdelim"] as $reads
+| ($reads | map(. + "($$$_);")) as $bare
+| ($reads | map("$_ = " + . + "($$$_);")
+   + ($reads | map("$_ $_ = " + . + "($$$_);"))
+   + ($reads | map("$_ = ($_)" + . + "($$$_);"))
+   + ($reads | map("$_ $_ = ($_)" + . + "($$$_);"))
+   + ($reads | map("return " + . + "($$$_);"))
+   + ($reads | map("return ($_)" + . + "($$$_);"))) as $used
+| ["if ($COND) $$$_", "while ($COND) $$$_", "for ($_; $COND; $_) $$$_",
+   "do $$$_ while ($COND);", "switch ($COND) { $$$_ }"] as $tests
+| scan_ast("*.[ch]"; $bare + $used + $tests) as $all
+| ( $all | of($bare)
+    | outside($all | of($tests) | focus("COND"))
+    | outside($all | of($used)) )
+| finding("c-unchecked-read";
+    "this reads into a buffer and drops the count, so the part of the buffer "
+    + "that was not filled still holds what was there before")
+| report

@@ -1,0 +1,54 @@
+# rules: c-unvalidated-array-index
+# languages: c
+# fixture: c/CWE-129.c
+# from: CWE-129 (Improper Validation of Array Index), CWE-125, CWE-787, CERT C ARR30-C
+#
+# C does not check a subscript, so an index that came from outside indexes
+# wherever it was told to. Negative reads behind the array, large reads past
+# it, and the write version of either is an arbitrary write with the offset
+# chosen by whoever supplied the number. atoi makes it worse by having no way
+# to report that the text was not a number at all.
+#
+# Neither end is a finding: reading argv is what a program does and indexing
+# an array is what a C program does. So this is written with reaching, and the
+# finding is that the one arrived at the other.
+#
+# What counts as validated is the part a syntactic rule has to decide, and
+# there are two answers here. A modulo is named as a sanitizer, because it
+# produces a number in range by construction. And a subscript inside a branch
+# whose condition compares something is taken as bounds-checked - not because
+# the comparison was checked to be the right one, but because a rule that
+# cannot read the comparison should not tell a programmer who wrote one that
+# they did not. It is the branch body that is subtracted rather than the whole
+# `if`, so a check whose condition is itself a tainted subscript still counts.
+#
+# argv[1] is a subscript and a source at once, and is subtracted so that the
+# rule reports where the index was used rather than where it arrived.
+#
+# The finding is focused onto the index before the value is followed, which is
+# not only where the caret should sit. Following a value asks which names are
+# written inside the match, and the whole subscript contains the array's name
+# as well as the index's - so `buf[0]` in a function with a tainted `buf` came
+# back as a tainted index. Narrowed to the index, the question asked is the
+# question meant: is this number from outside.
+
+["$A[$I]"] as $subscripts
+| ["atoi($$$_)", "atol($$$_)", "atoll($$$_)",
+   "strtol($$$_)", "strtoul($$$_)", "strtoll($$$_)",
+   "argv[$_]", "getenv($$$_)", "optarg"] as $outside
+| ["$_ % $_", "$_ & $_"] as $clamped
+| ["if ($COND) { $$$BODY }", "if ($COND) $$$BODY",
+   "while ($COND) { $$$BODY }", "while ($COND) $$$BODY",
+   "for ($_; $COND; $_) { $$$BODY }", "for ($_; $COND; $_) $$$BODY"] as $branches
+| scan_ast("*.[ch]"; $subscripts + $outside + $clamped + $branches) as $all
+| ( $all | of($subscripts)
+    | not_at($all | of(["argv[$_]"]))
+    | focus("I")
+    | reaching($all | of($outside); $all | of($clamped))
+    | outside($all | of($branches)
+              | where_capture("COND"; "[<>]") | focus("BODY")) )
+| finding("c-unvalidated-array-index";
+    "$I came from outside the program and nothing here says it is in range; "
+    + "a negative index reads behind $A and a large one reads past it, and C "
+    + "checks neither")
+| report

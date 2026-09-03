@@ -1,19 +1,48 @@
-# rules: use-after-free
-# from: c/lang/security/use-after-free.yaml
+# rules: c-use-after-free
+# languages: c
+# fixture: c/CWE-416.c
+# from: c/lang/security/use-after-free.yaml (use-after-free), function-use-after-free.yaml (function-use-after-free), CWE-416, CERT C MEM30-C
+#
+# free() ends the block and leaves the pointer holding its address. The
+# allocator hands that memory to the next request, so a read through the stale
+# pointer reads whatever is there now and a write through it writes into
+# somebody else's object. That is why a use-after-free is a way in rather than
+# a crash: an attacker who can make the program allocate between the free and
+# the use chooses what the stale pointer points at.
+#
+# This replaces the two translated rules it names above, which reported
+# nothing at all. Both were built on `within(free($VAR); $$$_)` - a pattern
+# whose trailing "anything else here" is dropped from the query, leaving a
+# span that covers the free and nothing after it, so no later use was ever
+# inside it. The queries compiled and the rules ran; they simply never fired,
+# which is the failure a rule cannot be read for.
+#
+# The shape that works is the free and the use as one construct: two
+# statements with the tree between them, requiring the freed name and the used
+# name to be the same. $P and $R are written apart rather than as one hole
+# twice, so that focus has a span in the use to move the finding onto - the
+# use is the line to change, not the free.
+#
+# What makes a free safe is the pointer being given a new value before it is
+# used, and where that happens the same three statements have a fourth between
+# them. So the exclusion is the same list of uses again with an assignment
+# spliced in, and being a longer reading of the same code it cancels exactly
+# the pairs it should - unlike a guard on the free alone, which would forgive
+# a use that came before the reassignment.
 
-. as $root
-| ( ($root | scan_regex(["*.c"]; [
-      "(?P<VAR>\\S+)\\->(?P<ACCESSOR>\\S+)",
-      "(?P<VAR>\\S+)\\[(?P<NUM>\\S+)\\]",
-      "(?P<VAR>\\S+)\\s+=\\s+NULL;\\s+[\\s\\S]*?",
-      "\\(\\*(?P<VAR>\\S+)\\)\\.(?P<ACCESSOR>\\S+)",
-      "free\\((?P<VAR>\\S+)\\);\\s+[\\s\\S]*?",
-      "free\\((?P<VAR>\\S+)\\);\\s+[\\s\\S]*?\\s+(?P<VAR>\\S+)\\s+=\\s+malloc\\([\\s\\S]*?\\);\\s+[\\s\\S]*?"
-    ])) as $all
-    | ( $all | of(["(?P<VAR>\\S+)\\->(?P<ACCESSOR>\\S+)","\\(\\*(?P<VAR>\\S+)\\)\\.(?P<ACCESSOR>\\S+)","(?P<VAR>\\S+)\\[(?P<NUM>\\S+)\\]"])
-          | within($all | of(["free\\((?P<VAR>\\S+)\\);\\s+[\\s\\S]*?"]))
-          | outside($all | of(["(?P<VAR>\\S+)\\s+=\\s+NULL;\\s+[\\s\\S]*?"]))
-          | outside($all | of(["free\\((?P<VAR>\\S+)\\);\\s+[\\s\\S]*?\\s+(?P<VAR>\\S+)\\s+=\\s+malloc\\([\\s\\S]*?\\);\\s+[\\s\\S]*?"]))
-        | finding("use-after-free";
-            "Variable '$VAR' was used after being freed.") ) )
+["$F($R, $$$_);", "$F($$$_, $R, $$$_);",
+ "$R->$_ = $_;", "$_ = $R->$_;",
+ "$R[$_] = $_;", "$_ = $R[$_];",
+ "*$R = $_;", "$_ = *$R;",
+ "return $R;", "return $R->$_;"] as $touch
+| ($touch | map("free($P);\n$$$_\n" + .)) as $uses
+| ($touch | map("free($P);\n$$$_\n$P = $_;\n$$$_\n" + .)) as $renewed
+| scan_ast("*.[ch]"; $uses + $renewed) as $all
+| ( $all | of($uses) | where_same("P"; "R")
+    | where_capture_not("F"; "^(?:free|OPENSSL_free|g_free)$")
+    | focus("R")
+    | not_at($all | of($renewed) | where_same("P"; "R") | focus("R")) )
+| finding("c-use-after-free";
+    "$R was freed above and is used here; the block belongs to the allocator "
+    + "now, and to whatever it handed the memory to next")
 | report

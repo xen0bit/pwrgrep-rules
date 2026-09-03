@@ -1,6 +1,6 @@
 # pwrgrep-rules
 
-The structural rule corpus for [pwrq](https://github.com/xen0bit/pwrq): 1860
+The structural rule corpus for [pwrq](https://github.com/xen0bit/pwrq): 1872
 rules in 25 languages, each one a pwrq query and nothing else.
 
 A rule is a file and a header. There is no schema, no plugin API and nothing to
@@ -39,7 +39,7 @@ tools/validate.py    the check CI runs
 
 Rules are grouped by what they search rather than by who wrote them. The path
 is also how a rule is selected, so naming a directory narrows a run:
-`invoke_pwrgrep("."; "go/lang/security")` over a Go repository, not all 1860.
+`invoke_pwrgrep("."; "go/lang/security")` over a Go repository, not all 1872.
 
 ## Using it
 

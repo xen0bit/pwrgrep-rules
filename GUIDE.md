@@ -130,10 +130,26 @@ whether it is code in that language at all, and it is the thing to reach for
 the moment a pattern comes back empty — a typo and an honest absence look
 identical from the outside.
 
-**Arity is part of the pattern.** `f($A, $B)` is a call with two arguments.
-`$$$_` is "and anything else here" and matches nothing as readily as it matches
-something, so `printf($FMT, $$$_)` covers `printf(user)` and `printf(user, 1)`
-both. That is usually what you want; where it is not, write the arity out.
+**Arity is part of the pattern, with one exception.** `f($A, $B)` is a call
+with two arguments. `$$$_` is "and anything else here" and matches nothing as
+readily as it matches something, so `printf($FMT, $$$_)` covers `printf(user)`
+and `printf(user, 1)` both. That is usually what you want; where it is not,
+write the arity out.
+
+The exception is a **lone anonymous hole**, and it is silent. `f($_)` compiles
+to `arguments: (_)` with no anchors — an argument list, any argument list — so
+it means exactly what `f($$$_)` means and not what it looks like it says. Two
+of them anchor correctly (`f($_, $_)` is `. (_) . (_) .`), and a single *named*
+hole anchors too (`f($K)` is `. (_) @K .`); it is only the one-argument
+anonymous case that degrades. This is the same in C, Go, Python and Java,
+because it happens in the compiler and not in a grammar.
+
+It costs findings the way a false name does. `getParameter($_)` as a source
+matched Apache Tiles' three-argument
+`runtime.getParameter("value", Object.class, null)`, which is not a servlet
+request at all, and a Java SSRF rule reported twenty-two findings in the Tiles
+plugin. Naming the hole `$K` took it to zero. **When a pattern is meant to pin
+arity, give every hole a name.**
 
 The same property is worth exploiting: `$FN($$$_, $T *$P, $$$_)` matches a
 one-parameter function as well as a five-parameter one, so a separate pattern
@@ -363,6 +379,100 @@ and from a Python comprehension, both of which have a body and are real paths
 a value travels along. If a rule of yours reports something built from a
 handler rather than from a request, check the binary is new enough to have
 this.
+
+## Java is the one where the class body is out of reach
+
+Java was the easiest grammar in this corpus to write patterns against and the
+one with the most surprising hole in it. Almost everything compiles the way
+you would guess: bare calls (`foo($X)`), statement sequences
+(`a($X);\n$$$_\nb($X);`), method scaffolds (`$RT $M($$$_) { $$$BODY }`, which
+matches a method with modifiers and a `throws` clause without being told about
+either), `try`/`catch`, try-with-resources, annotations above a method, and
+lambdas. A nested call in the sole argument position matches, as in Go and
+unlike in C. `reaching` works out of the box, because tree-sitter-java spells
+an assignment `left`/`right` and a declaration `name`/`value` and the taint
+engine knows both.
+
+That last point is the reason Java was worth a pass at all. The corpus had
+ninety-seven Java rules and exactly **one** of them followed a value, against
+forty-nine in Python and forty-eight in JavaScript — in the language whose
+entire security literature is "untrusted input reaches a dangerous sink". The
+rules were there; the shape that makes them worth having was not.
+
+**A field declaration cannot be matched.** This is the one to know before you
+plan a rule.
+
+```
+$T $F = $E;                         → (local_variable_declaration ...)
+private static final $T $F = $E;    → (local_variable_declaration ...)
+```
+
+A pattern that is not a whole Java file is wrapped in a scaffold, and the
+block scaffold (`{ ... }`) is tried before the class one, so a declaration
+always reads as a local. `private` on a local is not legal Java and the
+grammar takes it anyway, so even the modifiers do not push it over. Wrapping
+it yourself does not help either: `class $CN { $T $F = $E; }` does compile to
+a `field_declaration`, but anchored as the *only* member of the class body,
+and putting `$$$_` beside it is either an error or reads the ellipsis into the
+field's own type.
+
+So `private static final String PASSWORD = "hunter2";` — the canonical
+spelling of the weakness — is not reachable, and two rules in this pass say so
+in their headers rather than pretending otherwise. What is reachable is the
+local, the argument and the expression, which is what those rules ask about.
+
+**A modifier list is compared as one string.** `private static final $T $F`
+compiles to `(modifiers) @_lit_1` with `(#eq? @_lit_1 "private static final")`,
+so `static private final` does not match it and neither does anything with a
+fourth word. Match on the modifiers only when you mean that exact spelling.
+
+**A bare `catch` is not a catch.** `catch ($T $E) { }` on its own compiles to a
+method call named `catch` with two arguments, followed by a block. Write the
+`try` around it. `try { $$$B } catch ($T $E) { $$$C }` is correct and binds
+both bodies.
+
+**A body written `{ }` is a text comparison.** In that pattern `{ }` becomes
+`(#eq? @_lit "{ }")`, which is *not* the same as an empty block — a real one
+is usually `{\n        }`. Ask the question with a guard on the body capture
+instead: `where_capture("C"; "^\\{\\s*\\}$")` matches every spelling of
+empty, and a comment inside keeps it from matching, which for that rule was
+the behaviour worth having.
+
+**try-with-resources is a different node.** A resource declared in a
+`try (...)` header is a `resource`, not a `local_variable_declaration`, so
+`$T $V = new FileInputStream($$$_);` does not match it. A rule about unclosed
+streams therefore needs no subtraction for the correct spelling — the safe
+form is invisible to it by construction. That is rare and worth noticing when
+it happens, because it is the cheapest kind of exclusion there is.
+
+### Two engine bugs Java found, and both were everybody's
+
+Neither of these is a Java problem. Java was just the first language in this
+corpus whose rules leaned on `reaching` hard enough to hit them.
+
+**A loop never bound its variable.** `for (ZipEntry entry : zip.entries())` is
+an assignment — the grammar says `name`/`value` — but the node that assigns
+*encloses the body that uses the name*. The binding was recorded at the end of
+the node, so every use of the loop variable happened before the variable was
+given its value, and no value that arrived through a loop was ever followed.
+The same was true of `for name in request.args.getlist("f")` in Python, and of
+every other language here. Recording the binding at the end of the *value*
+fixes it: between the value and the body there is nothing a name can be used
+in, and an ordinary assignment reads exactly as it did.
+
+**Propagation ignored scope.** A tainted name spread to anything assigned from
+anything mentioning that name, anywhere in the file, with no test that the two
+were the same variable. Local names repeat — `name`, `path`, `url`, `value`,
+`dt` — so a servlet with one method that opens a request parameter and another
+that opens a constant reported the constant. Python's `http/cookiejar.py` has
+four functions that each declare a local `dt`, and the corpus reported a
+format string in all four. Propagation now applies the same three-part test
+the sink already used: the same name, given its value earlier, in a body that
+contains this use.
+
+Both are fixed in xen0bit/pwrq#49. Over three trees of real Python and Go the
+two changes together removed six findings and added none, and the flows the
+rules are actually for still fire.
 
 ## The techniques
 
@@ -607,6 +717,20 @@ Concretely, in this pass:
   other path. That one is the bug, not a false positive — the distinction is
   worth making explicitly in the header, since the next reader will assume it
   was an oversight.
+- `java-exception-swallowed` reports an empty catch only where the exception
+  is bound to a throwaway name. `catch (ClassCastException tolerated) {}` is a
+  decision, and so is a comment in the block; both are left alone.
+- `java-path-from-untrusted-input` reports where the path is *built* and not
+  where it is opened, because a method that does both is one bug and reporting
+  it twice puts the second finding on the line after the one that matters.
+- `java-securerandom-told-what-to-produce` deliberately over-reports: `setSeed`
+  after the generator has produced output is harmless, nothing in the syntax
+  says which came first, and the direction that costs a false positive is
+  better than the one that costs a predictable key.
+- `java-credential-is-a-literal` does not report `""` (a local database with no
+  password), `${db.password}` (a placeholder, which is the fix) or the word
+  `"password"` itself. It does report `"changeit"`, which is the default
+  password of every Java keystore and is the point.
 
 And a rule that a wider rule strictly contains should go. Two rules reporting
 one line under two ids is worse than one, and the README records the precedent
@@ -664,6 +788,39 @@ The remaining three were all one shape: the function dealt with the body
 somewhere the pattern could not see - in a branch, or by handing it back to
 its caller. That is what moved the question from the statement to the whole
 function body, and it is the same trade `chroot-without-chdir` makes.
+
+The Java pass ran twelve rules over six repositories nobody wrote them for —
+spring-framework, Struts, Guava, commons-io, commons-compress and
+spring-petclinic, about fifteen thousand files — and the first run reported
+two hundred and fifty-six findings. Reading them found six causes, and every
+one of them was a rule saying something slightly different from what it meant:
+
+- Guava writes `catch (ClassCastException tolerated) {}` and
+  `catch (NullPointerException optional) {}` a hundred and fifty times. **The
+  name is the comment**, and a better one than a comment, because the compiler
+  keeps it beside the type. The rule now reports an empty catch only when the
+  exception is bound to a name that says nothing — `e`, `ex`, `t`, `error` —
+  which is an inclusion list because that set is small and closed and the set
+  of meaningful names is neither.
+- commons-io's `CopyUtils` wraps six streams it does not own.
+  `new InputStreamReader(input, charset)` holds no descriptor; closing it
+  closes the caller's. Wrapper types are now matched only where their argument
+  opens something fresh.
+- Spring's test suite parses XML it built itself, in memory, as a String —
+  fifty-eight findings in four files. XML the program wrote cannot contain an
+  entity the program did not put there.
+- Spring's own suite writes `setPassword("password")` twenty-three times. A
+  literal that is the *name* of the thing is not a value of it.
+- `URI.create(request.getRequestURI())` is not SSRF, because a request's own
+  path is not a host. Wrong sources, not a wrong sink.
+- and the lone anonymous hole above, which is the one that could not have been
+  found by reading.
+
+Two hundred and fifty-six became fifty-four, spring-petclinic — a clean
+application — reported nothing at all, and the single finding in the whole of
+spring-framework's main source was the one Spring's own authors had annotated
+with a comment explaining why they accepted it. None of the six was visible
+from inside a fixture.
 
 Also read the counts. A rule reporting a hundred findings in one file is
 telling you something about itself, and one reporting a thousand across a

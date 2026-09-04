@@ -723,6 +723,20 @@ nothing without a `private`, an `internal`, an `override`, a `suspend`, a
 `kotlin-credential-is-a-literal` is the rule that could not be written at all,
 and it is the one every hardcoded-credential rule in every corpus is about.
 
+The wrong-answer half is worth one more example, because it is the one that
+will catch you. Both of this corpus's TLS rules are built on
+`fun $F($$$_) { $BODY }` with a guard on `$F`, and every implementation of
+either interface is written `override fun`:
+
+```kotlin
+override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
+override fun verify(hostname: String, session: SSLSession): Boolean { return true }
+```
+
+The pattern matched all along. `$F` bound to `"override"`, the guard asked
+whether a keyword was called `checkServerTrusted`, and the rules reported
+nothing on any input. They compiled, they ran, and they were silent.
+
 An optional node in front fixes both. Which node it is is measured - a
 declaration parsed bare, with one modifier and with two, and the answer is a
 grammar that gave the same construct one extra child both times, which C and C#

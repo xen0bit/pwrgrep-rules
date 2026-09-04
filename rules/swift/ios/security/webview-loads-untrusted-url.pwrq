@@ -1,0 +1,46 @@
+# rules: swift-webview-loads-untrusted-url
+# languages: swift
+# fixture: swift/CWE-601.swift
+# from: CWE-601 (Open Redirect), CWE-749, MASVS-PLATFORM-3
+#
+# An app that registers a URL scheme or a universal link accepts a URL from any
+# other app on the phone and from any web page the user taps. Handing part of
+# that URL to a web view means whoever sent it chooses the page, and the page
+# then renders inside the app's own chrome: sharing the web view's cookies,
+# beside its script message handlers, and behind whatever the user believes the
+# app to be. That last part is the reason this is worth reporting even where
+# the web view has no bridge on it - the address bar the user would check is
+# not there.
+#
+# The fix is an allowlist of hosts compared after the URL is parsed, and there
+# is no way to spell a comparison as a sanitizer: a sanitizer stops a flow by
+# covering one of its ends, and `parsed.host == "app.example.com"` sits on a
+# line of its own between them. This is the same limit the C# pass ran into
+# with ShareX's correct root check, and it takes the same answer - the
+# question moves from the statement to the whole method's text, and a method
+# that compares a host anywhere in it is left alone.
+#
+# That is coarse. A method that checks one URL and loads another goes
+# unreported, and quiet is the right direction to be coarse in.
+#
+# `URL(string:)` in the middle of the flow is not a sanitizer and is not
+# listed as one. It parses, it does not judge, and a `javascript:` or a
+# `file:` URL parses perfectly well.
+
+[ "$$$U.fragment", "$$$U.queryItems", "$$$U.absoluteString",
+  "$$$U.lastPathComponent", "$$$U.query", "UIPasteboard.general.string" ] as $untrusted
+| [ "$$$V.load($R)", "$$$V.load($R, $$$_)",
+    "$$$V.loadHTMLString($R, $$$_)",
+    "$$$V.loadRequest($R)" ] as $loads
+| ["func $F() { $$$BODY }"] as $methods
+| "\\.\\s*host\\b[^\\n]*(?:==|hasSuffix|contains|hasPrefix)"
+  + "|(?:==|hasSuffix|contains|hasPrefix)[^\\n]*\\.\\s*host\\b" as $comparesTheHost
+| scan_ast("*.swift"; $untrusted + $loads + $methods) as $all
+| ( $all | of($loads) | focus("R")
+    | reaching($all | of($untrusted); [])
+    | within($all | of($methods) | where_capture_not("BODY"; $comparesTheHost)) )
+| finding("swift-webview-loads-untrusted-url";
+    "whoever sent the app this URL chooses the page that renders inside it, "
+    + "with the app's cookies and without an address bar; compare the host "
+    + "against an allowlist first")
+| report

@@ -1,0 +1,42 @@
+# rules: swift-command-from-untrusted-input
+# languages: swift
+# fixture: swift/CWE-78.swift
+# from: CWE-78 (OS Command Injection), CWE-88
+#
+# `Process` with `-c` hands the whole of its argument to a shell, so a `;`, a
+# backtick or a `$(...)` anywhere in it starts a second command with the app's
+# privileges. This is macOS Swift rather than iOS - a sandboxed iOS app cannot
+# spawn a process at all - and it is the same weakness there that it is
+# everywhere else.
+#
+# The fix is the default. `executableURL` plus an `arguments` array never
+# involves a shell, so a semicolon in an argument is a semicolon; only the
+# explicit `sh -c` spelling reintroduces one.
+#
+# The rule wants two things at once and asks for both, because either alone
+# reports the wrong thing. A `-c` in the arguments with nothing untrusted in it
+# is a fixed command line and is not a finding; an untrusted value in an
+# arguments array with no `-c` is passed to `execve` as one argument and is
+# also not a finding. It is the pair that is the bug, so the guard reads the
+# array for the shell flag and `reaching` asks whether anything the caller
+# chose ended up in it.
+#
+# The whole array is the sink rather than one element. That is deliberate: the
+# assembled command may be built by interpolation, by concatenation or in a
+# variable a line above, and the array is the one span all three end up in.
+
+["$$$T.arguments = $ARGS", "$$$T.setArguments($ARGS)"] as $runs
+| [ "$$$U.lastPathComponent", "$$$U.pathComponents", "$$$U.absoluteString",
+    "$$$U.queryItems", "$$$U.fragment", "UIPasteboard.general.string",
+    "$$$F.text", "$$$P.string(forKey: $K)" ] as $untrusted
+| "\"-c\"|\"-ec\"|\"/c\"" as $throughAShell
+| scan_ast("*.swift"; $runs + $untrusted) as $all
+| ( $all | of($runs)
+    | where_capture("ARGS"; $throughAShell)
+    | focus("ARGS")
+    | reaching($all | of($untrusted); []) )
+| finding("swift-command-from-untrusted-input";
+    "this goes to a shell with `-c`, so a `;` or a backtick in the value the "
+    + "caller chose starts a second command; pass the program and its "
+    + "arguments separately instead")
+| report

@@ -119,7 +119,7 @@ shipped, because it takes the whole run down with it.
 
 `--no-smoke` skips it, which is most of the ninety seconds.
 
-Every rule in `rules/c` and every rule in `rules/kotlin` carries a fixture, as
+Every rule in `rules/c`, `rules/kotlin` and `rules/swift` carries a fixture, as
 does every rule in `rules/php/lang` bar four, and those languages' fixtures are
 named for the weakness rather than for the rule:
 `testdata/fixtures/c/CWE-134.c` demonstrates every way a C program writes an

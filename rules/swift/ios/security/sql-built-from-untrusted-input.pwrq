@@ -1,0 +1,59 @@
+# rules: swift-sql-built-from-untrusted-input
+# languages: swift
+# fixture: swift/CWE-89.swift
+# from: CWE-89 (SQL Injection), swift/sqllite/sqllite-injection-audit.yaml, MASVS-CODE-4
+#
+# An app's SQLite file is not a server's database and the impact is different
+# rather than absent. The attacker is whoever can hand the app a URL - another
+# app on the phone, a web page, a scanned code - and what an injected query
+# gets them is every row the app can read, which is usually every account it
+# has ever cached.
+#
+# `sqlite3_bind_text` against a `?` placeholder is the fix, and it is less code
+# rather than more: a bound value is never quoted, never escaped and never
+# parsed as SQL.
+#
+# The rule follows the value rather than matching a shape, because neither end
+# is a finding on its own: reading a deep link is what an app with a URL scheme
+# does, and running a query is what an app with a database does. What is wrong
+# is that the one reached the other.
+#
+# That flow could not be followed at all before xen0bit/pwrq#56. Swift labels
+# a `for` loop's two halves `item` and `collection` - a pair no other grammar
+# here uses - so a value walked out of a collection carried nothing, and
+# `for item in url.pathComponents` is how an app reads a deep link's path.
+#
+# The sources are the three ways a URL hands over an attacker's string, and
+# they are read off the receiver as well as the property: `resources.getString`
+# taught the Kotlin pass that a bare property name is every string in the app.
+# Here `lastPathComponent`, `pathComponents`, `queryItems` and `absoluteString`
+# are specific enough to stand on their own, and `host` and `path` are not,
+# which is why they are absent.
+#
+# What the user typed is a source too, and it needs a guard the URL sources do
+# not. `.text` is a property on half the types in UIKit, so the receiver has to
+# look like an input control - this is the same guard the Kotlin pass had to
+# put on `getString`, where a bare property name turned out to be every string
+# in the app. OWASP's iGoat writes the textbook case,
+# `"%" + "\(searchField.text!)" + "%"` into a `LIKE`, and it is what this
+# addition is for.
+#
+# `\(limit)` where limit is an Int is not reported, and that is the taint
+# engine's doing rather than a test here: the value never came from outside.
+
+[ "$$$U.lastPathComponent", "$$$U.pathComponents", "$$$U.absoluteString",
+  "$$$U.queryItems", "$$$U.dataString", "$$$U.fragment", "$$$U.query",
+  "UIPasteboard.general.string", "$$$P.string(forKey: $K)" ] as $fromOutside
+| ["$$$F.text"] as $typedIn
+| "(?i)field|input|search|query|box|entry|term|name|email|user" as $isAnInputControl
+| [ "sqlite3_exec($DB, $SQL, $$$_)", "sqlite3_prepare_v2($DB, $SQL, $$$_)",
+    "sqlite3_prepare($DB, $SQL, $$$_)", "sqlite3_prepare_v3($DB, $SQL, $$$_)",
+    "$$$C.execute($SQL)", "$$$C.run($SQL)" ] as $runs
+| scan_ast("*.swift"; $fromOutside + $typedIn + $runs) as $all
+| ( ($all | of($fromOutside))
+    + ($all | of($typedIn) | where_capture("F"; $isAnInputControl)) ) as $untrusted
+| ( $all | of($runs) | focus("SQL") | reaching($untrusted; []) )
+| finding("swift-sql-built-from-untrusted-input";
+    "this query is assembled from a value the caller of the app chose; bind it "
+    + "to a ? placeholder with sqlite3_bind_text instead")
+| report

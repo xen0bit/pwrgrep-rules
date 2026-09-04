@@ -818,6 +818,306 @@ finding in it is in a test directory or in the documented samples: an HTTP
 library's test suite is about HTTP and dials cleartext on purpose. A rule about
 addresses will always say most about the library whose subject is addresses.
 
+## Swift is the one where everything is a hole's shape
+
+Swift took more silent failures than any language here except C#, and all but
+one of them are the same idea seen from a different side: a hole in a Swift
+pattern is pinned to the shape the *probe* happened to parse, and real code is
+written in the other shapes. Every one of them compiles, reports `Valid: true`,
+and matches a fraction of what it looks like it matches.
+
+Start with what transferred, because it is most of it. Bare calls compile.
+Statement sequences work, with one gap or two. Named arguments compile and are
+matched by label - `f(a: $X)` binds only the `a:` argument. String
+interpolation has a node and `"\($X)"` matches it. `do`/`catch` matches
+correctly, which C# cannot manage. Declarations work: `let $N = $V` and
+`var $N = $V` compile, they are told apart by the binding keyword, and
+`private`, `static` and `@objc` in front of them are handled by the optional
+modifier node the Kotlin pass added. `reaching` works out of the box, because
+tree-sitter-swift labels a property declaration `name`/`value`.
+
+Then the five that do not.
+
+**A parameter is `name: Type` and an ellipsis is neither.** This is the one
+that costs you the first hour, because the spelling every other language in
+this corpus uses is not code in Swift:
+
+```
+func $F($$$_) { $BODY }
+```
+
+There is no Swift a hole can be in a parameter list, so the whole declaration
+fails to parse - and before xen0bit/pwrq#57 it did not fail, it came back
+inside the corpus's list scaffold as an `array_literal` holding two calls, with
+the keyword `func` read as the name of one of them. Valid, well-formed, and a
+search for an array whose element calls a function named `func`, which no Swift
+program contains because the grammar reserves the word. It is now refused.
+
+**The spelling that works looks like it says the opposite.**
+
+```
+func $F() { $$$BODY }
+  ->  (function_declaration name: (_) @F body: (_) @BODY)
+```
+
+The `()` compiles to nothing at all, so this is *every* function - of any
+arity, with modifiers, with a return type, inside a class or at file scope. It
+is the method scaffold, and the "function body as text" technique in this
+document is written with it.
+
+**The body hole has to be variadic, and this one is vicious.** `{ $BODY }`
+compiles to `body: (_ . (_) @BODY .)` - the body's only child, anchored on both
+sides. tree-sitter-swift hangs a comment off the body node beside the
+statements:
+
+```
+function_body [body]  "{\n    // a comment\n    print(2)\n}"
+  comment               "// a comment"
+  statements            "print(2)"
+```
+
+so a function with a comment in it has two children and the pattern skips it.
+Silently, and in a way a fixture will hide from you rather than catch, because
+`// ruleid:` is itself a comment inside the body. Two of this corpus's Swift
+rules were written with `{ $BODY }` and each matched exactly one method of the
+five in its own fixture. `{ $$$BODY }` compiles to `body: (_) @BODY`, binds the
+whole block including its braces and its comments, and matches all five.
+
+**A receiver hole has to be variadic too, for a different reason and with the
+same fix.** `$O.foo()` compiles to `target: (_ . (_) @O .)` - a target with
+exactly one child - and the only receiver that fits is a bare name, because
+the grammar reads a bare name before a dot as a `user_type` wrapping a
+`type_identifier`. Everything else is a different shape:
+
+```
+d.request(u)              user_type            $S.request($U)  matches
+self.session.request(u)   navigation_expression            does not
+a.b.request(u)            navigation_expression            does not
+c?.request(u)             simple_identifier                does not
+e!.request(u)             postfix_expression               does not
+```
+
+One of five, and the four it misses are most of the Swift ever written.
+`$$$S.request($U)` compiles to `target: (_) @S` and matches all five. **Write
+every receiver hole in Swift variadic.** It is the same lesson C# teaches about
+argument holes, arrived at from the receiver end, and it is worth checking for
+in the next grammar too.
+
+Note in passing that the `?.` itself is transparent, exactly as it is in
+Kotlin - `x?.f()` and `x.f()` produce the same navigation suffix. The
+difference is entirely in what the *target* node turned out to be, which is why
+this reads as an optional-chaining problem and is not one.
+
+**A hole can never bind `nil`.** tree-sitter-swift gives `nil` no named node at
+all:
+
+```
+value_argument  "a: nil"
+  value_argument_label [name]  "a"      <- and nothing else
+```
+
+so `f(a: $V)` matches `f(a: 1)`, `f(a: x)`, `f(a: true)` and `f(a: "s")` and
+does not match `f(a: nil)`. Cocoa is written in trailing `nil`s -
+`baseURL: nil`, `completionHandler: nil`, `SecItemAdd(query, nil)` - so a
+pattern that pins an argument this way loses a slice of real calls for a reason
+nothing in the query shows. `$$$_` in that position is fine; a named hole is
+not. This is a grammar with no node for a construct, like PHP's `echo`, and
+there is nothing to fix in the matcher.
+
+**A dictionary literal binds only its first entry.** `$K as String: $V` over
+
+```swift
+[kSecClass as String: kSecClassGenericPassword,
+ kSecAttrAccessible as String: kSecAttrAccessibleAlways]
+```
+
+binds `kSecClass` and stops, which is the same thing the Go pass found about a
+composite literal's fields. Writing the key out - `kSecAttrAccessible as
+String: $V` - reaches the entry wherever in the literal it stands, and for a
+rule about a named option that is what you wanted anyway.
+
+### The five fixes, and why Swift had no dataflow without four of them
+
+All in xen0bit/pwrq#57. The first is the refusal above; the other four are
+`reaching`, and between them they are the difference between a language with
+taint rules and a language with none.
+
+**`guard let` and `if let` carried nothing.** Every value worth following in
+Swift is an optional - `url.fragment`, `queryItems`,
+`UIPasteboard.general.string`, `textField.text` are all `String?` - and the
+language has exactly two idioms for unwrapping one. Neither bound anything:
+
+```
+guard_statement       "guard let t = url.fragment else { return }"
+  value_binding_pattern [condition]     "let"
+  simple_identifier [bound_identifier]  "t"
+  navigation_expression                 "url.fragment"
+```
+
+None of `left`/`right`, `name`/`value` or `declarator`/`value` is there;
+`namedAndUnnamed` wants a `name` field and there is none; and the positional
+reading wants the target wrapped in a node of its own, which Swift does for a
+property declaration's target and does not do here. So reading an untrusted
+value and unwrapping it are one statement in Swift, and that statement was a
+dead end.
+
+What the grammar does say is the whole of the fix: it puts a field name on the
+leaf, and the word it chose - `bound_identifier` - exists for nothing else.
+The word is measured from the same probes the wrapper reading uses, and two
+refusals keep it off the grammars it is not for: a field one of the known pairs
+already reads is declined, and the child after the target has to be the value
+the probe wrote. That second one is load-bearing. Bash reads
+`pwrqProbe_name = 1` as a command with two arguments and labels the leaf
+`argument`; PowerShell does the same and labels it `command_name`. Both are
+real field names on real nodes, both would have made every command in every
+script a binding, and in both the child after the name is the `=` rather than
+the `1`. Across the thirty-four grammars in this build, exactly one answers.
+
+**A plain assignment is `target` and `result`.** Swift labels a property
+declaration `name`/`value`, which the engine already read, and labels a bare
+`s = x` `target`/`result`, which nothing did - every other grammar here calls
+the right-hand side a value or a right. So a value could be followed into the
+declaration that first held it and never out of the assignment that moved it,
+and what that costs is the most ordinary shape there is:
+
+```swift
+var searchStr = "%"
+if !(searchField.text?.isEmpty ?? true) {
+     searchStr = "%" + "\(searchField.text!)" + "%"
+}
+let query = "SELECT title FROM article WHERE title LIKE '\(searchStr)' ..."
+sqlite3_prepare_v2(db, query, -1, &stmt, nil)
+```
+
+That is iGoat-Swift's SQL injection, which is in the app on purpose and is as
+textbook as the class gets. `query` traced back to `searchStr`, `searchStr`
+traced back to the `var` that declares it - which holds `"%"` and is clean -
+and the line that actually puts the text field into it was not an edge. The
+rule found nothing until the pair went in the list, and the declaration
+alongside it is why: a grammar that spells the same operation two ways will
+give you the half you tested and hide the half you did not.
+
+**A `for` loop's two halves are `item` and `collection`.** No other grammar
+here uses that pair, so `for part in url.pathComponents` bound nothing - in
+the language whose idiom for walking anything untrusted is a `for` over it. It
+is the same bug the Java pass fixed for `for (ZipEntry entry : zip.entries())`
+and the same answer: the pair is a binding, so it goes in the list.
+
+**Neither a function nor a closure was a boundary.** The engine recognises a
+function as a node with both parameters and a body, and Swift says half of it.
+A function declaration labels its body and writes each parameter as a child of
+its own with no list around them; a closure labels neither and puts the list
+one level down, inside the node holding the signature:
+
+```
+lambda_literal        "{ (r: URL) in sink(r) }"
+  lambda_function_type [type]         "(r: URL)"
+    lambda_function_type_parameters   "r: URL"
+  statements                          "sink(r)"
+```
+
+So a value read inside a closure escaped it and was reported as having been
+given to whatever the closure was assigned to - the Go bug, in a language that
+writes a closure for every network callback. The parameters are now measured
+wherever the grammar did not label them: a child, or a grandchild, whose type
+is named for parameters, with the singular admitted for the run Swift writes.
+What keeps a parameter list from reading its own last parameter as its body is
+that a body may not itself be parameter-shaped and must begin after the
+parameters end.
+
+Together they are not an improvement, they are the whole of it. Eleven lines of
+Swift, one untrusted value, the three ways the language moves one:
+
+```swift
+func handle(_ url: URL) {
+    guard let frag = url.fragment else { return }
+    var s = "x"
+    s = frag
+    for part in url.pathComponents {
+        sink(part)      // <- item/collection
+    }
+    sink(s)             // <- target/result
+    let t = frag
+    sink(t)             // <- bound_identifier
+}
+```
+
+Before: nothing. Not one of the three. After: all three. A language whose every
+interesting value is an optional, whose every unwrap is a `guard let`, and
+whose taint engine reached none of it - which is what a corpus of three
+machine-translated Swift rules and no fixtures was hiding.
+
+### What reading real Swift changed
+
+Seven repositories, about twenty-four hundred files: Alamofire, Nuke, RxSwift,
+lottie-ios, SwiftNIO, Vapor, and iGoat-Swift, which is a deliberately
+vulnerable iOS app and the only one with anything to find. Four causes were
+worth fixing and one of them was in the engine.
+
+- **A local file's last path component is not attacker input.** Both of the
+  path rule's false positives were the same line written twice: Alamofire's
+  `"Alamofire_\(url.lastPathComponent)"` and Nuke's
+  `"." + url.lastPathComponent + ".tmp"`, each taking a file URL the library
+  itself made, renaming it, and putting it back in the directory it came from.
+  `lastPathComponent` is a source when the URL arrived from outside and is not
+  one otherwise, and nothing in the syntax says which - so it came out of the
+  path rule and stayed in the SQL and command rules, where a URL is a deep
+  link or it is nothing. It is the C# lesson about `FileInfo.FullName` in a
+  different alphabet.
+- **The textbook injection was missed, for two reasons at once.** iGoat's SQL
+  exercise is `searchStr = "%" + "\(searchField.text!)" + "%"` into a `LIKE`,
+  and the rule found nothing. One reason was the rule: a text field is a
+  source and `$$$F.text` was not in the list, because the intuition carried
+  over from Android is that untrusted input arrives in an intent. The other
+  was the engine: the line is a plain assignment, Swift spells that
+  `target`/`result`, and no grammar here had used those words - so the value
+  reached the variable and stopped. A rule that names the right sink and the
+  right source still finds nothing if the language moves the value a way the
+  engine cannot read, and a fixture written by the same hand as the rule will
+  not tell you.
+- **A host check is a line of its own.** `webview-loads-untrusted-url` fired
+  on the case it was written to permit, because `guard let parsed =
+  URL(string: target), parsed.host == "app.example.com"` puts the check
+  between the source and the sink rather than around either end, and a
+  sanitizer only covers a flow it stands on. The answer is the one C# reached
+  for ShareX: read the whole method body as text and subtract the methods that
+  compare a host anywhere in it. Not every guard is a call, and a rule that
+  insists on one reports the careful code.
+- **A rule that reports every draw is a rule nobody keeps.** The generated
+  `insecure-random` rule reported fifty-five `Int.random(in:)` calls across
+  four of the seven repositories, and every one is a test fixture or a
+  scheduler jitter. It is replaced by a rule that asks what the *result was
+  named*: `sessionToken`, `nonce`, `otpSecret` are the one piece of evidence
+  in the syntax about which kind of draw this is, and over the same
+  twenty-four hundred files the narrowed rule reports nothing at all. That is
+  the right answer - none of these libraries draws a secret - and it is the
+  difference between a rule that stays switched on and one that does not.
+
+What is left says what it should. Sixty-nine findings over the seven, and the
+shape of them is the answer. Alamofire, lottie-ios and SwiftNIO report nothing
+at all. iGoat-Swift - the app with the bugs in it - reports five: the SQL
+injection, two hardcoded cookie values and a hardcoded bank password, all four
+squarely right, and a keychain error path whose message names a password and
+interpolates the error. That last one is the false positive this family keeps
+on purpose, in Swift for the same reason the Kotlin section gives - deciding
+which half of a template the word belongs to would be guessing, and the guess
+that costs a leaked credential is the wrong one to make.
+
+Sixty-one of the remaining sixty-three are a cleartext `http://test.com` in
+Nuke's `Tests/` or in RxSwift's `RxExample`, which is what an image loader's
+test suite is for, the same way an HTTP library's is about HTTP.
+
+The last three are the interesting ones, and they are all the same finding:
+`Insecure.SHA1` over a cache key in Nuke, and `Insecure.SHA1()` twice in
+Vapor's HOTP. Both are true readings of a weak hash and neither is a weakness
+- a cache key is not a signature, and HMAC-SHA1 is what RFC 4226 says a
+one-time password is made with, so an OTP library that used anything else
+would not interoperate. There is no guard to write: the syntax at the call
+says `Insecure.SHA1` and nothing else, and what makes it safe is what the
+digest is for, which is three call frames away. This is the class where a rule
+is right to speak and wrong to be believed without looking - Apple named the
+namespace, and the rule is only repeating it.
+
 ## The techniques
 
 ### Two statements as one construct

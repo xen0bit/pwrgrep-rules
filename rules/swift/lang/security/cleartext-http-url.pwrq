@@ -1,0 +1,50 @@
+# rules: swift-cleartext-http-url
+# languages: swift
+# fixture: swift/CWE-319.swift
+# from: CWE-319 (Cleartext Transmission of Sensitive Information), MASVS-NETWORK-1
+#
+# A phone is on somebody else's network almost all of the time, and every one
+# of those networks can read a cleartext request. The half that gets forgotten
+# is the other direction: whoever can read the request can rewrite the reply,
+# so this is not only a disclosure, it is a way to feed the app whatever the
+# network decides to say.
+#
+# The address is read where it is handed to something that builds a request,
+# rather than at every `http://` in the file. That is what keeps the rule off
+# the string constants that are not addresses anybody dials - an XML namespace
+# is the one that would otherwise dominate, exactly as it does in Android,
+# because `http://www.w3.org/...` is a name and not a place.
+#
+# Loopback is excluded because nobody else is on it. `localhost`, `127.0.0.1`
+# and `[::1]` are how a Swift process says "this machine", and a simulator
+# talking to a server on the same laptop is not on a network at all.
+#
+# An app that does this also carries an `NSAllowsArbitraryLoads` in its
+# Info.plist, because App Transport Security blocks cleartext by default. Both
+# are worth reporting: the plist says the decision was made, and this says
+# where it is spent.
+#
+# Every receiver hole here is written `$$$S` rather than `$S`, which in Swift
+# is the difference between a rule that fires and one that mostly does not. A
+# single hole in receiver position compiles to `target: (_ . (_) @S .)` - a
+# node with exactly one child - and the only receiver that fits is a bare name
+# the grammar read as a `user_type`. `self.session`, `a.b`, `c?.request` and
+# `d!.request` all fail it, silently, and that is most of the Swift ever
+# written. See GUIDE.md.
+
+[ "URL(string: $U)", "URL(string: $U, $$$_)",
+  "NSURL(string: $U)", "NSURL(string: $U, $$$_)",
+  "URLComponents(string: $U)", "URLRequest(url: $U)",
+  "$$$S.request($U)", "$$$S.request($U, $$$_)",
+  "$$$B.baseURL($U)", "$$$B.url($U)" ] as $dials
+| "^\"http://" as $cleartext
+| "^\"http://(?:localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0|\\[::1\\])[:/\"]" as $thisMachine
+| scan_ast("*.swift"; $dials) as $all
+| ( $all | of($dials)
+    | where_capture("U"; $cleartext)
+    | where_capture_not("U"; $thisMachine)
+    | focus("U") )
+| finding("swift-cleartext-http-url";
+    "$U goes out in the clear, so whoever runs the network reads this request "
+    + "and chooses the reply")
+| report

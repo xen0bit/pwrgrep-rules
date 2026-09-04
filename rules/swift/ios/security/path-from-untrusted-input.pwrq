@@ -1,0 +1,63 @@
+# rules: swift-path-from-untrusted-input
+# languages: swift
+# fixture: swift/CWE-22.swift
+# from: CWE-22 (Path Traversal), CWE-23, MASVS-STORAGE-1
+#
+# An app's container is one directory tree and `..` walks up out of whichever
+# subdirectory the app meant to stay in. A deep link carrying
+# `../../Library/Cookies/Cookies.binarycookies` reads the session cookies; one
+# carrying a name under `Documents` overwrites whatever the app keeps there.
+# The attacker is whoever can hand the app a URL, which on a phone is any other
+# app and any web page.
+#
+# `appendingPathComponent` neither resolves nor rejects `..`; it concatenates,
+# and the resulting URL is perfectly valid. What makes a path safe is resolving
+# it and comparing the result against the directory it was supposed to be
+# under - `standardizedFileURL` then `hasPrefix` - and a comparison is not a
+# call, so a value-following rule cannot see it. The C# pass hit this exactly:
+# ShareX does the correct root check and the rule could not tell.
+#
+# So this reports where the path is *built* rather than where it is opened,
+# which is the same choice `java-path-from-untrusted-input` makes: a method
+# that does both is one bug, and reporting it twice puts the second finding on
+# the line after the one that matters.
+#
+# `lastPathComponent` is deliberately *not* a source here, though it is one in
+# the query and script rules. Two libraries said why. Alamofire builds a
+# download's destination as
+#
+#     url.deletingLastPathComponent().appendingPathComponent("Alamofire_\(url.lastPathComponent)")
+#
+# and Nuke builds a cache write's temporary file the same way, and in both the
+# URL is one the system just handed the process rather than one an attacker
+# sent. That is the C# lesson about `.FullName` again - a rule can be right
+# about a construct and wrong about a type - and there is a second reason on
+# top of it: `lastPathComponent` is one component by construction and holds no
+# separator, so as a traversal it can only ever contribute a `..`. The sources
+# that carry a whole path stay; the one that carries a filename goes.
+#
+# `standardizedFileURL` and `resolvingSymlinksInPath` are named as sanitizers,
+# and neither of them forbids a traversal - `standardizedFileURL` resolves
+# `..`, it does not reject it. They are named for the reason `realpath` is
+# named in the C path rule: after them there is something to compare, and that
+# is where syntax stops and the rule should stop with it.
+
+[ "$$$U.pathComponents", "$$$U.absoluteString", "$$$U.relativePath",
+  "$$$U.queryItems", "$$$U.fragment", "$$$U.query",
+  "UIPasteboard.general.string", "$$$F.text" ] as $untrusted
+| [ "$$$B.appendingPathComponent($P)", "$$$B.appendingPathComponent($P, $$$_)",
+    "$$$B.appendPathComponent($P)",
+    "URL(fileURLWithPath: $P)", "URL(fileURLWithPath: $P, $$$_)",
+    "$$$B.contentsOfDirectory(atPath: $P)",
+    "$$$B.createFile(atPath: $P, $$$_)",
+    "$$$B.removeItem(atPath: $P)" ] as $builds
+| [ "$$$V.standardizedFileURL", "$$$V.resolvingSymlinksInPath()",
+    "$$$V.standardizingPath" ] as $resolved
+| scan_ast("*.swift"; $untrusted + $builds + $resolved) as $all
+| ( $all | of($builds) | focus("P")
+    | reaching($all | of($untrusted); $all | of($resolved)) )
+| finding("swift-path-from-untrusted-input";
+    "this path is built from a value the caller of the app chose, and `..` in "
+    + "it walks out of the directory; resolve it and check it is still under "
+    + "the root")
+| report

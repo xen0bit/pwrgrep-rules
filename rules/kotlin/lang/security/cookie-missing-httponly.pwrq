@@ -1,6 +1,17 @@
 # rules: cookie-missing-httponly
 # languages: kotlin
+# fixture: kotlin/CWE-1004.kt
 # from: kotlin/lang/security/cookie-missing-httponly.yaml
+#
+# Without HttpOnly a cookie is readable from JavaScript, so one cross-site
+# script anywhere on the origin reads the session and posts it somewhere. The
+# flag is what makes an XSS bug a defacement rather than an account takeover.
+#
+# The second half of this rule is a file-level test: a cookie added to a
+# response in a file that never mentions `setHttpOnly` is a cookie nobody set
+# the flag on. That is coarse - a file that sets it on one cookie and not on
+# the next goes unreported - and it is the direction to be coarse in, because
+# the alternative is reporting every `addCookie` in every servlet.
 
 . as $root
 | ( ($root | scan_ast(["*.kt"]; [

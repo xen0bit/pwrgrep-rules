@@ -1,6 +1,13 @@
 # rules: no-null-cipher
 # languages: kotlin, scala
+# fixture: kotlin/CWE-327-null-cipher.kt
 # from: kotlin/lang/security/no-null-cipher.yaml
+#
+# NullCipher is the identity: it implements the Cipher interface and returns
+# what it was given. It exists so that a pipeline can be assembled and tested
+# before the real cipher is chosen, and every use of it in shipped code is that
+# placeholder left in - the data goes out unencrypted and every call around it
+# still reads as if it were not.
 
 . as $root
 | ( ($root | scan_ast(["*.kt","*.scala"]; [

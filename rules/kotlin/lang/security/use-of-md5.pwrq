@@ -1,13 +1,39 @@
 # rules: use-of-md5
 # languages: kotlin
+# fixture: kotlin/CWE-327-md5.kt
 # from: kotlin/lang/security/use-of-md5.yaml
+#
+# MD5 has had practical collisions since 2004 and chosen-prefix collisions
+# since 2019, so two inputs with the same digest can be produced to order. A
+# signature over an MD5 digest signs both of them.
+#
+# The rule as translated asked for `$VAR = $MD.getInstance("MD5")`, which is an
+# assignment. Kotlin introduces almost every value with `val` or `var`, and a
+# declaration is a different node, so the only spelling it could ever find was
+# the Apache DigestUtils one - and the line every program actually writes went
+# unreported, silently, for as long as the rule existed.
+#
+# The fix is to stop naming the binding at all. `$MD.getInstance($ALGO)` is the
+# call wherever it stands, inside a declaration or an assignment or on its own,
+# and it is what the rule was always about. Where a rule in this corpus names a
+# binding it should be because the binding is part of the question.#
+# The helpers are written with their argument, and the argument is what tells
+# them from okio's. `ByteString.md5()` takes none and is how a Kotlin program
+# spells a cache key: OkHttp's own `Cache.key` is
+# `url.toString().encodeUtf8().md5().hex()`, which is a real MD5 and is not a
+# weakness in anything. A pattern that named the method and not the arity
+# reported it, and there is nothing in the syntax that separates a cache key
+# from a signature. So the argument-less spelling is deliberately not matched,
+# which costs the rare program that hashes a password that way and keeps the
+# rule quiet on the many that do not.
 
-. as $root
-| ( ($root | scan_ast(["*.kt"]; [
-      "$DU.getMd5Digest().digest($$$_)",
-      "$VAR = $MD.getInstance(\"MD5\")"
-    ])) as $all
-    | ( $all | of(["$VAR = $MD.getInstance(\"MD5\")","$DU.getMd5Digest().digest($$$_)"])
-        | finding("use-of-md5";
-            "Detected MD5 hash algorithm which is considered insecure.") ) )
+["$MD.getInstance($ALGO)"] as $made
+| ["$DU.getMd5Digest().digest($$$_)", "DigestUtils.md5($X)",
+   "DigestUtils.md5Hex($X)", "$DU.md5Hex($X)"] as $helpers
+| scan_ast("*.kt"; $made + $helpers) as $all
+| ( ($all | of($made) | where_capture("ALGO"; "^\"MD5\"$"))
+    + ($all | of($helpers)) )
+| finding("use-of-md5";
+    "MD5 has had chosen-prefix collisions since 2019, so two inputs with this "
+    + "digest can be produced to order; SHA-256 instead")
 | report

@@ -1,13 +1,34 @@
 # rules: use-of-weak-rsa-key
 # languages: kotlin
+# fixture: kotlin/CWE-326.kt
 # from: kotlin/lang/security/weak-rsa.yaml
+#
+# NIST has said 2048 bits since 2015 and 1024-bit RSA has been within reach of
+# a well-funded attacker for longer than that. A key that is too short does not
+# fail; it works exactly as well as a long one right up until somebody factors
+# the modulus, and then every signature it ever made is forgeable.
+#
+# As translated the rule was written around `$KEY = $G.getInstance("RSA")`, an
+# assignment, which is not how a Kotlin program introduces a value - `val` and
+# `var` make a declaration, a different node, and the rule matched nothing on
+# any Kotlin file ever written. Both spellings are here now.
+#
+# The two statements are matched together and the two holes compared, because
+# the generator that was asked for RSA has to be the generator that was given
+# the size. Written as one hole twice it would mean the same thing and leave
+# only one span to report at, and the size is the half worth pointing at.
+#
+# `where_capture_compare` reads the capture as a number, which is right here:
+# key sizes are ordered by how dangerous they are, so "smaller than 2048" is
+# the question and a regex would be a list of the sizes anybody happens to use.
 
-. as $root
-| ( ($root | scan_ast(["*.kt"]; [
-      "$KEY = $G.getInstance(\"RSA\")\n$$$_\n$KEY.initialize($BITS)"
-    ])) as $all
-    | ( $all | of(["$KEY = $G.getInstance(\"RSA\")\n$$$_\n$KEY.initialize($BITS)"])
-          | where_capture_compare("$BITS < 2048")
-        | finding("use-of-weak-rsa-key";
-            "RSA keys should be at least 2048 bits based on NIST recommendation.") ) )
+["val $KEY = $G.getInstance(\"RSA\")\n$$$_\n$KEY.initialize($BITS)",
+ "val $KEY: $T = $G.getInstance(\"RSA\")\n$$$_\n$KEY.initialize($BITS)",
+ "var $KEY = $G.getInstance(\"RSA\")\n$$$_\n$KEY.initialize($BITS)",
+ "$KEY = $G.getInstance(\"RSA\")\n$$$_\n$KEY.initialize($BITS)"] as $generated
+| scan_ast("*.kt"; $generated) as $all
+| ($all | of($generated) | where_capture_compare("$BITS < 2048") | focus("BITS"))
+| finding("use-of-weak-rsa-key";
+    "$BITS bits is below the 2048 NIST has recommended since 2015, and every "
+    + "signature a factored key made is forgeable")
 | report

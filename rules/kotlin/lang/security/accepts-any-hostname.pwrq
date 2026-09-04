@@ -1,0 +1,42 @@
+# rules: kotlin-accepts-any-hostname
+# languages: kotlin
+# fixture: kotlin/CWE-295-hostname.kt
+# from: CWE-295 (Improper Certificate Validation)
+#
+# A verifier that returns true accepts a certificate issued for any name, so a
+# certificate the attacker holds for a domain the attacker owns passes for the
+# domain the app meant. It is the half of TLS that answers "am I talking to who
+# I meant to", and it is the half that can be removed without anything else in
+# the handshake noticing - which is why it survives testing and ships.
+#
+# Three spellings, because Kotlin has three. The verifier assigned or passed as
+# a value is read from the text of the value, which is where `-> true` and
+# Apache's ALLOW_ALL_HOSTNAME_VERIFIER both sit; the subclass is read from the
+# body of its `verify`, in the block form and the expression form both.
+#
+# A verifier that compares the host to anything at all is left alone, whether
+# the comparison is right or not. `host == "api.example.com"` is pinning and
+# `defaultVerifier.verify(...)` is delegation, and a rule that cannot tell a
+# good comparison from a bad one has no business reporting either. What it can
+# tell is the absence of one.
+#
+# The trailing-lambda spelling - `conn.setHostnameVerifier { _, _ -> true }` -
+# is not reported. A trailing lambda is a `call_suffix` rather than an
+# argument, so no pattern here binds it, and rewriting the rule around that one
+# spelling would cost the three that matter.
+
+["$C.hostnameVerifier = $V", "$C.setHostnameVerifier($V)",
+ "$T $C = $V", "val $C = $V", "$B.hostnameVerifier($V)"] as $assigned
+| ["fun $F($$$_) { $BODY }"] as $methods
+| "(?:->|return)\\s*true\\s*\\}?$|ALLOW_ALL_HOSTNAME_VERIFIER" as $saysYes
+| "^(?:\\{\\s*)?(?:return\\s+)?true\\s*\\}?$|^=\\s*true$" as $alwaysTrue
+| scan_ast("*.kt"; $assigned + $methods) as $all
+| ( ($all | of($assigned)
+     | where_capture("V"; "HostnameVerifier|ALLOW_ALL_HOSTNAME_VERIFIER")
+     | where_capture("V"; $saysYes) | focus("V"))
+    + ($all | of($methods)
+       | where_capture("F"; "^verify$") | where_capture("BODY"; $alwaysTrue)) )
+| finding("kotlin-accepts-any-hostname";
+    "this verifier says yes to every name, so a certificate for a domain the "
+    + "attacker owns is accepted for this one")
+| report

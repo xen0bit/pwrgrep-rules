@@ -1,6 +1,6 @@
 # pwrgrep-rules
 
-The structural rule corpus for [pwrq](https://github.com/xen0bit/pwrq): 1884
+The structural rule corpus for [pwrq](https://github.com/xen0bit/pwrq): 1900
 rules in 25 languages, each one a pwrq query and nothing else.
 
 A rule is a file and a header. There is no schema, no plugin API and nothing to
@@ -119,9 +119,9 @@ shipped, because it takes the whole run down with it.
 
 `--no-smoke` skips it, which is most of the ninety seconds.
 
-Every rule in `rules/c` carries a fixture, as does every rule in
-`rules/php/lang` bar four, and both languages' fixtures are named for the
-weakness rather than for the rule:
+Every rule in `rules/c` and every rule in `rules/kotlin` carries a fixture, as
+does every rule in `rules/php/lang` bar four, and those languages' fixtures are
+named for the weakness rather than for the rule:
 `testdata/fixtures/c/CWE-134.c` demonstrates every way a C program writes an
 uncontrolled format string, and `c-uncontrolled-format-string` is the rule that
 has to find all of them and nothing else. Going from a number in an advisory to

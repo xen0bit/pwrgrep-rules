@@ -1,0 +1,43 @@
+# rules: kotlin-path-from-untrusted-input
+# languages: kotlin
+# fixture: kotlin/CWE-22.kt
+# from: CWE-22 (Path Traversal), CWE-23
+#
+# An intent's extras are whatever the app that sent the intent put in them, and
+# on a phone that is any other app on the phone. A name is a String and so is a
+# path, and `File(filesDir, "../../databases/accounts.db")` resolves without
+# complaint to somewhere the app never meant to write.
+#
+# The sources are the intent and the request and nothing else. A path out of
+# the app's own resources or off a build config was chosen by whoever built the
+# app, which is a different question, and mixing the two buries this one.
+#
+# `.name` is the sanitizer, and it is the only honest one here: after it there
+# is one component and no separator left, which is a fact this rule can check.
+# `canonicalPath` and `normalize()` are deliberately not sanitizers - both
+# resolve `..` rather than rejecting it, so what comes back is still outside
+# the directory and merely says so tidily. A program that canonicalises and
+# then compares the result to its own root is safe, and the comparison is what
+# makes it safe; this rule cannot see a comparison, so it reports the open.
+#
+# Both argument positions of the two-argument builders are written out, because
+# `File(dir, name)` puts the interesting half second and a reading that asked
+# only about the first would find the constant every time.
+
+["$I.getStringExtra($K)", "$I.getStringArrayListExtra($K)",
+ "$I.getCharSequenceExtra($K)", "$I.dataString",
+ "$R.getParameter($K)"] as $named
+| ["$U.getQueryParameter($K)", "$E.getString($K)", "$E.get($K)"] as $offSomething
+| "(?i)(?:^|\\.)(?:intent|extras|arguments|uri|data|deeplink|bundle)$" as $fromAnIntent
+| ["File($P)", "File($D, $P)", "Paths.get($P)", "Paths.get($D, $P)",
+   "FileInputStream($P)", "FileOutputStream($P)", "FileOutputStream($P, $$$_)",
+   "FileReader($P)", "FileWriter($P)", "RandomAccessFile($P, $_)"] as $sinks
+| ["File($X).name", "$X.substringAfterLast($_)"] as $clean
+| scan_ast("*.kt"; $named + $offSomething + $sinks + $clean) as $all
+| ($all | of($sinks) | focus("P") | reaching((($all | of($named))
+                    + ($all | of($offSomething) | where_capture("E"; $fromAnIntent))
+                    + ($all | of($offSomething) | where_capture("U"; $fromAnIntent))); $all | of($clean)))
+| finding("kotlin-path-from-untrusted-input";
+    "$P came from an intent another app sent, so a name with ../ in it reads "
+    + "or writes outside the directory this was meant to stay in")
+| report

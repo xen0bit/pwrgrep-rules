@@ -1,0 +1,38 @@
+# rules: kotlin-webview-javascript-interface
+# languages: kotlin
+# fixture: kotlin/CWE-749.kt
+# from: CWE-749 (Exposed Dangerous Method or Function)
+#
+# `addJavascriptInterface` puts a Kotlin object on the other side of a bridge
+# from the JavaScript in the page, and the page decides what to call. That is
+# the point of it, and it is only safe while the app chose the page. A
+# redirect, an injected script or a man-in-the-middle on a cleartext load puts
+# somebody else on the other end.
+#
+# So the bridge on its own is not the finding, twice over.
+#
+# A file that never loads anything into a WebView is a file where this is
+# somebody else's problem - a base class, a test double - and the rule stays
+# out of it. That test is the file rather than the view, because a WebView is
+# configured in one method and loaded in another often enough that asking it of
+# a single receiver would answer no almost everywhere.
+#
+# And a method that names `file:///android_asset/` or `file:///android_res/` is
+# showing HTML the app shipped, which is the case `addJavascriptInterface` is
+# actually for. The test there is the method's own text, and it is the coarse
+# one on purpose: a method that loads an asset and a remote page both goes
+# unreported, and quiet is the right direction to be coarse in.
+
+["$V.addJavascriptInterface($O, $N)"] as $bridges
+| ["$V.loadUrl($U)", "$V.loadUrl($U, $$$_)", "$V.loadData($U, $$$_)",
+   "$V.loadDataWithBaseURL($U, $$$_)"] as $loads
+| ["fun $F($$$_) { $BODY }"] as $methods
+| "\"file:///android_(?:asset|res)/" as $ownContent
+| scan_ast("*.kt"; $bridges + $loads + $methods) as $all
+| ( $all | of($bridges)
+    | in_files_with($all | of($loads))
+    | outside($all | of($methods) | where_capture("BODY"; $ownContent)) )
+| finding("kotlin-webview-javascript-interface";
+    "$O is reachable from the JavaScript in whatever page this view loads, and "
+    + "what it loads is not written out here")
+| report

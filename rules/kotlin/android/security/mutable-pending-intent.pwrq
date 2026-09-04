@@ -1,0 +1,43 @@
+# rules: kotlin-mutable-pending-intent
+# languages: kotlin
+# fixture: kotlin/CWE-927.kt
+# from: CWE-927 (Use of Implicit Intent for Sensitive Communication), CWE-926
+#
+# A PendingIntent is a token that lets whoever holds it act as the app that
+# made it. Without FLAG_IMMUTABLE the holder may fill in whatever the wrapped
+# Intent left blank - component, action, data, extras - and then have this app
+# send it, so a notification listener or a widget host reaches a private
+# activity or a content provider it could not otherwise touch. The permission
+# check that would have stopped it sees this app, not the caller.
+#
+# The rule is the absence of the flag, which is the same question Android's own
+# lint asks and the same one the platform started enforcing in API 31. It is
+# asked of the flags argument as text, so `FLAG_UPDATE_CURRENT or
+# FLAG_IMMUTABLE` is quiet and a bare `0` is not.
+#
+# The flags have to be written out at the call. This is the narrowing that
+# reading real code forced and it removed every false positive there was:
+# LeakCanary writes `val flags = FLAG_UPDATE_CURRENT or FLAG_IMMUTABLE` a line
+# above the call and Tivi writes `private const val PENDING_INTENT_FLAGS =
+# FLAG_IMMUTABLE or ...` at the top of the file, so the argument this rule
+# reads is a name and the decision is somewhere else. Four findings across two
+# applications, four of them wrong, and all four were this. A capture that is
+# a bare name says nothing about the flags, so the rule stops asking.
+#
+# FLAG_MUTABLE is reported even though it is deliberate. There are real uses
+# for it - a direct-reply action needs the system to fill in the text - and
+# there is nothing in the syntax that says which this is, so the reader decides.
+# The direction that costs a false positive is better than the one that costs a
+# token somebody else can aim.
+
+["PendingIntent.$M($C, $R, $I, $F)"] as $tokens
+| scan_ast("*.kt"; $tokens) as $all
+| ( $all | of($tokens)
+    | where_capture("M"; "^get(?:Activity|Activities|Broadcast|Service|ForegroundService)$")
+    | where_capture_not("F"; "FLAG_IMMUTABLE")
+    | where_capture("F"; "FLAG_[A-Z]|^[0-9]+$")
+    | focus("F") )
+| finding("kotlin-mutable-pending-intent";
+    "these flags do not say FLAG_IMMUTABLE, so whoever is given this token can "
+    + "fill in the intent and have this app send it")
+| report

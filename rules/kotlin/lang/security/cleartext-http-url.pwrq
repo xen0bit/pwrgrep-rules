@@ -1,0 +1,47 @@
+# rules: kotlin-cleartext-http-url
+# languages: kotlin
+# fixture: kotlin/CWE-319.kt
+# from: CWE-319 (Cleartext Transmission of Sensitive Information)
+#
+# On a phone the network belongs to somebody else - a café access point, a
+# captive portal, a carrier's transparent proxy - and every one of them can
+# read a cleartext request and rewrite the response. That second half is the
+# part people forget: this is not only a disclosure, it is a way to feed the
+# app whatever the network decides to say.
+#
+# The rule reads the address at the point it is handed to something that
+# connects, rather than every `http://` in the file. That is what keeps out the
+# largest false positive in Android by a distance: XML namespaces.
+# `http://schemas.android.com/apk/res/android` is in every layout and every
+# manifest and is not an address anybody dials, and a rule that grepped for the
+# scheme would report it a hundred times per app and be turned off.
+#
+# Loopback and the emulator's alias for the host are excluded because neither
+# is on a network anybody else is on. `localhost`, `127.0.0.1` and `10.0.2.2`
+# are the three spellings that mean "this machine" from inside an Android
+# process.
+#
+# What the counts say is worth writing down, because the number on its own
+# looks bad. Over three real applications - now-in-android, Tivi and LeakCanary,
+# about seventeen hundred files - this reports nothing at all. Over OkHttp it
+# reports twenty-six, and every one of the twenty-six is in a test directory or
+# in the documented samples: an HTTP library's test suite is about HTTP, and it
+# dials cleartext on purpose. The rule is not wrong there and the corpus is not
+# an application; a rule about addresses will always say most about the library
+# whose subject is addresses.
+
+["URL($U)", "URL($U, $$$_)", "Uri.parse($U)", "HttpUrl.parse($U)",
+ "$B.url($U)", "$B.baseUrl($U)", "$B.setUrl($U)",
+ "$V.loadUrl($U)", "$V.loadUrl($U, $$$_)", "$V.postUrl($U, $$$_)",
+ "Request.Builder().url($U)", "Retrofit.Builder().baseUrl($U)"] as $dials
+| "^\"http://" as $cleartext
+| "^\"http://(?:localhost|127\\.0\\.0\\.1|10\\.0\\.2\\.2|0\\.0\\.0\\.0|\\[::1\\])[:/\"]" as $thisMachine
+| scan_ast("*.kt"; $dials) as $all
+| ( $all | of($dials)
+    | where_capture("U"; $cleartext)
+    | where_capture_not("U"; $thisMachine)
+    | focus("U") )
+| finding("kotlin-cleartext-http-url";
+    "$U goes out in the clear, so whoever runs the network reads this request "
+    + "and chooses the reply")
+| report

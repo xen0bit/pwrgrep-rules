@@ -1,0 +1,41 @@
+# rules: kotlin-encryption-key-is-a-literal
+# languages: kotlin
+# fixture: kotlin/CWE-321.kt
+# from: CWE-321 (Use of Hard-coded Cryptographic Key), CWE-329
+#
+# A key written into the source is the same key in every installed copy of the
+# app, and an APK is a zip file on a device the attacker owns. Encryption with
+# a key everybody already has is encoding, and the fix is not a better cipher -
+# it is the Android keystore, or a key derived from something the user knows.
+#
+# A literal IV is the quieter half of the same mistake and is worth reporting
+# beside it. An IV is not secret and does not need to be; it needs to be
+# *different* each time. One constant IV means two messages with the same
+# prefix encrypt to the same ciphertext prefix, which in CBC is enough to
+# recover structure with no key at all, and in CTR or GCM is enough to recover
+# the plaintext outright.
+#
+# The test is that the argument *begins* with the bytes, and the anchor is the
+# whole of it. `"key".toByteArray()` is the spelling Kotlin uses, so a literal
+# inside a call is exactly what this is looking for - and an unanchored test
+# for a quote reported `SecretKeySpec(keystore.load("data"), "AES")`, where the
+# only literal is the name of the entry the key was fetched from. `byteArrayOf`
+# with values in it is the other way a key gets written down, and `ByteArray(16)`
+# is not: that is an empty buffer, and what fills it is the next line.
+#
+# A key read from a keystore, a file or a random generator is a call that does
+# not begin with a literal and is invisible to this by construction.
+
+["SecretKeySpec($K, $A)", "SecretKeySpec($K, $_, $_, $A)",
+ "PBEKeySpec($K, $$$_)", "DESKeySpec($K)"] as $keys
+| ["IvParameterSpec($K)", "IvParameterSpec($K, $$$_)",
+   "GCMParameterSpec($_, $K)", "GCMParameterSpec($_, $K, $$$_)"] as $ivs
+| "^(?:\"|byteArrayOf\\s*\\(\\s*[-0-9'])" as $writtenDown
+| scan_ast("*.kt"; $keys + $ivs) as $all
+| ( ($all | of($keys) | where_capture("K"; $writtenDown))
+    + ($all | of($ivs) | where_capture("K"; $writtenDown)) )
+| focus("K")
+| finding("kotlin-encryption-key-is-a-literal";
+    "$K is written into the app, so every installed copy shares it and anyone "
+    + "who unzips the APK has it")
+| report

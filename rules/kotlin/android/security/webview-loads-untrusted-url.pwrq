@@ -1,0 +1,43 @@
+# rules: kotlin-webview-loads-untrusted-url
+# languages: kotlin
+# fixture: kotlin/CWE-939.kt
+# from: CWE-939 (Improper Authorization in Handler for Custom URL Scheme), CWE-749
+#
+# An activity with an intent filter can be started by any app on the phone, so
+# an extra it reads is that app's string. Handing one to `loadUrl` makes the
+# activity a browser for whatever the sender chose, inside this app's process
+# and with this app's WebView settings - the JavaScript, the bridge object, the
+# file:// access. A `javascript:` URL needs no server at all, and a `file://`
+# one reads the app's own data directory.
+#
+# Only the intent is a source. A URL built from a value the app itself chose -
+# a user id, a configured host - is an ordinary link, and reporting those would
+# put a finding on every WebView in every app.
+#
+# `getQueryParameter` and `getString` are read off a receiver named like an
+# intent, because both belong to a dozen other types: `resources.getString` is
+# every string in every app, and a `Uri` may have come from anywhere. Reading
+# real code is what added them - InsecureShop writes the same deep link three
+# ways in one file, `intent.dataString`, `intent.data?.getQueryParameter("url")`
+# and `intent.extras?.getString("url")`, and a rule that knew only the first
+# reported one of the three.
+#
+# The fix is a scheme and host allowlist before the load, not an escape, which
+# is why there is no sanitizer named here: the check that makes this safe is a
+# comparison, and a comparison is not a call this rule can see. A method that
+# does check will still be reported, and that is the honest under-read.
+
+["$I.getStringExtra($K)", "$I.getCharSequenceExtra($K)", "$I.dataString",
+ "$I.data.toString()", "$R.getParameter($K)"] as $named
+| ["$U.getQueryParameter($K)", "$E.getString($K)", "$E.get($K)"] as $offSomething
+| "(?i)(?:^|\\.)(?:intent|extras|arguments|uri|data|deeplink|bundle)$" as $fromAnIntent
+| ["$V.loadUrl($U)", "$V.loadUrl($U, $$$_)",
+   "$V.loadDataWithBaseURL($U, $$$_)", "$V.postUrl($U, $$$_)"] as $sinks
+| scan_ast("*.kt"; $named + $offSomething + $sinks) as $all
+| ($all | of($sinks) | focus("U") | reaching(($all | of($named))
+               + ($all | of($offSomething) | where_capture("E"; $fromAnIntent))
+               + ($all | of($offSomething) | where_capture("U"; $fromAnIntent)); []))
+| finding("kotlin-webview-loads-untrusted-url";
+    "$U comes from an intent another app sent, so that app chooses the page "
+    + "this view renders and what the page can reach")
+| report

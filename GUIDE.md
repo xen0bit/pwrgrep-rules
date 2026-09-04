@@ -655,6 +655,155 @@ every controller written this decade.
 Both are fixed in xen0bit/pwrq#53, and the parameter half helps every language:
 `focus("P")` on a method pattern is now a usable source anywhere.
 
+## Kotlin is the one that labels nothing
+
+Kotlin took the fewest surprises of any language here and the two it had were
+both invisible, both engine bugs, and between them they made most of the
+corpus's rule shapes unwritable. Everything in "What the matcher will and will
+not take" transferred: bare calls compile, statement sequences work with one
+gap or with two, a nested call in the sole argument position matches, a single
+named hole in argument position pins the arity the way it does in C and Go and
+not the way it does in C#, and the safe-call operator is transparent - `$I.f($X)`
+matches `intent.data?.f("x")` without being told about the `?.`.
+
+Three things are worth knowing before writing a rule, and then two engine
+fixes.
+
+**A body is one node, so it takes one hole.** `fun $F($$$_) { $$$BODY }` is
+invalid - the ellipsis stands beside other children and there is nothing for a
+run of them to be bound to - and the spelling that works is
+`fun $F($$$_) { $BODY }`. It matches a function with a return type, with
+modifiers and with an expression body, and `$BODY` is the whole of the block
+including its braces. Class bodies behave the same way: `class $C { $$$_ }` is
+what compiles.
+
+**An ellipsis before a named parameter is not an ellipsis.**
+
+```
+fun $F($P: String, $$$_) { $BODY }   valid, and binds the first parameter
+fun $F($$$_, $P: String) { $BODY }   ERROR: `, __GREP_CAP_P__` compared as text
+```
+
+So a parameter pattern reaches the first parameter and no other. The C# corpus
+writes `public $T $M($$$_, string $P, $$$_)` and there is no Kotlin equivalent;
+a rule that wants a parameter as a taint source names the first one and says so.
+
+**A property assignment is a flat run of suffixes.** `v.settings.javaScriptEnabled = true`
+is one `directly_assignable_expression` holding three parts rather than a
+nesting, so a hole cannot stand for `v.settings`:
+
+```
+$S.javaScriptEnabled = true            does not match it
+$V.settings.javaScriptEnabled = true   does
+```
+
+Write the chain out, and write the `$S.x = true` spelling beside it for the
+`val settings = view.settings` case. The Java-style setter -
+`$S.setJavaScriptEnabled(true)` - is an ordinary call and has neither problem.
+
+### The two fixes, and why no Kotlin rule worked without them
+
+Both are in xen0bit/pwrq#55 and both are the same shape as the C# ones: the
+grammar says less than the others, and the engine was reading what was said
+rather than measuring what was there.
+
+**Modifiers go into a node of their own, at the head of the declaration.** A
+pattern that writes none of them anchors its first child past that node, and
+the two ways it fails are a miss and a wrong answer:
+
+```
+val $N = $V             missed `private val secret = "hunter2"`, silently
+fun $F($$$_) { $BODY }  matched `private fun f(...)` with $F bound to "private"
+```
+
+The second is worse. The rule ran, reported the right line, and every guard on
+the function's name was asked about a keyword. Real Kotlin writes almost
+nothing without a `private`, an `internal`, an `override`, a `suspend`, a
+`const` or an annotation, so between them the two covered most of the language:
+`kotlin-credential-is-a-literal` is the rule that could not be written at all,
+and it is the one every hardcoded-credential rule in every corpus is about.
+
+An optional node in front fixes both. Which node it is is measured - a
+declaration parsed bare, with one modifier and with two, and the answer is a
+grammar that gave the same construct one extra child both times, which C and C#
+do not because they write each modifier as a node of its own.
+
+**Nothing in a binding has a field name, so nothing carried any flow.**
+
+```
+property_declaration  "val name = intent.getStringExtra(\"n\")"
+  binding_pattern_kind      "val"
+  variable_declaration      "name"
+  call_expression           "intent.getStringExtra(\"n\")"
+```
+
+None of `left`/`right`, `name`/`value`, `declarator`/`value` matches that, and
+the same is true of `assignment` and of `for`. `reaching` returned nothing for
+every Kotlin file, in the language whose entire security literature is "an
+intent's extra reaches a sink".
+
+What makes it readable is that a grammar with no fields still marks the target
+by wrapping it: `variable_declaration` and `directly_assignable_expression`
+exist for nothing else, and an expression's operand is never wrapped that way.
+The wrapper is measured from a probe, and the child *after* it is the value -
+"the next one" rather than "the last one", which is what makes a `for` read
+correctly, since the body is the child after that.
+
+The same absence left the taint unscoped and unbounded, because `scopeOf` and
+the closure boundary both ask for a `body` field. A grammar with no fields
+names the parameter list instead, and the plural is the whole of the tell:
+`function_value_parameters` and `lambda_parameters` are lists, `parameter` is
+one item. The body is then the last child, because a lambda's is `statements`
+and a function's is `function_body` and they have nothing in common but their
+position.
+
+**A lambda written without parameters is still not a boundary.** `Thread { ... }`
+and every Android listener are that shape, so a value read inside one still
+escapes it. It is the gap a Ruby block has, and the direction it errs in is
+noise rather than a lost finding - but a rule that reports something built from
+a listener rather than from an intent is a rule whose sources are too wide.
+
+### What reading real Kotlin changed
+
+Six repositories, about twenty-five hundred files: OkHttp, now-in-android,
+Tivi, LeakCanary, the Kotlin website and InsecureShop, which is a deliberately
+vulnerable Android app and the only one with anything to find. The first run
+reported eighty-four findings and four causes were worth fixing.
+
+- **The flags of a PendingIntent are a named constant.** Every false positive
+  there was - four, across LeakCanary and Tivi - was
+  `val flags = FLAG_UPDATE_CURRENT or FLAG_IMMUTABLE` a line above the call, or
+  `private const val PENDING_INTENT_FLAGS = ...` at the top of the file. The
+  argument the rule reads is a name and the decision is somewhere else, so the
+  rule now asks only where the flags are written out at the call.
+- **A method name without its arity is a different method.** okio spells a
+  checksum `ByteString.md5()` with no arguments, and Apache spells a digest
+  `DigestUtils.md5(x)` with one. A pattern that named the method reported
+  OkHttp's own cache key, its certificate pin and the WebSocket accept key -
+  three real uses of a weak hash, none of them a weakness. This is the same
+  lesson `$C.Do($REQ)` taught in Go and it will keep coming back.
+- **A regular expression is not a credential.** OkHttp's media-type parser
+  holds ``private const val TOKEN = "([a-zA-Z0-9-!#$%&'*+.^_`{|}~]+)"``, which
+  is a credential-shaped name over a pattern. That is the fifth kind of
+  false positive this family of rules has now found in four languages, after
+  the keyword table, the environment variable's name, the property's name and
+  the placeholder.
+- **One source is three spellings.** InsecureShop writes the same deep link as
+  `intent.dataString`, `intent.data?.getQueryParameter("url")` and
+  `intent.extras?.getString("url")`, in one file, three lines apart. A rule
+  that knew only the first found one of the three - and the second two need a
+  guard on the receiver, because `resources.getString` is every string in
+  every app.
+
+Eighty-four became seventy-three, and the shape of what is left is the answer:
+now-in-android and the Kotlin website report nothing at all, Tivi reports
+nothing, LeakCanary reports eight and every one is a loopback socket or a
+checksum, and InsecureShop - the app with the bugs in it - went from seven
+findings to eleven, all true. OkHttp holds the rest, and every cleartext-URL
+finding in it is in a test directory or in the documented samples: an HTTP
+library's test suite is about HTTP and dials cleartext on purpose. A rule about
+addresses will always say most about the library whose subject is addresses.
+
 ## The techniques
 
 ### Two statements as one construct
@@ -914,6 +1063,20 @@ Concretely, in this pass:
   value lives — `"APP_DB_PASSWORD"`, `"spring.datasource.password"`,
   `"Access-Control-Allow-Credentials"`. It does report `"changeit"`, which is
   the default password of every Java keystore and is the point.
+- `kotlin-accepts-any-hostname` leaves alone any verifier that compares the
+  host to anything at all, right or wrong. `host == "api.example.com"` is
+  pinning and `defaultVerifier.verify(...)` is delegation, and a rule that
+  cannot tell a good comparison from a bad one has no business reporting
+  either. What it can tell is the absence of one.
+- `kotlin-webview-javascript-interface` does not report a bridge in a method
+  that names `file:///android_asset/`, because that is a WebView showing HTML
+  the app shipped and is the case the API is for. That test is the method's own
+  text, so a method that loads an asset *and* a remote page goes unreported
+  too — coarse, and coarse in the quiet direction.
+- `kotlin-mutable-pending-intent` reports `FLAG_MUTABLE` even though it is
+  deliberate. There are real uses for it and nothing in the syntax says which
+  this is, and a token somebody else can aim is worse than a finding somebody
+  has to read.
 
 And a rule that a wider rule strictly contains should go. Two rules reporting
 one line under two ids is worse than one, and the README records the precedent
@@ -1108,6 +1271,21 @@ arguments, which the grammar does not read as PHP. And one more, php-ssrf,
 failing the other way — `$FUNCS($$$_,$DATA, $$$_);` with nothing said about
 either hole is every call with two or more arguments, and it reported sixteen
 findings on an eighteen-line file.
+
+Six in Kotlin, and every one of them the same cause: the rule was written
+around an assignment. `$VAR = $MD.getInstance("MD5")`,
+`$KEY = $G.getInstance("RSA")`, `$DCTX = InitialDirContext($ENV, ...)` — Kotlin
+introduces a value with `val` or `var`, which is a *declaration* and a
+different node, so the assignment reading matched nothing any Kotlin program
+has ever contained. `use-of-sha1`, `weak-rsa` and `anonymous-ldap-bind` were
+dead outright and `use-of-md5` found only its Apache alternative. The fix for
+most of them was to stop naming the binding at all: `$MD.getInstance($ALGO)` is
+the call wherever it stands, in a declaration or an assignment or on its own,
+and where a rule names a binding it should be because the binding is part of
+the question. Two more failed for reasons of their own —
+`build-gradle-password-hardcoded` searched `*.kt` and a Gradle Kotlin script is
+`build.gradle.kts`, and `bad-hexa-conversion` assumed the digest and the
+rendering were statements in one function, which they never are.
 
 That is the failure a rule cannot be read for, and a fixture is the only thing
 that finds it. If you are adding a rule beside an existing one that has no

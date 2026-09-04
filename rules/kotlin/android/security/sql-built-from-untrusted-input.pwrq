@@ -1,0 +1,37 @@
+# rules: kotlin-sql-built-from-untrusted-input
+# languages: kotlin
+# fixture: kotlin/CWE-89.kt
+# from: CWE-89 (SQL Injection)
+#
+# On Android the caller is another app on the phone: an exported activity or a
+# receiver takes an Intent from whoever sent it, and the extras in it are that
+# app's strings. `WHERE name = '$n'` with `n` set to `' OR '1'='1` reads the
+# whole table, and it has not needed anything cleverer for twenty years.
+#
+# `getQueryParameter` and `getString` are read off a receiver named like an
+# intent. Both belong to a dozen other types - `resources.getString` is every
+# string in every app - and without the guard the rule would be about the
+# method name rather than about where the value came from.
+#
+# The sanitizer list is empty, deliberately. The fix here is not an escape, it
+# is `rawQuery("... = ?", arrayOf(name))`, and a parameterised query is
+# invisible to this rule by construction: nothing untrusted reaches the
+# statement text in the first place. A rule that treated a binding call as a
+# sanitizer would go quiet on a method that binds one hole and concatenates the
+# next, which is the shape most of these bugs actually have.
+
+["$I.getStringExtra($K)", "$I.getStringArrayListExtra($K)",
+ "$I.getCharSequenceExtra($K)", "$I.dataString", "$I.data.toString()",
+ "$R.getParameter($K)"] as $named
+| ["$U.getQueryParameter($K)", "$E.getString($K)", "$E.get($K)"] as $offSomething
+| "(?i)(?:^|\\.)(?:intent|extras|arguments|uri|data|deeplink|bundle)$" as $fromAnIntent
+| ["$D.rawQuery($Q, $$$_)", "$D.execSQL($Q)", "$D.execSQL($Q, $$$_)",
+   "$D.rawQueryWithFactory($_, $Q, $$$_)"] as $sinks
+| scan_ast("*.kt"; $named + $offSomething + $sinks) as $all
+| ($all | of($sinks) | focus("Q") | reaching(($all | of($named))
+               + ($all | of($offSomething) | where_capture("E"; $fromAnIntent))
+               + ($all | of($offSomething) | where_capture("U"; $fromAnIntent)); []))
+| finding("kotlin-sql-built-from-untrusted-input";
+    "this statement is assembled from a value the caller sent, so the caller "
+    + "decides what SQL runs rather than what it runs against")
+| report

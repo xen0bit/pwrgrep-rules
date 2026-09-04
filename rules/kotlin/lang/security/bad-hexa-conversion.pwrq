@@ -1,12 +1,35 @@
 # rules: bad-hexa-conversion
 # languages: kotlin
+# fixture: kotlin/CWE-704.kt
 # from: kotlin/lang/security/bad-hexa-conversion.yaml
+#
+# `Integer.toHexString` drops the leading zero of a byte below 0x10, so a
+# digest rendered by calling it once per byte comes out shorter than it should
+# and is not a one-to-one encoding of the bytes any more. Two different digests
+# can therefore render to the same string, which is a collision introduced by
+# the formatting rather than by the hash - and a comparison of those strings is
+# what a signature check usually comes down to.
+#
+# As translated the rule asked for the digest and the conversion to be
+# statements in the same function, with the digest bound by
+# `val $MD: MessageDigest = ...` - the typed spelling, which is the one Kotlin
+# programs least often write. It matched nothing.
+#
+# What is reported now is the conversion, in a file that computes a digest at
+# all. That is the line to change, and the file is the right unit because the
+# hex helper is nearly always a separate function from the digest it renders -
+# which is exactly why the original's same-function assumption could not hold.
+#
+# `%02x` and `toString(16).padStart(2, '0')` are the two spellings that keep
+# the zero, and neither is this.
 
-. as $root
-| ( ($root | scan_ast(["*.kt"]; [
-      "fun $METHOD($$$_) {\n  $$$_\n  val $MD: MessageDigest = $$$_\n  $$$_\n  $MD.digest($$$_)\n  $$$_\n  Integer.toHexString($$$_)\n}"
-    ])) as $all
-    | ( $all | of(["fun $METHOD($$$_) {\n  $$$_\n  val $MD: MessageDigest = $$$_\n  $$$_\n  $MD.digest($$$_)\n  $$$_\n  Integer.toHexString($$$_)\n}"])
-        | finding("bad-hexa-conversion";
-            "'Integer.toHexString()' strips leading zeroes from each byte if read byte-by-byte.") ) )
+["Integer.toHexString($X)", "$I.toHexString($X)",
+ "java.lang.Integer.toHexString($X)"] as $renders
+| ["$MD.digest($$$_)", "$MD.getInstance($$$_)", "MessageDigest.getInstance($$$_)",
+   "$M.doFinal($$$_)"] as $digests
+| scan_ast("*.kt"; $renders + $digests) as $all
+| ($all | of($renders) | in_files_with($all | of($digests)))
+| finding("bad-hexa-conversion";
+    "toHexString drops the leading zero of a byte below 0x10, so two different "
+    + "digests can render to the same string; \"%02x\" instead")
 | report

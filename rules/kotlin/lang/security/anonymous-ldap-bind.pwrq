@@ -1,12 +1,38 @@
 # rules: anonymous-ldap-bind
 # languages: kotlin
+# fixture: kotlin/CWE-287.kt
 # from: kotlin/lang/security/anonymous-ldap-bind.yaml
+#
+# `SECURITY_AUTHENTICATION` set to `"none"` is an anonymous bind: the directory
+# is queried with no credentials, so what comes back is what it would tell
+# anybody. Where the answer decides an authorisation - which group somebody is
+# in, whether an account exists - the decision has been taken from a source
+# neither end of the connection authenticated.
+#
+# As translated the rule looked for the setting and the bind as two statements
+# in a row, with the bind spelled `$DCTX = InitialDirContext(...)`. Both halves
+# of that were wrong for Kotlin. An assignment is not how a Kotlin program
+# introduces a value - `val` and `var` make a declaration, a different node -
+# and the bind is written `return InitialDirContext(env, null)` as often as
+# not, which is an expression inside a jump and not a sibling statement at all.
+# The rule could not fire on any Kotlin file ever written.
+#
+# What is reported instead is the setting, in a file that binds. That is the
+# line a reader has to change, it is where the decision was made, and it does
+# not depend on the two statements being siblings - which is the assumption
+# that killed the original.
 
-. as $root
-| ( ($root | scan_ast(["*.kt"]; [
-      "$ENV.put($CTX.SECURITY_AUTHENTICATION, \"none\")\n$$$_\n$DCTX = InitialDirContext($ENV, $$$_)"
-    ])) as $all
-    | ( $all | of(["$ENV.put($CTX.SECURITY_AUTHENTICATION, \"none\")\n$$$_\n$DCTX = InitialDirContext($ENV, $$$_)"])
-        | finding("anonymous-ldap-bind";
-            "Detected anonymous LDAP bind.") ) )
+["$ENV.put($CTX.SECURITY_AUTHENTICATION, $MODE)",
+ "$ENV[$CTX.SECURITY_AUTHENTICATION] = $MODE",
+ "$ENV.put(\"java.naming.security.authentication\", $MODE)",
+ "$ENV[\"java.naming.security.authentication\"] = $MODE"] as $settings
+| ["InitialDirContext($$$_)", "InitialLdapContext($$$_)",
+   "$F.getInitialContext($$$_)"] as $binds
+| scan_ast("*.kt"; $settings + $binds) as $all
+| ( $all | of($settings)
+    | where_capture("MODE"; "^\"none\"$")
+    | in_files_with($all | of($binds)) )
+| finding("anonymous-ldap-bind";
+    "this binds to the directory with no credentials, so what comes back is "
+    + "what the directory tells anybody who asks")
 | report

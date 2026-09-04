@@ -1,0 +1,40 @@
+# rules: kotlin-trusts-any-certificate
+# languages: kotlin
+# fixture: kotlin/CWE-295.kt
+# from: CWE-295 (Improper Certificate Validation)
+#
+# There is no legitimate empty `checkServerTrusted`. The method is called with
+# the chain the server presented and is expected to throw when it does not like
+# it; a body that does nothing says every chain is acceptable, which is the
+# same as no TLS at all against anybody who can reach the network. It is almost
+# always a debugging shortcut that shipped, and it is the commonest way an
+# Android app loses its transport security.
+#
+# `onReceivedSslError` is the WebView spelling of the same decision, one step
+# further along: the platform has already decided the certificate is wrong and
+# `handler.proceed()` overrules it. `handler.cancel()` is the correct answer
+# and is what the fixture holds beside it.
+#
+# `checkClientTrusted` is deliberately not reported. It is the server's half,
+# nearly every Android implementation of it is empty because the app is not a
+# server, and reporting it would put a finding beside every real one and bury
+# it.
+#
+# The empty body is asked as a regex over the capture rather than written as
+# `{ }` in the pattern, because in a pattern that is a text comparison against
+# one exact spelling. Every spelling of empty matches this, and a comment
+# inside the braces does not - a body with a comment in it is somebody saying
+# why, which is a decision rather than an oversight.
+
+["fun $F($$$_) { $BODY }"] as $methods
+| "^\\{\\s*\\}$" as $doesNothing
+| "\\.\\s*proceed\\s*\\(" as $overrules
+| scan_ast("*.kt"; $methods) as $all
+| ( ($all | of($methods)
+     | where_capture("F"; "^checkServerTrusted$") | where_capture("BODY"; $doesNothing))
+    + ($all | of($methods)
+       | where_capture("F"; "^onReceivedSslError$") | where_capture("BODY"; $overrules)) )
+| finding("kotlin-trusts-any-certificate";
+    "$F accepts a certificate the platform would have rejected, so anyone on "
+    + "the network can read and rewrite this connection")
+| report

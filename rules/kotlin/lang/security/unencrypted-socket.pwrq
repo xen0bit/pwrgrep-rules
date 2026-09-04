@@ -1,6 +1,18 @@
 # rules: unencrypted-socket
 # languages: kotlin
+# fixture: kotlin/CWE-319-socket.kt
 # from: kotlin/lang/security/unencrypted-socket.yaml
+#
+# A plain Socket carries whatever is written to it in the clear, and on a phone
+# the network belongs to somebody else. The encrypted spellings are
+# `SSLSocketFactory.getDefault().createSocket(...)` and
+# `SSLServerSocketFactory`, and they are invisible to this rule by
+# construction - neither is a call to `Socket`.
+#
+# This is an audit rule rather than a bug rule, and it says so by reporting
+# every plain socket. A program that speaks a protocol with its own
+# cryptography over one - SSH, a VPN, anything already wrapped - is doing
+# nothing wrong and will be reported, and the reader decides.
 
 . as $root
 | ( ($root | scan_ast(["*.kt"]; [
@@ -9,5 +21,6 @@
     ])) as $all
     | ( $all | of(["ServerSocket($$$_)","Socket($$$_)"])
         | finding("unencrypted-socket";
-            "This socket is not encrypted.") ) )
+            "this socket carries what is written to it in the clear; "
+            + "SSLSocketFactory.getDefault().createSocket instead") ) )
 | report

@@ -1,15 +1,37 @@
 # rules: use-of-sha1
 # languages: kotlin
+# fixture: kotlin/CWE-327-sha1.kt
 # from: kotlin/lang/security/use-of-sha1.yaml
+#
+# SHA-1 collisions have been real since SHAttered in 2017 and cheap since 2020,
+# and a chosen-prefix collision is what breaks a signature: two documents, both
+# meaningful, one digest.
+#
+# As translated the rule asked for `$VAR = $MD.getInstance("$ALGO")`, an
+# assignment, which Kotlin almost never writes - a value arrives through `val`
+# or `var`, which is a declaration and a different node. Naming the call and
+# nothing else finds it wherever it stands. See use-of-md5, which had the same
+# hole for the same reason.
+#
+# SHA-1 is still correct as an HMAC key derivation step and inside PBKDF2, and
+# it is required outright by protocols that are not going to change - the
+# WebSocket handshake computes one, and a certificate pin in the older format
+# is one. This rule does not know the difference and cannot: the judgement is
+# the reader's, which is the honest place for it to land. Over LeakCanary the
+# one finding is a heap-dump identity hash, which is a checksum and is fine.#
+# The helpers are written with their argument, for the reason use-of-md5 gives:
+# okio's `ByteString.sha1()` takes none, and over OkHttp a pattern without the
+# arity reported a certificate pin and the WebSocket accept key - both real
+# SHA-1, both required by the protocol they implement, neither a weakness. The
+# argument-less spelling is deliberately not matched.
 
-. as $root
-| ( ($root | scan_ast(["*.kt"]; [
-      "$DU.getSha1Digest().digest($$$_)",
-      "$VAR = $MD.getInstance(\"$ALGO\")"
-    ])) as $all
-    | ( ($all | of(["$VAR = $MD.getInstance(\"$ALGO\")"])
-          | where_capture("ALGO"; "^(?:(SHA1|SHA-1))"))
-          + ($all | of(["$DU.getSha1Digest().digest($$$_)"]))
-        | finding("use-of-sha1";
-            "Detected SHA1 hash algorithm which is considered insecure.") ) )
+["$MD.getInstance($ALGO)"] as $made
+| ["$DU.getSha1Digest().digest($$$_)", "DigestUtils.sha1($X)",
+   "DigestUtils.sha1Hex($X)", "$DU.sha1Hex($X)"] as $helpers
+| scan_ast("*.kt"; $made + $helpers) as $all
+| ( ($all | of($made) | where_capture("ALGO"; "^\"(?:SHA1|SHA-1|sha1|sha-1)\"$"))
+    + ($all | of($helpers)) )
+| finding("use-of-sha1";
+    "SHA-1 collisions have been cheap since 2020, so two inputs with this "
+    + "digest can be produced to order; SHA-256 instead")
 | report

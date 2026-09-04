@@ -1,0 +1,28 @@
+# rules: kotlin-world-readable-storage
+# languages: kotlin
+# fixture: kotlin/CWE-276.kt
+# from: CWE-276 (Incorrect Default Permissions), CWE-732
+#
+# An app's files directory is private to that app, and these two modes give
+# that away. A file opened MODE_WORLD_READABLE can be read by any app on the
+# phone with no permission and no prompt; MODE_WORLD_WRITEABLE lets one rewrite
+# it, which turns a cache into a way to feed the app whatever it likes.
+#
+# They were deprecated in API 17 and throw a SecurityException from API 24, so
+# a program that still names them either predates that or never runs on a
+# modern phone - and either way the intent to share a private file is the
+# finding, whatever the platform now does with it.
+#
+# The mode is read as text rather than as a number, because it is written as a
+# constant almost everywhere and the numeric spellings (1 and 2) are also
+# ordinary array indexes and lengths. Reading it as a number would report every
+# `openFileOutput(name, 1)` in the corpus and find nothing this does not.
+
+["$C.openFileOutput($N, $M)", "$C.getSharedPreferences($N, $M)",
+ "$C.getDir($N, $M)", "$C.openOrCreateDatabase($N, $M, $$$_)"] as $opens
+| "\\bMODE_WORLD_(?:READABLE|WRITEABLE|WRITABLE)\\b" as $shared
+| scan_ast("*.kt"; $opens) as $all
+| ($all | of($opens) | where_capture("M"; $shared) | focus("M"))
+| finding("kotlin-world-readable-storage";
+    "this opens $N with $M, so every other app on the phone can get at it")
+| report

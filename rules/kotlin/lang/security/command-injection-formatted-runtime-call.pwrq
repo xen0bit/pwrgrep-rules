@@ -1,6 +1,15 @@
 # rules: command-injection-formatted-runtime-call
 # languages: kotlin
+# fixture: kotlin/CWE-78-format.kt
 # from: kotlin/lang/security/command-injection-formatted-runtime-call.yaml
+#
+# A command line built by concatenation or by `String.format` is a command line
+# somebody else may have written half of. This rule asks the question of the
+# syntax rather than of the value - it reports the assembly whether or not the
+# pieces came from anywhere untrusted - which is the coarse half of the pair it
+# forms with kotlin-command-from-untrusted-input. That one follows a value from
+# an intent and reports where it lands; this one reports the shape, and catches
+# the case where the untrusted half arrived somewhere neither rule can see.
 
 . as $root
 | ( ($root | scan_ast(["*.kt"]; [
@@ -11,5 +20,7 @@
     ])) as $all
     | ( $all | of(["$RUNTIME.exec($X + $Y)","$RUNTIME.exec(String.format($$$_))","$RUNTIME.loadLibrary($X + $Y)","$RUNTIME.loadLibrary(String.format($$$_))"])
         | finding("command-injection-formatted-runtime-call";
-            "A formatted or concatenated string was detected as input to a java.lang.Runtime call.") ) )
+            "this command line is assembled rather than written, and exec() hands a "
+            + "single string to something that tokenises it - so a semicolon in the "
+            + "assembled half runs a second command") ) )
 | report

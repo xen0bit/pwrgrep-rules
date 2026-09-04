@@ -1,6 +1,14 @@
 # rules: defaulthttpclient-is-deprecated
 # languages: kotlin
+# fixture: kotlin/CWE-1104.kt
 # from: kotlin/lang/security/defaulthttpclient-is-deprecated.yaml
+#
+# DefaultHttpClient was removed from Android in API 23 and deprecated in Apache
+# HttpClient long before that. What makes it a security finding rather than a
+# tidiness one is that it does not do TLS the way anything current does: it
+# negotiates SSLv3 and TLS 1.0, it has no SNI, and its hostname verification
+# has to be configured rather than being right by default. Anything still using
+# it is doing its TLS the way 2011 did.
 
 . as $root
 | ( ($root | scan_ast(["*.kt"]; [
@@ -8,5 +16,7 @@
     ])) as $all
     | ( $all | of(["DefaultHttpClient($$$_)"])
         | finding("defaulthttpclient-is-deprecated";
-            "DefaultHttpClient is deprecated.") ) )
+            "this client negotiates SSLv3 and TLS 1.0, sends no SNI, and verifies "
+            + "the hostname only if it was configured to; OkHttp or HttpURLConnection "
+            + "instead") ) )
 | report

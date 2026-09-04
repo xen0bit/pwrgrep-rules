@@ -1,0 +1,40 @@
+# rules: kotlin-archive-entry-path-not-checked
+# languages: kotlin
+# fixture: kotlin/CWE-22-archive.kt
+# from: CWE-22 (Path Traversal), the Zip Slip family
+#
+# A zip entry's name is a path chosen by whoever built the archive, and nothing
+# in the format forbids `../`. So `File(target, entry.name)` resolves outside
+# the directory the extraction was meant to stay in, and on Android that is the
+# app's own data directory: an update archive that overwrites
+# `shared_prefs/auth.xml`, or drops a .dex where the app will load it.
+#
+# The source is a receiver *named* like an entry rather than any `.name`. This
+# is the narrowing the C# pass had to learn and the reason is the same: `.name`
+# belongs to File and to a dozen other types, and reading it off all of them
+# reported `Path.Combine(target.FullName, fi.Name)` in an ordinary recursive
+# copy. A receiver called `entry`, `zipEntry`, `ze` or `e` inside a loop over
+# entries is what an extraction looks like, and it is cheap.
+#
+# The check that makes this safe is a comparison - resolve the destination,
+# confirm it still starts with the target - and a comparison is not a call this
+# rule can see. So the exclusion is the method's own text: a method that
+# mentions `canonicalPath` or `startsWith` beside its extraction is a method
+# somebody has already thought about, and it is left alone as a whole. That is
+# coarser than a structural test, it costs a method that checks one path and
+# extracts another unchecked, and quiet is the right direction to be coarse in.
+
+["File($D, $N)", "File($D, $N).$M()", "Paths.get($D, $N)",
+ "FileOutputStream($D, $N)", "$D.resolve($N)"] as $destinations
+| ["fun $F($$$_) { $BODY }"] as $methods
+| "^(?:entry|zipEntry|ze|e|tarEntry|jarEntry)\\." as $anEntry
+| "canonicalPath|canonicalFile|startsWith|normalize" as $alreadyChecked
+| scan_ast("*.kt"; $destinations + $methods) as $all
+| ( $all | of($destinations)
+    | where_capture("N"; $anEntry)
+    | where_capture("N"; "\\.name$|\\.getName\\(\\)$")
+    | outside($all | of($methods) | where_capture("BODY"; $alreadyChecked)) )
+| finding("kotlin-archive-entry-path-not-checked";
+    "$N is a path out of the archive, so an entry called ../../shared_prefs/x "
+    + "is written outside the directory this was extracting into")
+| report

@@ -1,0 +1,43 @@
+# rules: kotlin-sensitive-value-logged
+# languages: kotlin
+# fixture: kotlin/CWE-532.kt
+# from: CWE-532 (Insertion of Sensitive Information into Log File)
+#
+# Android's log is a ring buffer that leaves the device. It goes into the bug
+# report the user sends, into the crash report the vendor collects, and on a
+# debuggable or rooted phone onto the screen of whoever asked; a secret written
+# there is a secret in a file with a lifetime the app does not control.
+#
+# The whole difficulty is telling a secret from a message about one.
+# `Log.d(TAG, "password rejected")` is a sentence with the word in it and is
+# not a finding; `Log.d(TAG, password)` is the password. What separates them is
+# that the second one has a *value* in it - a name on its own, a `$name` in a
+# template, or something joined on with `+` - and the first is only letters.
+#
+# So a message is reported when it names a secret and carries a value, or when
+# it is a bare name that says it is one. A template that interpolates something
+# innocent beside the word is the case this deliberately keeps: `"password for
+# $user"` is reported, because a rule that tried to work out which half of the
+# template the word belonged to would be guessing, and this is the direction
+# that costs a false positive rather than a leaked credential.
+#
+# Kotlin's single quotes do not exist, so there is no constant-versus-
+# interpolated question to ask of the literal the way PHP forces: a `$` in a
+# Kotlin string is always code unless it is escaped.
+
+["Log.$L($TAG, $MSG)", "Log.$L($TAG, $MSG, $$$_)",
+ "$U.Log.$L($TAG, $MSG)", "$U.Log.$L($TAG, $MSG, $$$_)",
+ "Timber.$L($MSG)", "Timber.$L($MSG, $$$_)"] as $logs
+| "(?i)passw|secret|token|api[_-]?key|credential|private[_-]?key|session[_-]?id|auth" as $namesASecret
+| "\\$\\{?[A-Za-z_]|\\+" as $carriesAValue
+| "^[A-Za-z_][A-Za-z_0-9.]*$" as $isABareName
+| scan_ast("*.kt"; $logs) as $all
+| ( ($all | of($logs) | where_capture("MSG"; $namesASecret)
+     | where_capture("MSG"; $carriesAValue))
+    + ($all | of($logs) | where_capture("MSG"; $namesASecret)
+       | where_capture("MSG"; $isABareName)) )
+| focus("MSG")
+| finding("kotlin-sensitive-value-logged";
+    "$MSG puts a secret in the log, which leaves the device in every bug "
+    + "report and is readable on any debuggable phone")
+| report

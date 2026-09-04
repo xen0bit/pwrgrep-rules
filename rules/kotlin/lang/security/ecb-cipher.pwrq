@@ -1,6 +1,18 @@
 # rules: ecb-cipher
 # languages: kotlin
+# fixture: kotlin/CWE-327-ecb.kt
 # from: kotlin/lang/security/ecb-cipher.yaml
+#
+# ECB encrypts every block independently, so identical plaintext blocks give
+# identical ciphertext blocks and the shape of the data survives the
+# encryption. The canonical demonstration is a bitmap: encrypted in ECB you can
+# still see the picture. Any mode with an IV - CBC, CTR, GCM - is the fix, and
+# GCM is the one to reach for because it authenticates as well.
+#
+# The mode is read off the transformation string, which is where it is written.
+# `getInstance("AES")` with no mode named is also ECB on most providers and is
+# not reported here: that is a rule about a default rather than about a
+# spelling, and it belongs beside the provider list rather than in this.
 
 . as $root
 | ( ($root | scan_ast(["*.kt"]; [
@@ -12,5 +24,6 @@
     | ( $all | of(["val $VAR : Cipher = $CIPHER.getInstance($MODE)","var $VAR : Cipher = $CIPHER.getInstance($MODE)","val $VAR = $CIPHER.getInstance($MODE)","var $VAR = $CIPHER.getInstance($MODE)"])
           | where_capture("MODE"; "^(?:.*ECB.*)")
         | finding("ecb-cipher";
-            "Cipher in ECB mode is detected.") ) )
+            "ECB encrypts every block on its own, so identical plaintext blocks give "
+            + "identical ciphertext and the shape of the data survives; GCM instead") ) )
 | report

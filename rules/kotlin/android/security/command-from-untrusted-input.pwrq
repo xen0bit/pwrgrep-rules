@@ -1,0 +1,39 @@
+# rules: kotlin-command-from-untrusted-input
+# languages: kotlin
+# fixture: kotlin/CWE-78.kt
+# from: CWE-78 (OS Command Injection)
+#
+# An intent's extras are another app's strings, and a command line built out of
+# one runs whatever that app decided to put after a semicolon. On Android the
+# process runs as the app's own uid, with the app's own permissions and the
+# app's own private data directory, which is the whole of what an attacking app
+# was trying to reach.
+#
+# Both the single-string and the array spellings are sinks, and the array is
+# not the fix people take it for. `exec(arrayOf("sh", "-c", command))` does not
+# tokenise - and hands the whole thing to a shell that does.
+#
+# `exec` and `command` are focused onto the command, so the finding sits on the
+# string that was assembled rather than on the receiver it was assembled for.
+# `ProcessBuilder` is not, and cannot be: it takes the words of the command one
+# per argument, so the untrusted half is the third of them as often as the
+# first, and focusing on any one of them would find a constant. The whole call
+# is the sink there and the finding lands on it.
+
+["$I.getStringExtra($K)", "$I.getStringArrayListExtra($K)",
+ "$I.getCharSequenceExtra($K)", "$I.dataString",
+ "$R.getParameter($K)"] as $named
+| ["$U.getQueryParameter($K)", "$E.getString($K)", "$E.get($K)"] as $offSomething
+| "(?i)(?:^|\\.)(?:intent|extras|arguments|uri|data|deeplink|bundle)$" as $fromAnIntent
+| ["$R.exec($C)", "$R.exec($C, $$$_)",
+   "$P.command($C)", "$P.command($C, $$$_)"] as $commands
+| ["ProcessBuilder($$$_)"] as $builders
+| scan_ast("*.kt"; $named + $offSomething + $commands + $builders) as $all
+| ( ($all | of($commands) | focus("C")) + ($all | of($builders)) )
+| reaching((($all | of($named))
+                    + ($all | of($offSomething) | where_capture("E"; $fromAnIntent))
+                    + ($all | of($offSomething) | where_capture("U"; $fromAnIntent))); [])
+| finding("kotlin-command-from-untrusted-input";
+    "this command line is assembled from an intent another app sent, so that "
+    + "app decides what runs as this one")
+| report

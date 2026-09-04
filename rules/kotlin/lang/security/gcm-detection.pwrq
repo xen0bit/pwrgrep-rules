@@ -1,6 +1,21 @@
 # rules: gcm-detection
 # languages: kotlin
+# fixture: kotlin/CWE-323.kt
 # from: kotlin/lang/security/gcm-detection.yaml
+#
+# This is an audit rule and not a bug rule: GCM is the right thing to reach
+# for, and what it reports is that somebody now has to check the nonce.
+#
+# GCM fails catastrophically on nonce reuse, not gracefully. Two messages
+# encrypted under one key and one nonce leak the xor of their plaintexts, and -
+# far worse - they leak the authentication subkey, so every message under that
+# key can be forged from then on. The nonce need not be secret and must never
+# repeat, which means a counter or a random 96 bits, never a constant and never
+# a value derived from the message.
+#
+# The finding is therefore addressed to a reader rather than to a fixer, and
+# kotlin-encryption-key-is-a-literal is the rule that catches the specific case
+# where the nonce is written down.
 
 . as $root
 | ( ($root | scan_ast(["*.kt"]; [
@@ -9,5 +24,7 @@
     ])) as $all
     | ( $all | of(["$METHOD.getInstance(\"AES/GCM/NoPadding\",$$$_)","GCMParameterSpec($$$_)"])
         | finding("gcm-detection";
-            "GCM detected, please check that IV/nonce is not reused, an Initialization Vector (IV) is a nonce used to randomize the encryption, so that even if multiple messages with identical plaintext are encrypted, the generated corresponding ciphertexts are different.Unlike the Key, the IV usually does not need to be secret, rather it is important that it is random and unique.") ) )
+            "GCM is the right choice and the nonce is now the whole of it: reuse one "
+            + "under a key and both messages leak, and so does the authentication "
+            + "subkey, so every message after that can be forged") ) )
 | report

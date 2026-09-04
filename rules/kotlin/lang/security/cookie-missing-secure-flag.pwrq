@@ -1,6 +1,15 @@
 # rules: cookie-missing-secure-flag
 # languages: kotlin
+# fixture: kotlin/CWE-614.kt
 # from: kotlin/lang/security/cookie-missing-secure-flag.yaml
+#
+# Without the secure flag the browser sends the cookie over http as well as
+# https, so one cleartext request to the origin - a stale bookmark, a link in
+# an email, an image somebody embedded - puts the session on the wire for
+# whoever runs the network to read.
+#
+# As with the HttpOnly rule, the second half is a file-level test, and coarse
+# in the same direction and for the same reason.
 
 . as $root
 | ( ($root | scan_ast(["*.kt"]; [
@@ -14,5 +23,6 @@
           | in_files_without($all | of(["$COOKIE.setSecure($$$_)\n$$$_"])))
           | in_files_without($all | of(["$COOKIE.setValue(\"\")\n$$$_"]))
         | finding("cookie-missing-secure-flag";
-            "A cookie was detected without setting the 'secure' flag.") ) )
+            "the browser will send this cookie over http as well as https, so one "
+            + "cleartext request to the origin puts the session on the wire") ) )
 | report

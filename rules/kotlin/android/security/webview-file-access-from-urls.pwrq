@@ -1,0 +1,35 @@
+# rules: kotlin-webview-file-access-from-urls
+# languages: kotlin
+# fixture: kotlin/CWE-200.kt
+# from: CWE-200 (Exposure of Sensitive Information), CWE-668
+#
+# Both of these are false by default and both of them turn off the same-origin
+# policy for the origin that every local file shares. With either on, a page
+# opened from `file://` - and that includes anything an attacker can get into
+# the download directory or onto external storage - can read the app's own
+# private files with XMLHttpRequest and post them anywhere.
+#
+# `allowFileAccess` is deliberately not here. It was true by default until API
+# 30, so a program that sets it is usually a program restating the default, and
+# reporting those would bury the two switches that are actually a decision.
+#
+# Two spellings each, because Kotlin sees the Java setter and the synthesised
+# property and a program will use either. The property assignment has to be
+# written with the whole chain - `$V.settings.x = true` rather than
+# `$S.x = true` - because a Kotlin assignment target is a flat run of
+# navigation suffixes rather than a nesting, so a hole standing for `v.settings`
+# has nothing to bind to. The second spelling in each pair covers the
+# `val settings = view.settings` case that the first one cannot reach.
+
+["$V.settings.allowUniversalAccessFromFileURLs = true",
+ "$S.allowUniversalAccessFromFileURLs = true",
+ "$V.settings.allowFileAccessFromFileURLs = true",
+ "$S.allowFileAccessFromFileURLs = true",
+ "$S.setAllowUniversalAccessFromFileURLs(true)",
+ "$S.setAllowFileAccessFromFileURLs(true)"] as $opened
+| scan_ast("*.kt"; $opened) as $all
+| ($all | of($opened))
+| finding("kotlin-webview-file-access-from-urls";
+    "this lets a page loaded from file:// read every other file the app can, "
+    + "and a downloaded file is such a page")
+| report

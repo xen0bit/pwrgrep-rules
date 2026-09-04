@@ -15,5 +15,6 @@
     ])) as $all
     | ( $all | of(["NullCipher($$$_)"])
         | finding("no-null-cipher";
-            "NullCipher was detected.") ) )
+            "NullCipher returns what it was given, so this data goes out unencrypted "
+            + "while every call around it reads as if it did not") ) )
 | report

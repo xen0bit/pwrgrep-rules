@@ -16,5 +16,7 @@
     ])) as $all
     | ( $all | of(["DefaultHttpClient($$$_)"])
         | finding("defaulthttpclient-is-deprecated";
-            "DefaultHttpClient is deprecated.") ) )
+            "this client negotiates SSLv3 and TLS 1.0, sends no SNI, and verifies "
+            + "the hostname only if it was configured to; OkHttp or HttpURLConnection "
+            + "instead") ) )
 | report

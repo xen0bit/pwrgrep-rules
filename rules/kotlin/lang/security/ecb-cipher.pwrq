@@ -24,5 +24,6 @@
     | ( $all | of(["val $VAR : Cipher = $CIPHER.getInstance($MODE)","var $VAR : Cipher = $CIPHER.getInstance($MODE)","val $VAR = $CIPHER.getInstance($MODE)","var $VAR = $CIPHER.getInstance($MODE)"])
           | where_capture("MODE"; "^(?:.*ECB.*)")
         | finding("ecb-cipher";
-            "Cipher in ECB mode is detected.") ) )
+            "ECB encrypts every block on its own, so identical plaintext blocks give "
+            + "identical ciphertext and the shape of the data survives; GCM instead") ) )
 | report

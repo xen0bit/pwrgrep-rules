@@ -21,5 +21,6 @@
     ])) as $all
     | ( $all | of(["ServerSocket($$$_)","Socket($$$_)"])
         | finding("unencrypted-socket";
-            "This socket is not encrypted.") ) )
+            "this socket carries what is written to it in the clear; "
+            + "SSLSocketFactory.getDefault().createSocket instead") ) )
 | report

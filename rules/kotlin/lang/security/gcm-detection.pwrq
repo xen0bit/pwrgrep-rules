@@ -24,5 +24,7 @@
     ])) as $all
     | ( $all | of(["$METHOD.getInstance(\"AES/GCM/NoPadding\",$$$_)","GCMParameterSpec($$$_)"])
         | finding("gcm-detection";
-            "GCM detected, please check that IV/nonce is not reused, an Initialization Vector (IV) is a nonce used to randomize the encryption, so that even if multiple messages with identical plaintext are encrypted, the generated corresponding ciphertexts are different.Unlike the Key, the IV usually does not need to be secret, rather it is important that it is random and unique.") ) )
+            "GCM is the right choice and the nonce is now the whole of it: reuse one "
+            + "under a key and both messages leak, and so does the authentication "
+            + "subkey, so every message after that can be forged") ) )
 | report

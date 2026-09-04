@@ -1,0 +1,36 @@
+# rules: swift-ecb-cipher
+# languages: swift
+# fixture: swift/CWE-327-ecb.swift
+# from: CWE-327 (Broken or Risky Cryptographic Algorithm), CWE-1204, MASVS-CRYPTO-1
+#
+# Electronic Codebook has no chaining and no IV, so each block is enciphered on
+# its own and equal plaintext blocks come out as equal ciphertext blocks. Two
+# things follow, and the second is the one that gets exploited: the ciphertext
+# carries the shape of the plaintext through it - the ECB penguin is the
+# standard picture - and an attacker can cut blocks out of one message and
+# paste them into another without ever holding the key.
+#
+# `kCCOptionECBMode` is opt-in. Leaving CommonCrypto's options at zero, or at
+# padding alone, gives CBC with the IV that was passed, which is why the rule
+# can key on the flag being written rather than on its absence.
+#
+# The option expression is read rather than the call, and that is what makes
+# the rule work on the spelling real code uses: the flags are almost always
+# OR-ed together - `kCCOptionECBMode | kCCOptionPKCS7Padding` - and a rule
+# looking for the constant as a whole argument would find only the other half
+# of the cases.
+#
+# CryptoSwift spells the same choice as a block mode object, so `ECB()` in a
+# `blockMode:` argument is read too.
+
+[ "CCOptions($O)", "CCOptions($O, $$$_)",
+  "$$$C.blockMode = $O", "AES(key: $K, blockMode: $O)",
+  "AES(key: $K, blockMode: $O, $$$_)" ] as $modes
+| "\\bkCCOptionECBMode\\b|\\bECB\\s*\\(" as $isECB
+| scan_ast("*.swift"; $modes) as $all
+| ( $all | of($modes) | where_capture("O"; $isECB) | focus("O") )
+| finding("swift-ecb-cipher";
+    "ECB enciphers every block on its own, so equal blocks stay equal and an "
+    + "attacker can rearrange them without the key; leave the options at "
+    + "padding alone and pass an IV")
+| report

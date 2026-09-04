@@ -1,0 +1,38 @@
+# rules: swift-webview-javascript-bridge
+# languages: swift
+# fixture: swift/CWE-749.swift
+# from: CWE-749 (Exposed Dangerous Method or Function), MASVS-PLATFORM-2
+#
+# `add(_:name:)` on a `WKUserContentController` installs a native handler that
+# any script in the web view can call, as
+# `window.webkit.messageHandlers.<name>.postMessage(...)`. "Any script" is the
+# whole of the problem: it includes a third-party iframe, an ad, and whatever
+# the page redirects to. So the handler runs on behalf of whoever wrote the
+# page that happens to be loaded, and the app has no way to ask which.
+#
+# It is the same weakness as Android's `addJavascriptInterface`, and the same
+# exclusion applies for the same reason. A web view showing HTML the app
+# shipped can only run script the app shipped, so a method that mentions
+# `Bundle.main` or `loadFileURL` is left alone.
+#
+# That test is the method's own text, which means a method that loads a bundled
+# page *and* a remote one goes unreported too - coarse, and coarse in the quiet
+# direction, exactly as `kotlin-webview-javascript-interface` is about
+# `file:///android_asset/`.
+#
+# Both receiver spellings are one pattern because the receiver hole is written
+# `$$$C`. A single hole there matches only a receiver the grammar read as a
+# `user_type`, which is a bare name and nothing else - so
+# `view.configuration.userContentController.add(...)`, which is how half of
+# real code spells it, would be invisible. See GUIDE.md.
+
+["$$$C.add($H, name: $N)"] as $bridges
+| ["func $F() { $$$BODY }"] as $methods
+| "Bundle\\.main|loadFileURL|loadHTMLString" as $showsItsOwnPage
+| scan_ast("*.swift"; $bridges + $methods) as $all
+| ( $all | of($bridges)
+    | within($all | of($methods) | where_capture_not("BODY"; $showsItsOwnPage)) )
+| finding("swift-webview-javascript-bridge";
+    "every frame loaded in this web view can call $N, including one the app "
+    + "did not choose; keep the bridge for content the app ships")
+| report

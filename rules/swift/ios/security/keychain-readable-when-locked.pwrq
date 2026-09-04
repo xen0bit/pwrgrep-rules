@@ -1,0 +1,41 @@
+# rules: swift-keychain-readable-when-locked
+# languages: swift
+# fixture: swift/CWE-311.swift
+# from: CWE-311 (Missing Encryption of Sensitive Data), CWE-312, MASVS-STORAGE-1
+#
+# A keychain item's protection class is the only thing that decides when it can
+# be decrypted, and `kSecAttrAccessibleAlways` says "whenever the device is
+# powered on". That includes while it is locked in somebody else's hand, and it
+# includes while it is being restored from an unencrypted backup onto a
+# different phone - so the item stops being protected by the passcode, which
+# was the whole of its protection.
+#
+# Apple deprecated both `Always` spellings in iOS 12 and the compiler has said
+# so since. The rule reports them anyway, because a deprecation warning in a
+# build log is not a finding anybody reads, and because the shape it warns
+# about is the one that matters: `kSecAttrAccessibleWhenUnlocked` needs the
+# passcode and `kSecAttrAccessibleAfterFirstUnlock` needs it once per boot,
+# and either is a decision. `Always` is the absence of one.
+#
+# Both spellings of the write are read, because the query is built either way
+# in real code: as an entry in the dictionary literal, and as a subscript
+# assignment onto a dictionary built a line earlier.
+#
+# The key is written out rather than held in a hole, and that is not tidiness.
+# A dictionary literal is one node, so a pattern rooted at it binds its *first*
+# entry and no other - the Go pass learned the same thing about a composite
+# literal's fields. Naming `kSecAttrAccessible` is what lets the pattern reach
+# the entry wherever in the literal it stands.
+
+[ "kSecAttrAccessible as String: $V",
+  "kSecAttrAccessible: $V",
+  "$D[kSecAttrAccessible as String] = $V",
+  "$D[kSecAttrAccessible] = $V" ] as $protection
+| "^kSecAttrAccessibleAlways" as $whileLocked
+| scan_ast("*.swift"; $protection) as $all
+| ( $all | of($protection) | where_capture("V"; $whileLocked) | focus("V") )
+| finding("swift-keychain-readable-when-locked";
+    "$V lets this item be read while the phone is locked and out of a backup "
+    + "taken from it; kSecAttrAccessibleWhenUnlockedThisDeviceOnly needs the "
+    + "passcode")
+| report

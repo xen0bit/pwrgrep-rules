@@ -1,0 +1,52 @@
+# rules: swift-accepts-any-certificate
+# languages: swift
+# fixture: swift/CWE-295.swift
+# from: CWE-295 (Improper Certificate Validation), CWE-297, MASVS-NETWORK-1
+#
+# `URLCredential(trust:)` wraps the chain the server has just sent and offers
+# it back as the credential to go on with. Built from the challenge's own
+# `serverTrust` and handed to the completion handler with nothing in between,
+# it is a TLS check that answers yes to every certificate - which is every
+# proxy on every network the phone joins.
+#
+# The safe spellings all leave something in the method to see: an evaluation
+# (`SecTrustEvaluateWithError`), or a comparison of the leaf against a
+# certificate the app shipped, which reads as `SecTrustCopyCertificateChain`
+# and `SecCertificateCopyData`. So the question this rule asks is the whole
+# method's text, not the call:
+#
+#   the method builds a credential out of a trust object
+#   and nothing anywhere in it evaluates or reads that trust
+#
+# That is coarser than a structural test and coarse in the quiet direction,
+# which is the same trade `kotlin-accepts-any-hostname` makes and for the same
+# reason: a rule that cannot tell a good comparison from a bad one has no
+# business reporting either, and what it *can* tell is the absence of one. A
+# method that evaluates one trust and accepts another goes unreported.
+#
+# `URLCredential(identity:certificates:persistence:)` is client-certificate
+# authentication and is not this - the app is proving who it is, not deciding
+# who the server is - so keying on the `trust:` label rather than on the type
+# leaves it alone by construction.
+#
+# The method scaffold is `func $F() { $$$BODY }`, and neither half of that
+# spelling says what it looks like it says. The `()` compiles to nothing at
+# all, so the pattern reaches a function of any arity - which is just as well,
+# because `func $F($$$_)` is not code in Swift: a parameter there is `name:
+# Type` and an ellipsis is neither. And the body hole has to be variadic.
+# `{ $BODY }` anchors to the body's only child, and tree-sitter-swift hangs a
+# comment off the body beside the statements, so the singular spelling silently
+# skips every method with a comment in it - which in this fixture is every
+# method the rule is about. See GUIDE.md.
+
+["URLCredential(trust: $T)"] as $trusts
+| ["func $F() { $$$BODY }"] as $methods
+| "SecTrustEvaluate|SecTrustCopyCertificateChain|SecTrustGetCertificateAtIndex"
+  + "|SecCertificateCopyData|SecPolicyCreateSSL|evaluate\\s*\\(" as $checksTheTrust
+| scan_ast("*.swift"; $trusts + $methods) as $all
+| ( $all | of($trusts)
+    | within($all | of($methods) | where_capture_not("BODY"; $checksTheTrust)) )
+| finding("swift-accepts-any-certificate";
+    "this builds the credential out of the certificate the server just sent "
+    + "and nothing in this method evaluates it, so any certificate is accepted")
+| report

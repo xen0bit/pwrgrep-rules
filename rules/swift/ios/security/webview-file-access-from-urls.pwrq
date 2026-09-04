@@ -1,0 +1,39 @@
+# rules: swift-webview-file-access-from-urls
+# languages: swift
+# fixture: swift/CWE-200-webview.swift
+# from: CWE-200 (Exposure of Sensitive Information), CWE-749, MASVS-PLATFORM-2
+#
+# `allowFileAccessFromFileURLs` lets a document loaded from a `file:` URL fetch
+# other `file:` URLs, and `allowUniversalAccessFromFileURLs` drops the
+# same-origin policy for such a document altogether. Either one turns a single
+# line of injected script in a local page into a read of the app's whole
+# container and a POST of it anywhere.
+#
+# Both are undocumented WebKit preferences reached by string through
+# `setValue(_:forKey:)`, which is the tell: there is no typed API for them,
+# so they arrive in a codebase copied from an answer on the internet rather
+# than chosen. `loadFileURL(_:allowingReadAccessTo:)` is the supported way to
+# give a local page access to exactly the directory it needs, and it is
+# narrower than either flag by construction.
+#
+# The key is what the rule reads and the value decides whether it reports, so
+# `setValue(false, forKey:)` - which is somebody explicitly turning it off, and
+# not rare, because the default changed - is left alone.
+#
+# The receiver is a hole because both `config.preferences` and `config` are
+# real spellings of the same mistake, and it is variadic because a single hole
+# reaches only a bare name. See GUIDE.md.
+
+[ "$$$C.setValue($V, forKey: $K)", "$$$C.setValue($V, forKey: $K, $$$_)" ] as $prefs
+| "^\"allow(?:File|Universal)Access(?:From)?FileURLs\"$" as $isFileAccess
+| "^true$" as $isOn
+| scan_ast("*.swift"; $prefs) as $all
+| ( $all | of($prefs)
+    | where_capture("K"; $isFileAccess)
+    | where_capture("V"; $isOn)
+    | focus("K") )
+| finding("swift-webview-file-access-from-urls";
+    "$K lets a local page in this web view read the app's other files and "
+    + "send them out; loadFileURL(_:allowingReadAccessTo:) grants one "
+    + "directory instead")
+| report

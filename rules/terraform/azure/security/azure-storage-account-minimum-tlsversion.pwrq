@@ -1,5 +1,6 @@
 # rules: azure-storage-account-minimum-tlsversion
 # languages: hcl
+# fixture: terraform/azure-storage-account-minimum-tlsversion.tf
 # from: terraform/azure/security/azure-storage-account-minimum-tlsversion.yaml
 
 . as $root

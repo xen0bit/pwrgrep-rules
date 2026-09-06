@@ -1,0 +1,11 @@
+# rules: formatted-sql-string
+# languages: java
+# fixture: java/CWE-89-formatted.java
+# from: java/lang/security/audit/formatted-sql-string.yaml
+
+["$REQ.getParameter($$$_)", "$REQ.getParameterValues($$$_)", "$REQ.getHeader($$$_)", "$REQ.getQueryString()", "$REQ.getCookies()"] as $outside
+| ["$S.executeQuery($Q);", "$S.executeUpdate($Q);", "$S.execute($Q);", "$C.prepareStatement($Q);", "$C.prepareCall($Q);", "$EM.createQuery($Q);", "$EM.createNativeQuery($Q);"] as $sinks
+| scan_ast("*.java"; $outside + $sinks) as $all
+| ( $all | of($sinks) | focus("Q") | reaching($all | of($outside); []) )
+| finding("formatted-sql-string"; "Detected a formatted string in a SQL statement. This could lead to SQL injection if variables are not properly sanitized. Use PreparedStatement instead.")
+| report

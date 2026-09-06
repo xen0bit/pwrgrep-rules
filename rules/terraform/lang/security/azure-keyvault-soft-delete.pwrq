@@ -1,0 +1,15 @@
+# rules: azure-keyvault-soft-delete
+# languages: hcl
+# fixture: terraform/azure-keyvault-soft-delete.tf
+# from: terraform/azure/security/keyvault/keyvault-purge-enabled.yaml
+
+. as $root
+| ( ($root | scan_ast(["*.tf"]; [
+      "resource",
+      "resource \"azurerm_key_vault\" \"$$$_\" {\n$$$_\nsoft_delete_enabled = false\n$$$_\n}" 
+    ])) as $all
+    | ( $all | of(["resource"])
+          | within($all | of(["resource \"azurerm_key_vault\" \"$$$_\" {\n$$$_\nsoft_delete_enabled = false\n$$$_\n}"]))
+        | finding("azure-keyvault-soft-delete";
+            "Key vault soft delete should be enabled") ) )
+| report

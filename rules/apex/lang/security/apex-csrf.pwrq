@@ -1,0 +1,21 @@
+# rules: apex-csrf
+# languages: apex
+# fixture: apex/CWE-352b.cls
+# from: CWE-352 Cross-Site Request Forgery
+#
+# Apex DML inside a constructor or action method without CSRF guard can be
+# triggered by page load. This regex rule flags DML in constructors lacking
+# CSRF token validation; safe constructors do not perform DML.
+
+. as $root
+| ( ($root | scan_regex(["*.cls"]; [
+      "\\binsert\\b\\s+\\w+;",
+      "\\bupdate\\b\\s+\\w+;",
+      "\\bdelete\\b\\s+\\w+;",
+      "\\bupsert\\b\\s+\\w+;"
+    ])) as $all
+    | ( $all | of(["\\binsert\\b\\s+\\w+;","\\bupdate\\b\\s+\\w+;","\\bdelete\\b\\s+\\w+;","\\bupsert\\b\\s+\\w+;"])
+          | where_text_not("CSRF|ApexPages\\.currentPage|getParameters")
+        | finding("apex-csrf";
+            "DML without CSRF protection; validate origin or require token") ) )
+| report

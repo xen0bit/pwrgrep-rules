@@ -1,0 +1,11 @@
+# rules: go-sqli-injection
+# languages: go
+# fixture: go/CWE-89.go
+# from: CWE-89 SQL Injection
+
+["r.URL.Query().Get($_)", "$R.URL.Query().Get($_)", "$R.FormValue($_)", "$R.Header.Get($_)", "$R.PostFormValue($_)"] as $outside
+| ["$DB.Query($Q)", "$DB.QueryContext($$$_, $Q)", "$DB.Exec($Q)", "$DB.ExecContext($$$_, $Q)", "$DB.QueryRow($Q)"] as $sinks
+| scan_ast("*.go"; $outside + $sinks) as $all
+| ( $all | of($sinks) | focus("Q") | reaching($all | of($outside); []) )
+| finding("go-sqli-injection"; "SQL injection: $Q came from the request and reaches a SQL query")
+| report

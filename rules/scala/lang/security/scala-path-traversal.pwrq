@@ -1,0 +1,11 @@
+# rules: scala-path-traversal
+# languages: scala
+# fixture: scala/CWE-22.scala
+# from: CWE-22 Path Traversal
+
+["$R.getParameter($$$_)", "$R.getHeader($$$_)", "$R.getQueryString()"] as $src
+| ["new File($PATH)"] as $sink
+| scan_ast("*.scala"; $src + $sink) as $all
+| ($all | of($sink) | focus("PATH") | reaching($all | of($src); []))
+| finding("scala-path-traversal"; "untrusted input reaches File path; a ../ in it escapes the directory")
+| report

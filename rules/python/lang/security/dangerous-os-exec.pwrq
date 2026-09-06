@@ -1,5 +1,6 @@
 # rules: dangerous-os-exec
 # languages: python
+# fixture: python/CWE-78-os-exec.py
 # from: python/lang/security/dangerous-os-exec.yaml
 
 . as $root
@@ -66,16 +67,16 @@
     | ( ((($all | of(["os.$METHOD($$$_)"])
           | not_at($all | of(["os.$METHOD(\"$$$_\", $$$_)"]))
           | where_capture("METHOD"; "^(?:(execl|execle|execlp|execlpe|execv|execve|execvp|execvpe))"))
-          + ($all | of(["$CMD"])
+          + ($all | of(["os.$METHOD($BASH,[$PATH,\"-c\",$CMD,$$$_],$$$_)"])
           | not_at($all | of(["os.$METHOD(\"$$$_\", [$PATH,\"$$$_\",\"$$$_\",$$$_],$$$_)"]))
-          | within($all | of(["os.$METHOD($BASH,[$PATH,\"-c\",$CMD,$$$_],$$$_)"]))
           | where_capture("METHOD"; "^(?:(execv|execve|execvp|execvpe))")
-          | where_capture("BASH"; "^(?:(.*)(sh|bash|ksh|csh|tcsh|zsh))"))
-          + ($all | of(["$CMD"])
+          | where_capture("BASH"; "^(?:(.*)(sh|bash|ksh|csh|tcsh|zsh))")
+          | focus("CMD"))
+          + ($all | of(["os.$METHOD($BASH, $PATH, \"-c\", $CMD,$$$_)"])
           | not_at($all | of(["os.$METHOD(\"$$$_\", $PATH, \"$$$_\", \"$$$_\",$$$_)"]))
-          | within($all | of(["os.$METHOD($BASH, $PATH, \"-c\", $CMD,$$$_)"]))
           | where_capture("METHOD"; "^(?:(execl|execle|execlp|execlpe))")
-          | where_capture("BASH"; "^(?:(.*)(sh|bash|ksh|csh|tcsh|zsh))"))))
+          | where_capture("BASH"; "^(?:(.*)(sh|bash|ksh|csh|tcsh|zsh))")
+          | focus("CMD"))))
           | reaching((((($all | of(["flask.request.form.get($$$_)"]))
           + ($all | of(["flask.request.form[$$$_]"]))
           + ($all | of(["flask.request.args.get($$$_)"]))

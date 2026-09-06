@@ -1,0 +1,36 @@
+# rules: js-code-injection
+# languages: javascript, typescript
+# fixture: javascript/CWE-94.js
+# from: CWE-94 (Code Injection), CWE-95
+
+. as $root
+| ( ($root | scan_ast(["*.js","*.ts"]; [
+      "eval($CODE)",
+      "eval($CODE,$$$_)",
+      "Function($CODE)",
+      "Function($CODE,$$$_)",
+      "new Function($CODE)",
+      "new Function($CODE,$$$_)",
+      "setTimeout($CODE,$$$_)",
+      "setInterval($CODE,$$$_)",
+      "req.query",
+      "req.params",
+      "req.body",
+      "req.headers",
+      "location.search",
+      "location.hash",
+      "new URLSearchParams(location.search).get($$$_)",
+      "new URLSearchParams(location.hash).get($$$_)",
+      "$PROP = new URLSearchParams(location.search).get($$$_)\n$$$_",
+      "$PROP = new URLSearchParams(location.hash).get($$$_)\n$$$_"
+    ])) as $all
+  | ($all | of(["eval($CODE)","eval($CODE,$$$_)","Function($CODE)","Function($CODE,$$$_)","new Function($CODE)","new Function($CODE,$$$_)","setTimeout($CODE,$$$_)","setInterval($CODE,$$$_)"])
+      | focus("CODE")
+      | reaching(($all | of(["req.query","req.params","req.body","req.headers","location.search","location.hash","new URLSearchParams(location.search).get($$$_)","new URLSearchParams(location.hash).get($$$_)"])
+          + ($all | within($all | of(["$PROP = new URLSearchParams(location.search).get($$$_)\n$$$_"])) | focus("PROP"))
+          + ($all | within($all | of(["$PROP = new URLSearchParams(location.hash).get($$$_)\n$$$_"])) | focus("PROP"))
+        ); []))
+  | finding("js-code-injection";
+      "untrusted input reaches dynamic code execution; attacker controls code")
+  )
+| report

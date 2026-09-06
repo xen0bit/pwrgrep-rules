@@ -1,0 +1,17 @@
+# rules: aws-sns-topic-encrypted
+# languages: hcl
+# fixture: terraform/aws-sns-topic-encrypted.tf
+# from: CWE-311 (Missing Encryption of Sensitive Data)
+#
+# SNS topic without kms_master_key_id is not encrypted at rest.
+
+. as $root
+| ( ($root | scan_ast(["*.tf"]; [
+      "resource \"aws_sns_topic\" $NAME {\n  $$$_\n}",
+      "resource \"aws_sns_topic\" $NAME {\n  $$$_\n  kms_master_key_id = $$$_\n  $$$_\n}"
+    ])) as $all
+    | ( $all | of(["resource \"aws_sns_topic\" $NAME {\n  $$$_\n}"])
+          | outside($all | of(["resource \"aws_sns_topic\" $NAME {\n  $$$_\n  kms_master_key_id = $$$_\n  $$$_\n}"]))
+        | finding("aws-sns-topic-encrypted";
+            "SNS topic is not encrypted — set kms_master_key_id to a CMK.") ) )
+| report

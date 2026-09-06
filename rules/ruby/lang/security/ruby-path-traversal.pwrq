@@ -1,0 +1,22 @@
+# rules: ruby-path-traversal
+# languages: ruby
+# fixture: ruby/CWE-22.rb
+# from: ruby/rails/security/audit/avoid-tainted-file-access.yaml (avoid-tainted-file-access) + CWE-22
+
+. as $root
+| ( ($root | scan_ast(["*.rb"]; [
+      "File.read($PATH)",
+      "File.open($PATH)",
+      "IO.read($PATH)",
+      "File.join($$$_, $PATH)",
+      "params",
+      "params[$$$_]",
+      "params.get($$$_)",
+      "cookies",
+      "request.query_string",
+      "request.body"
+    ])) as $all
+  | ($all | of(["File.read($PATH)","File.open($PATH)","IO.read($PATH)","File.join($$$_, $PATH)"]) | focus("PATH") | reaching($all | of(["params","params[$$$_]","params.get($$$_)","cookies","request.query_string","request.body"]); []))
+  | finding("ruby-path-traversal"; "Untrusted input reaches file access; validate path or use allowlist")
+  )
+| report

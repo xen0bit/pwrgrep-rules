@@ -1,0 +1,8 @@
+// ruleid: wildcard-assume-role
+"AWS": "*",
+// ruleid: wildcard-assume-role
+"AWS": "*",
+// ok: wildcard-assume-role
+"AWS": "arn:aws:iam::123456789012:root",
+// ok: wildcard-assume-role
+"AWS": "arn:aws:iam::123456789012:user/test"

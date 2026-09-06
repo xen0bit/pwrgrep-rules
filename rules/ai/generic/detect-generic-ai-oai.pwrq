@@ -1,4 +1,5 @@
 # rules: detect-generic-ai-oai
+# fixture: ai/generic-openai.txt
 # from: ai/generic/detect-generic-ai-oai.yaml
 
 . as $root

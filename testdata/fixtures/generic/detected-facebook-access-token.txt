@@ -1,0 +1,16 @@
+# CWE-798: Facebook access token — EAAA... hard-coded.
+# Facebook tokens grant graph API access; leaked tokens are abused.
+# ruleid: detected-facebook-access-token
+token = EAAAACZAVC6ygBabc123DEF456ghi789JKL0mnoPQR
+# ruleid: detected-facebook-access-token
+access_token = EAACEdEose0cBAxyz123ABC456def789GHI0jkl
+# ok: detected-facebook-access-token
+token = EAAAAB_short_invalid
+# ok: detected-facebook-access-token
+not-a-token = hello world
+# ruleid: detected-facebook-access-token
+token = EAAAACZAVC6ygBq9w8e7r6t5y4u3i2o1p0a9s8d7f6
+# ruleid: detected-facebook-access-token
+access = EAACEdEose0cBAqWeRtYuIoPaSdFgHjKlZxCvBnMqWeRtYu
+# ok: detected-facebook-access-token
+token = EAAAACZAVC6_short

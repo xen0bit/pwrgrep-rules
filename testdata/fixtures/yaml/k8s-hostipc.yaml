@@ -1,0 +1,91 @@
+# CWE-250: Pod with hostIPC enabled — shares host IPC namespace.
+# hostIPC breaks isolation so a pod can see host shared memory.
+# The rule flags hostIPC set to true; fix with false or omit
+# the field (omission is secure).
+kind: Pod
+metadata:
+  name: bad1
+spec:
+# ruleid: hostipc-pod
+  hostIPC: true
+  containers:
+    - name: app
+      image: nginx
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad2
+spec:
+# ruleid: hostipc-pod
+  hostIPC: true
+  containers:
+    - name: app
+      image: nginx
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good1
+spec:
+# ok: hostipc-pod
+  hostIPC: false
+  containers:
+    - name: app
+      image: nginx
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good2
+spec:
+  containers:
+    - name: app
+      image: nginx
+
+---
+# Extra: pod without hostIPC field (omission = false, secure).
+# ok: hostipc-pod
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ok-extra
+spec:
+  containers:
+    - name: app
+      image: nginx
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad3
+spec:
+# ruleid: hostipc-pod
+  hostIPC: true
+  containers:
+    - name: sidecar
+      image: nginx
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bad4
+spec:
+  template:
+    spec:
+# ruleid: hostipc-pod
+      hostIPC: true
+      containers:
+        - name: app
+          image: nginx
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good3
+spec:
+# ok: hostipc-pod
+  hostIPC: false
+  containers:
+    - name: app
+      image: busybox

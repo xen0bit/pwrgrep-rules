@@ -1,0 +1,17 @@
+# rules: php-295-strict
+# languages: php
+# fixture: php/CWE-295b.php
+# from: CWE-295 (Improper Certificate Validation)
+#
+# curl verify_peer false + stream_context_create verify_peer false + Guzzle verify false disables TLS verification.
+# Rule tracks those sinks via scan_ast reaching + where_capture_not allowlist.
+
+["curl_setopt($$$_, CURLOPT_SSL_VERIFYPEER, $VAL)"] as $curl
+| ["stream_context_create($CTX)"] as $stream
+| ["$CLIENT = new GuzzleHttp\\Client([\"verify\" => $VAL])", "$CLIENT = new GuzzleHttp\\Client([\"verify\" => false])"] as $guzzle
+| scan_ast("*.php"; $curl + $stream + $guzzle) as $all
+| ( ($all | of($curl) | where_capture("VAL"; "false|0|null") | where_capture_not("VAL"; "true|allowlist|whitelist") | reaching($all | of($curl); []) | finding("php-295-strict"; "TLS verification disabled: CURLOPT_SSL_VERIFYPEER $VAL allows MITM"))
+  + ($all | of($stream) | where_capture("CTX"; "verify_peer") | where_capture("CTX"; "false|0") | where_capture_not("CTX"; "true|allowlist") | reaching($all | of($stream); []) | finding("php-295-strict"; "TLS verification disabled: stream_context_create verify_peer false allows MITM"))
+  + ($all | of($guzzle) | where_capture("VAL"; "false|0") | where_capture_not("VAL"; "true|allowlist") | reaching($all | of($guzzle); []) | finding("php-295-strict"; "TLS verification disabled: Guzzle verify false allows MITM"))
+  )
+| report

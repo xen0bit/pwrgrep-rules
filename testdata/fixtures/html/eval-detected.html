@@ -1,0 +1,14 @@
+<!-- ruleid: eval-detected -->
+<script>eval("alert(1)")</script>
+<!-- ruleid: eval-detected -->
+<script>eval('test')</script>
+<!-- ok: eval-detected -->
+<script>console.log("hello")</script>
+<!-- ok: eval-detected -->
+<script>var x = 1;</script>
+<!-- ruleid: eval-detected -->
+<script>eval ( "alert(2)" )</script>
+<!-- ruleid: eval-detected -->
+<script>var x = eval("2+2")</script>
+<!-- ok: eval-detected -->
+<script>var y = 1+1;</script>

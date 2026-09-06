@@ -1,5 +1,6 @@
 # rules: aws-db-instance-no-logging
 # languages: hcl
+# fixture: terraform/aws-db-instance-no-logging.tf
 # from: terraform/aws/security/aws-db-instance-no-logging.yaml
 
 . as $root

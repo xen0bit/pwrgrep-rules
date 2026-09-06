@@ -1,0 +1,72 @@
+# CWE-295: Service with TLS verification skipped — disables checks.
+# The insecureSkipTLSVerify flag turns off certificate checks.
+# The rule flags that flag set true; fix with false or omit it.
+kind: Service
+metadata:
+  name: bad1
+spec:
+# ruleid: skip-tls-verify-service
+  insecureSkipTLSVerify: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bad2
+spec:
+# ruleid: skip-tls-verify-service
+  insecureSkipTLSVerify: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: good1
+spec:
+# ok: skip-tls-verify-service
+  insecureSkipTLSVerify: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: good2
+spec:
+  type: ClusterIP
+
+---
+# Extra: service without insecureSkipTLSVerify (omission secure).
+# ok: skip-tls-verify-service
+apiVersion: v1
+kind: Service
+metadata:
+  name: ok-extra
+spec:
+  ports:
+    - port: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bad3
+spec:
+# ruleid: skip-tls-verify-service
+  insecureSkipTLSVerify: true
+  ports:
+    - port: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bad4
+spec:
+# ruleid: skip-tls-verify-service
+  insecureSkipTLSVerify: true
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: good3
+spec:
+# ok: skip-tls-verify-service
+  insecureSkipTLSVerify: false
+  ports:
+    - port: 80

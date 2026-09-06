@@ -1,17 +1,13 @@
 # rules: incorrect-use-of-blockhash
 # languages: solidity
+# fixture: solidity/CWE-362-blockhash.sol
 # from: solidity/security/incorrect-use-of-blockhash.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.sol"]; [
-      "block.blockhash(block.number * $N)",
-      "block.blockhash(block.number + $N)",
-      "block.blockhash(block.number)",
-      "blockhash(block.number * $N)",
-      "blockhash(block.number + $N)",
-      "blockhash(block.number)"
+| ( ($root | scan_regex(["*.sol"]; [
+      "blockhash\\s*\\(\\s*block\\.number"
     ])) as $all
-    | ( $all | of(["blockhash(block.number)","blockhash(block.number + $N)","blockhash(block.number * $N)","block.blockhash(block.number)","block.blockhash(block.number + $N)","block.blockhash(block.number * $N)"])
+    | ( $all | of(["blockhash\\s*\\(\\s*block\\.number"])
         | finding("incorrect-use-of-blockhash";
             "blockhash(block.number) and blockhash(block.number + N) always returns 0.") ) )
 | report

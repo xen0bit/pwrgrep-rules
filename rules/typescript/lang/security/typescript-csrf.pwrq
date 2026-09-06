@@ -1,0 +1,17 @@
+# rules: typescript-csrf
+# languages: typescript
+# fixture: typescript/CWE-352b.tsx
+# from: CWE-352 Cross-Site Request Forgery
+#
+# fetch/axios POST without X-CSRF header can be forged.
+
+. as $root
+| ( ($root | scan_regex(["*.ts","*.tsx"]; [
+      "fetch\\s*\\([^;]*?method\\s*:\\s*[\"\\']POST[\"\\'][^;]*?\\)",
+      "axios\\.post\\s*\\([^;]*?\\)"
+    ])) as $all
+    | ( $all | of(["fetch\\s*\\([^;]*?method\\s*:\\s*[\"\\']POST[\"\\'][^;]*?\\)","axios\\.post\\s*\\([^;]*?\\)"])
+          | where_text_not("X-CSRF|csrfToken|CSRF|csrf_token")
+        | finding("typescript-csrf";
+            "POST fetch without X-CSRF header; include CSRF token") ) )
+| report

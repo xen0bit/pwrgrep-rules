@@ -1,0 +1,17 @@
+# rules: apex-weak-crypto
+# languages: apex
+# fixture: apex/CWE-327b.cls
+# from: CWE-327 Broken or Risky Cryptographic Algorithm
+#
+# Crypto.encrypt with a weak algorithm name or hardcoded key/IV using
+# Blob.valueOf('literal') is not random. The rule flags Crypto.encrypt/decrypt
+# where algorithm is MD5/SHA1/DES/RC4/ECB or where key/IV is a literal Blob.
+
+["Crypto.encrypt($ALGO, $KEY, $IV, $DATA)", "Crypto.decrypt($ALGO, $KEY, $IV, $DATA)",
+ "Crypto.encryptWithManagedIV($ALGO, $KEY, $DATA)", "Crypto.decryptWithManagedIV($ALGO, $KEY, $DATA)"] as $crypto
+| scan_ast(["*.cls"]; $crypto) as $all
+| ($all | of($crypto)
+    | where_capture("ALGO"; "(?i)MD5|SHA1|DES|RC4|ECB|AES128")
+    | finding("apex-weak-crypto";
+        "Weak crypto $ALGO is not collision resistant; use AES256 with random key/IV from Crypto.generateAesKey"))
+| report

@@ -14,6 +14,7 @@ package fixture
 
 import java.io.File
 import java.util.zip.ZipFile
+import java.nio.file.Paths
 import java.util.zip.ZipInputStream
 
 class Update {
@@ -49,6 +50,31 @@ class Update {
         for (entry in zip.entries()) {
             // ok: kotlin-archive-entry-path-not-checked
             println(entry.name)
+        }
+    }
+
+    fun extractViaPaths(zip: ZipFile, target: File) {
+        for (entry in zip.entries()) {
+            // ruleid: kotlin-archive-entry-path-not-checked
+            val p = Paths.get(target.path, entry.name)
+            p.toFile().mkdirs()
+        }
+    }
+
+    fun extractViaStream(zip: ZipFile, target: File) {
+        for (entry in zip.entries()) {
+            // ruleid: kotlin-archive-entry-path-not-checked
+            java.io.FileOutputStream(File(target, entry.name)).close()
+        }
+    }
+
+    fun checkedViaNormalize(zip: ZipFile, target: File) {
+        for (entry in zip.entries()) {
+            // ok: kotlin-archive-entry-path-not-checked
+            val out = File(target, entry.name)
+            if (!out.canonicalFile.normalize().path.startsWith(target.canonicalPath)) {
+                throw SecurityException("bad")
+            }
         }
     }
 }

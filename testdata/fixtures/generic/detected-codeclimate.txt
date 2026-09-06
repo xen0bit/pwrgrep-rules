@@ -1,0 +1,16 @@
+# CWE-798: CodeClimate token — 64 hex reporter key.
+# 64 hex after codeclimate keyword is a secret; committed keys leak CI.
+# ruleid: detected-codeclimate
+codeclimate repo_token="abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
+# ruleid: detected-codeclimate
+codeclimate_maintoken: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef12'
+# ruleid: detected-codeclimate
+codeclimate token="fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+# ruleid: detected-codeclimate
+codeclimate: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+# ok: detected-codeclimate
+codeclimate token="short"
+# ok: detected-codeclimate
+not-a-token
+# ok: detected-codeclimate
+codeclimate example="placeholder"

@@ -1,0 +1,24 @@
+# rules: go-77-shell
+# languages: go
+# fixture: go/CWE-77b.go
+# from: CWE-77 OS Command Injection — os/exec.Command with shell metachar [|;&$`]
+#
+# `exec.CommandContext` is written in both arities on purpose, and it is the
+# one place where the arity-one spelling is not subsumed by the ellipsis one.
+# In `($$$_, $CMD, $$$_)` against `CommandContext(ctx, cmd)` the leading
+# ellipsis can take nothing and `$CMD` binds the context, with `cmd` swallowed
+# behind it - so the hole holds the wrong argument and the command reaches
+# nothing. An ellipsis in front of a hole needs the exact-arity pattern beside
+# it to pin the hole down.
+#
+# os/exec.Command receives request-controlled data. When the command string
+# contains shell metacharacters [|;&$`] it is interpreted by a shell. The
+# array form exec.Command("ls", arg) does not invoke a shell and is
+# allowlisted via where_capture_not.
+
+["r.URL.Query().Get($$$_)", "$R.URL.Query().Get($$$_)", "$R.FormValue($$$_)", "$R.PostFormValue($$$_)", "$R.Header.Get($$$_)", "r.FormValue($$$_)"] as $src
+| ["exec.Command($CMD, $$$_)", "exec.CommandContext($$$_, $CMD)", "exec.CommandContext($$$_, $CMD, $$$_)"] as $sink
+| scan_ast("*.go"; $src + $sink) as $all
+| ( $all | of($sink) | focus("CMD") | reaching($all | of($src); []) | where_capture_not("CMD"; "allowlist|whitelist|\"ls\"") )
+| finding("go-77-shell"; "Command injection: $CMD from request reaches os/exec.Command with shell metachar [|;&$`]; use allowlisted array form")
+| report

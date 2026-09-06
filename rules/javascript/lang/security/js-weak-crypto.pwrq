@@ -1,0 +1,49 @@
+# rules: js-weak-crypto
+# languages: javascript
+# fixture: javascript/CWE-327.js
+# from: CWE-327 (Broken or Risky Cryptographic Algorithm), CWE-328 (Weak Hash),
+#       CWE-338 (Weak PRNG)
+#
+# Two findings under one id, because they are the same mistake about the same
+# library: reaching for the fast primitive where the unpredictable one was
+# needed.
+#
+# `createHash("md5")` and `createHash("sha1")` are reported on sight. Neither
+# is collision resistant and there is no calling context that makes them safe
+# for a signature, an integrity check or a content address; where they are
+# genuinely a cache key the finding is still true and the reviewer says so.
+#
+# `Math.random()` is different and is guarded, because most of its uses are
+# right. A jitter, a sample, a shuffle, an animation seed - all `Math.random`
+# and all correct - so the rule reads the name the value is given, the way
+# python-weak-random and swift-insecure-random-for-secret do: a programmer who
+# calls it `token` or `nonce` has said it is meant to be unguessable, and the
+# syntax says nothing else about it. `crypto.randomBytes` is the fix.
+#
+# `pseudoRandomBytes` needs no guard. It is a deprecated alias that exists to
+# be the insecure one, and nobody reaches for it by accident.
+
+["crypto.createHash($ALGO, $$$_)"] as $hashes
+| ["crypto.pseudoRandomBytes($$$_)"] as $declaredWeak
+| ["const $NAME = $DRAW", "let $NAME = $DRAW", "var $NAME = $DRAW",
+   "$NAME = $DRAW"] as $binds
+| "(?i)token|nonce|salt|^iv$|secret|key$|passw|otp|challenge|session"
+  + "|verifier|csrf|seed|_id$|code$" as $namesASecret
+| scan_ast(["*.js", "*.ts"]; $hashes + $declaredWeak + $binds) as $all
+| ( ( $all | of($hashes)
+      | where_capture("ALGO"; "(?i)md5|sha1")
+      | finding("js-weak-crypto";
+          "MD5 and SHA-1 are not collision resistant, so two inputs can be "
+          + "found with the same digest; createHash(\"sha256\") instead") )
+  + ( $all | of($declaredWeak)
+      | finding("js-weak-crypto";
+          "pseudoRandomBytes is the deprecated insecure alias and is "
+          + "predictable; crypto.randomBytes returns the same bytes safely") )
+  + ( $all | of($binds)
+      | where_capture("NAME"; $namesASecret)
+      | where_capture("DRAW"; "\\bMath\\.random\\s*\\(")
+      | focus("DRAW")
+      | finding("js-weak-crypto";
+          "Math.random is not unpredictable and the name says this value is "
+          + "meant to be; crypto.randomBytes or crypto.randomInt instead") ) )
+| report

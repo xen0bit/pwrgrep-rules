@@ -1,0 +1,16 @@
+# CWE-798: PayPal Braintree token — access_token production form.
+# Braintree tokens grant payment access; leaked tokens are critical.
+# ruleid: detected-paypal-braintree-access-token
+access_token$production$abc123def456ghi7$abc123def456ghi78901234567890abcd
+# ruleid: detected-paypal-braintree-access-token
+token=access_token$production$1234567890abcdef$1234567890abcdef1234567890abcdef
+# ok: detected-paypal-braintree-access-token
+access_token$production$short$short
+# ok: detected-paypal-braintree-access-token
+not-a-token
+# ruleid: detected-paypal-braintree-access-token
+access_token$production$cccccccccccccccc$dddddddddddddddddddddddddddddddd
+# ruleid: detected-paypal-braintree-access-token
+token=access_token$production$eeeeeeeeeeeeeeee$ffffffffffffffffffffffffffffffff
+# ok: detected-paypal-braintree-access-token
+paypal_token = "example_placeholder_not_real"

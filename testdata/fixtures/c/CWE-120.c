@@ -14,9 +14,15 @@ void read_word(char *out)
     scanf("%s", word);
     /* ruleid: insecure-use-scanf-fn */
     scanf("%d", &n);
+    /* ruleid: insecure-use-scanf-fn */
+    scanf("%s %d", word, &n);
+    /* ruleid: insecure-use-scanf-fn */
+    scanf("%10s", word);
 
     /* ok: insecure-use-scanf-fn */
     fgets(out, 16, stdin);
     /* ok: insecure-use-scanf-fn */
     sscanf(out, "%15s", word);
+    /* ok: insecure-use-scanf-fn */
+    fgets(word, sizeof(word), stdin);
 }

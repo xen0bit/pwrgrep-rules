@@ -1,0 +1,13 @@
+# rules: rust-path-traversal
+# languages: rust
+# fixture: rust/CWE-22.rs
+# from: CWE-22 (Path Traversal)
+
+["std::env::args()", "std::env::var($$$_)", "std::env::args().next()", "request.query.get($$$_)"] as $src
+| ["std::fs::File::open($PATH)", "File::open($PATH)", "std::fs::read($PATH)", "std::fs::read_to_string($PATH)"] as $sink
+| scan_ast("*.rs"; $src + $sink) as $all
+| ( $all | of($sink) | focus("PATH") | reaching($all | of($src); []) | finding("rust-path-traversal";
+        "this opens a path built from a value the caller chose, and a `../` in "
+        + "it walks out of the directory; resolve the path and check it is "
+        + "still under the root before opening it") )
+| report

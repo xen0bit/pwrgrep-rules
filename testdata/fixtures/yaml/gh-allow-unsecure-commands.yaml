@@ -1,0 +1,89 @@
+# CWE-94: GitHub Actions allows unsecure commands (injection sink).
+# Setting the unsecure commands variable to true re-enables the old
+# set-env sink. The rule flags env blocks that enable it; fix by
+# setting false or omitting the variable.
+name: bad1
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+# ruleid: allowed-unsecure-commands
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+    steps:
+      - run: echo "hi"
+---
+name: bad2
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+# ruleid: allowed-unsecure-commands
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+    steps:
+      - run: echo "hi"
+---
+name: good1
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+# ok: allowed-unsecure-commands
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: false
+    steps:
+      - run: echo "hi"
+---
+name: good2
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "hi"
+
+---
+# Extra: workflow with no env block at all (omission = secure).
+# ok: allowed-unsecure-commands
+name: ok_extra
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "hello"
+---
+name: bad3
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+# ruleid: allowed-unsecure-commands
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+    steps:
+      - run: echo "bad3"
+---
+name: bad4
+on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: step with env
+        env:
+# ruleid: allowed-unsecure-commands
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+        run: echo "bad4"
+---
+name: good3
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+# ok: allowed-unsecure-commands
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: false
+    steps:
+      - run: echo "good3"

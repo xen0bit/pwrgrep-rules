@@ -1,0 +1,17 @@
+# CWE-798: Slack token — xoxb/xoxp ... high-value chat credential.
+# Slack bot tokens control workspace access. The rule flags xoxb/xoxp
+# patterns; ok is "changeme" or non-matching strings.
+# ruleid: detected-slack-token
+SLACK_TOKEN=xoxb-244636495000-244564491300-Wwpw98abcdabcdefabcdabcz
+# ruleid: detected-slack-token
+token=xoxp-825568119270-820571134562-983439002315-b3358323912928aeeeeeeeeeeeeeeezz
+# ok: detected-slack-token
+slack_token = "changeme"
+# ok: detected-slack-token
+not-a-slack-token
+# ruleid: detected-slack-token
+xoxb-999999999999-888888888888-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+# ruleid: detected-slack-token
+xoxp-777777777777-666666666666-dddddddddddddddddddddddddddddddddd
+# ok: detected-slack-token
+slack_token = "xoxb_example_placeholder_not_real"

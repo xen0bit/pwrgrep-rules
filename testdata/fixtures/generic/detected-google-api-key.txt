@@ -1,0 +1,17 @@
+# CWE-798: Google API key — AIza... token in source.
+# AIzaSy... keys are long-lived and billable. The rule flags them;
+# ok is AIKA (wrong prefix) or short stubs that fail length checks.
+ # ruleid: detected-google-api-key
+ AIzaSyAtUXpd8JxrpUH2Sd-xO2U_vWGVfoF5-XM
+ # ruleid: detected-google-api-key
+ key=AIzaSyBGJlWlxZEnJ2yUape3AjqmNyo5--h6xtI
+ # ok: detected-google-api-key
+ AIKAblablablahblahbl
+ # ok: detected-google-api-key
+AIzaSyShort
+# ruleid: detected-google-api-key
+AIzaSyCcDdEeFfGgHhIiJjKkLlMmNnOoPpQrS12
+# ruleid: detected-google-api-key
+AIzaSyDdEeFfGgHhIiJjKkLlMmNnOoPpQrSt456
+# ok: detected-google-api-key
+AIKA_fake_key_not_real_Aiza_wrong_prefix

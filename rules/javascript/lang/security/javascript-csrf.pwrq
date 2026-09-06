@@ -1,0 +1,16 @@
+# rules: javascript-csrf
+# languages: javascript
+# fixture: javascript/CWE-352b.js
+# from: CWE-352 Cross-Site Request Forgery
+#
+# HTML form submitted via JS without CSRF token.
+
+. as $root
+| ( ($root | scan_regex(["*.js"]; [
+      "<form[\\s\\S]*?<\\/form>",
+      "fetch[^\\n]*"
+    ])) as $all
+    | ( ($all | of(["<form[\\s\\S]*?<\\/form>"]) | where_text("POST|post") | where_text_not("csrfToken|CSRF|_csrf|csrf_token"))
+      + ($all | of(["fetch[^\\n]*"]) | where_text("POST") | where_text_not("csrfToken|CSRF|_csrf|csrf_token")) | finding("javascript-csrf";
+            "Form/POST without CSRF token; add hidden csrf field") ) )
+| report

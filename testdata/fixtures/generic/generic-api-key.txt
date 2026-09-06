@@ -1,0 +1,17 @@
+# CWE-798: Generic high-entropy secret — api_token / secretvalue.
+# Values like CLOJARS_... or _2r7Q~... are flagged by entropy. The rule
+# tests generic keys; ok is low-entropy or cache-key.
+# ruleid: generic-api-key
+generic_api_token = "CLOJARS_34bf0e88955ff5a1c328d6a7491acc4f48e865a7b8dd4d70a70749037443"
+# ruleid: generic-api-key
+secretvalue: _2r7Q~VUDTAv9XROf27Oe3QR2dX14C2PbcuokcJC
+# ruleid: generic-api-key
+generic_api_token = "CLOJARS_abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
+# ruleid: generic-api-key
+secretvalue: _3r8W~aB9cDeFgHiJkLmNoPqRsTuVwXyZ123456
+# ok: generic-api-key
+cache-key: flutter-3.3.x
+# ok: generic-api-key
+api_key = "example"
+# ok: generic-api-key
+cache-key: node-18.x

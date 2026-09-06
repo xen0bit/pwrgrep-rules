@@ -1,0 +1,16 @@
+# CWE-798: Twilio API key — SK...32hex hard-coded.
+# Twilio keys control SMS/voice; leaked keys incur charges.
+# ruleid: detected-twilio-api-key
+twilio = SK1234567890abcdef1234567890abcdef
+# ruleid: detected-twilio-api-key
+key = SKabcdef1234567890ABCDEF1234567890
+# ok: detected-twilio-api-key
+key = SK123
+# ok: detected-twilio-api-key
+not-a-key = hello world
+# ruleid: detected-twilio-api-key
+SKCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+# ruleid: detected-twilio-api-key
+SKDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+# ok: detected-twilio-api-key
+twilio_key = "SKexamplePlaceholderShort"

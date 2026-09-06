@@ -1,0 +1,16 @@
+# CWE-798: Kolide API key — k2sk prefix.
+# k2sk_v keys grant Kolide access; committed keys are exploitable.
+# ruleid: detected-kolide-api-key
+k2sk_v1_AbCdEfGhIjKlMnOpQrStUvWx
+# ruleid: detected-kolide-api-key
+token=k2sk_v2_1234567890ABCDEF12345678
+# ok: detected-kolide-api-key
+k2sk_invalid
+# ok: detected-kolide-api-key
+not-a-token
+# ruleid: detected-kolide-api-key
+k2sk_v1_CCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+# ruleid: detected-kolide-api-key
+k2sk_v2_DDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+# ok: detected-kolide-api-key
+k2sk_example_placeholder_not_real

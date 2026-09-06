@@ -1,0 +1,10 @@
+# rules: scala-sql-injection
+# languages: scala
+# fixture: scala/CWE-89.scala
+# from: CWE-89 (SQL Injection), CWE-20
+
+["$R.getParameter($$$_)", "$R.getHeader($$$_)", "$R.getQueryString()", "$R.getCookies()"] as $src
+| ["$C.prepareStatement($Q)", "$S.executeQuery($Q)", "$S.executeUpdate($Q)", "$S.execute($Q)"] as $sink
+| scan_ast("*.scala"; $src + $sink) as $all
+| ( $all | of($sink) | focus("Q") | reaching($all | of($src); []) | finding("scala-sql-injection"; "SQL injection: $Q came from the request and reaches SQL execution") )
+| report

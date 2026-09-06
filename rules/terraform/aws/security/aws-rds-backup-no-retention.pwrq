@@ -1,5 +1,6 @@
 # rules: aws-rds-backup-no-retention
 # languages: hcl
+# fixture: terraform/aws-rds-backup-no-retention.tf
 # from: terraform/aws/security/aws-rds-backup-no-retention.yaml
 
 . as $root

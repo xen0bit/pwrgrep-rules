@@ -1,0 +1,16 @@
+# CWE-798: Square access token — sq0atp-... hard-coded.
+# Square tokens control payments; committed tokens risk financial fraud.
+# ruleid: detected-square-access-token
+token = sq0atp-1234567890123456789012
+# ruleid: detected-square-access-token
+square = sq0atp-ABCDEF1234567890abcd12
+# ok: detected-square-access-token
+token = sq0atp-short
+# ok: detected-square-access-token
+not-a-token = hello world
+# ruleid: detected-square-access-token
+sq0atp-CCCCCCCCCCCCCCCCCCCCCC
+# ruleid: detected-square-access-token
+sq0atp-DDDDDDDDDDDDDDDDDDDDDD
+# ok: detected-square-access-token
+square_token = "sq0atp_example_placeholder"

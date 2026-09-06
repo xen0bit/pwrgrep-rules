@@ -1,0 +1,12 @@
+# rules: typescript-tls-verification-disabled
+# languages: typescript
+# fixture: typescript/CWE-295.ts
+# from: CWE-295 (TLS Verification Disabled)
+
+. as $root
+| ( $root | scan_ast(["*.ts","*.tsx"]; ["const $A = { rejectUnauthorized: false }", "let $A = { rejectUnauthorized: false }", "var $A = { rejectUnauthorized: false }", "$A = { rejectUnauthorized: false }"]) ) as $all
+| ( $all | of(["const $A = { rejectUnauthorized: false }", "let $A = { rejectUnauthorized: false }", "var $A = { rejectUnauthorized: false }", "$A = { rejectUnauthorized: false }"]) | finding("typescript-tls-verification-disabled";
+        "this accepts any certificate, so anything on the path can read and "
+        + "change the traffic and nothing will say so; leave verification on "
+        + "and fix the trust store instead") )
+| report

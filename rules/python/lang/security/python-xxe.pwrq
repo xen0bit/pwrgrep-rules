@@ -1,0 +1,42 @@
+# rules: python-xxe
+# languages: python
+# fixture: python/CWE-611.py
+# from: CWE-611 (XML External Entity)
+#
+# `lxml.etree.fromstring` and `xml.etree.ElementTree` with defaults resolve
+# external entities. An entity in the document the caller chose becomes a read
+# or an SSRF.
+#
+# The rule is `reaching`: an untrusted value from the request (query string,
+# form, route variable, or `self.path`) that flows into an XML parse sink. A
+# literal document has nothing to flow.
+
+. as $root
+| ( ($root | scan_ast(["*.py"]; [
+      "lxml.etree.fromstring($XML, $$$_)",
+      "xml.etree.ElementTree.parse($XML, $$$_)",
+      "xml.etree.ElementTree.fromstring($XML, $$$_)",
+      "xml.dom.minidom.parseString($XML, $$$_)",
+      "xml.sax.parseString($XML, $$$_)",
+      "flask.request.args.get($$$_)", "flask.request.args[$$$_]",
+      "flask.request.form.get($$$_)", "flask.request.form[$$$_]",
+      "flask.request.values.get($$$_)", "flask.request.values[$$$_]",
+      "flask.request.cookies.get($$$_)", "flask.request.data",
+      "request.args.get($$$_)", "request.args[$$$_]",
+      "request.form.get($$$_)", "request.form[$$$_]",
+      "request.values.get($$$_)", "request.data",
+      "self.path", "self.headers.get($$$_)", "self.headers[$$$_]",
+      "@$APP.route($$$_)\ndef $FUNC($$$_, $ROUTEVAR, $$$_):\n  $$$_",
+      "def $FUNC(request, $$$_):\n  $$$_"
+    ])) as $all
+  | ($all | of(["lxml.etree.fromstring($XML, $$$_)", "xml.etree.ElementTree.parse($XML, $$$_)", "xml.etree.ElementTree.fromstring($XML, $$$_)", "xml.dom.minidom.parseString($XML, $$$_)", "xml.sax.parseString($XML, $$$_)"])
+      | focus("XML")
+      | reaching($all | of(["flask.request.args.get($$$_)","flask.request.args[$$$_]","flask.request.form.get($$$_)","flask.request.form[$$$_]","flask.request.values.get($$$_)","flask.request.values[$$$_]","flask.request.cookies.get($$$_)","flask.request.data","request.args.get($$$_)","request.args[$$$_]","request.form.get($$$_)","request.form[$$$_]","request.values.get($$$_)","request.data","self.path","self.headers.get($$$_)","self.headers[$$$_]"])
+          + ($all | within($all | of(["@$APP.route($$$_)\ndef $FUNC($$$_, $ROUTEVAR, $$$_):\n  $$$_"])) | focus("ROUTEVAR"))
+          + ($all | within($all | of(["def $FUNC(request, $$$_):\n  $$$_"])) | of(["request.args.get($$$_)","request.args[$$$_]","request.form.get($$$_)","request.form[$$$_]"]))
+          ; []))
+  | finding("python-xxe";
+      "untrusted input reaches XML parser; an `<!ENTITY>` in it becomes a "
+      + "file read or SSRF — use defusedxml or disable entities")
+  )
+| report

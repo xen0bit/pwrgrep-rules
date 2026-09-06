@@ -5,7 +5,6 @@
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
       "$ANGULAR = angular.element($$$_)\n$$$_\n$ANGULAR. $$$_ .$SINK($QUERY)",
-      "$DECODE($PWRQDEEP1)",
       "$RES.data",
       "$http.$METHOD($$$_).$CONTINUE(function $FUNC($RES) {$$$_})",
       "$location.search($$$_)",
@@ -16,7 +15,19 @@
       "document.location.search",
       "location.search",
       "window.document.location.search",
-      "window.location.search"
+      "window.location.search",
+      "window.location.href",
+      "window.document.location.href",
+      "document.location.href",
+      "location.href",
+      "window.location.hash",
+      "document.location.hash",
+      "location.hash",
+      "document.URL",
+      "window.document.URL",
+      "$location.absUrl()",
+      "$location.url()",
+      "$location.hash()"
     ])) as $all
     | ( ((($all
           | within($all | of(["angular.element($$$_). $$$_ .$SINK($QUERY)"])))
@@ -24,34 +35,7 @@
           | within($all | of(["$ANGULAR = angular.element($$$_)\n$$$_\n$ANGULAR. $$$_ .$SINK($QUERY)"])))
           | where_capture("SINK"; "^(after|append|html|prepend|replaceWith|wrap)$")
           | focus("QUERY")))
-          | reaching((($all | of(["window.location.search","window.document.location.search","document.location.search","location.search","$location.search($$$_)"]))
-              + (($all | of(["$DECODE($PWRQDEEP1)"])
-          | where_capture_ast("PWRQDEEP1"; "location.hash"))
-          + ($all | of(["$DECODE($PWRQDEEP1)"])
-          | where_capture_ast("PWRQDEEP1"; "window.location.hash"))
-          + ($all | of(["$DECODE($PWRQDEEP1)"])
-          | where_capture_ast("PWRQDEEP1"; "document.location.hash"))
-          + ($all | of(["$DECODE($PWRQDEEP1)"])
-          | where_capture_ast("PWRQDEEP1"; "location.href"))
-          + ($all | of(["$DECODE($PWRQDEEP1)"])
-          | where_capture_ast("PWRQDEEP1"; "window.location.href"))
-          + ($all | of(["$DECODE($PWRQDEEP1)"])
-          | where_capture_ast("PWRQDEEP1"; "document.location.href"))
-          + ($all | of(["$DECODE($PWRQDEEP1)"])
-          | where_capture_ast("PWRQDEEP1"; "document.URL"))
-          + ($all | of(["$DECODE($PWRQDEEP1)"])
-          | where_capture_ast("PWRQDEEP1"; "window.document.URL"))
-          + ($all | of(["$DECODE($PWRQDEEP1)"])
-          | where_capture_ast("PWRQDEEP1"; "document.location.href"))
-          + ($all | of(["$DECODE($PWRQDEEP1)"])
-          | where_capture_ast("PWRQDEEP1"; "document.location.href"))
-          + ($all | of(["$DECODE($PWRQDEEP1)"])
-          | where_capture_ast("PWRQDEEP1"; "$location.absUrl()"))
-          + ($all | of(["$DECODE($PWRQDEEP1)"])
-          | where_capture_ast("PWRQDEEP1"; "$location.url()"))
-          + ($all | of(["$DECODE($PWRQDEEP1)"])
-          | where_capture_ast("PWRQDEEP1"; "$location.hash()"))
-          | where_capture("DECODE"; "^(unescape|decodeURI|decodeURIComponent)$"))
+          | reaching((($all | of(["window.location.search","window.document.location.search","document.location.search","location.search","$location.search($$$_)","window.location.href","window.document.location.href","document.location.href","location.href","window.location.hash","document.location.hash","location.hash","document.URL","window.document.URL","$location.absUrl()","$location.url()","$location.hash()"]))
               + ($all | of(["$RES.data"])
           | within($all | of(["$http.$METHOD($$$_).$CONTINUE(function $FUNC($RES) {$$$_})"]))
           | where_capture("METHOD"; "^(get|delete|head|jsonp|post|put|patch)")));
@@ -59,3 +43,5 @@
         | finding("detect-angular-element-taint";
             "Use of angular.element can lead to XSS if user-input is treated as part of the HTML element within `$SINK`.") ) )
 | report
+
+

@@ -1,5 +1,6 @@
 # rules: aws-ec2-security-group-allows-public-ingress
 # languages: hcl
+# fixture: terraform/aws-ec2-security-group-allows-public-ingress.tf
 # from: terraform/aws/security/aws-ec2-security-group-allows-public-ingress.yaml
 
 . as $root

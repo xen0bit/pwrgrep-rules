@@ -1,0 +1,12 @@
+# rules: java-path-traversal
+# languages: java
+# fixture: java/CWE-73.java
+# from: CWE-22 Path Traversal, CWE-73
+
+["$R.getParameter($K)", "$R.getHeader($K)", "$R.getQueryString()", "$R.getCookies()", "$R.getParameterValues($K)", "$R.getParameterMap()", "$M.get($K)", "$A[0]", "$C.getValue()", "$C.getName()", "$U.decode($$$_)", "URLDecoder.decode($$$_)", "java.net.URLDecoder.decode($$$_)"] as $outside
+| ["new File($PATH)", "new java.io.File($PATH)", "new File($_, $PATH)", "new File($DIR + $PATH)", "new FileInputStream($PATH)", "new java.io.FileInputStream($PATH)", "new FileInputStream(new File($PATH))", "new java.io.FileInputStream(new java.io.File($PATH))", "new FileOutputStream($PATH)", "new FileOutputStream(new File($PATH))", "Paths.get($PATH)", "Paths.get($_, $PATH)", "Files.newInputStream($PATH, $$$_)", "Files.newInputStream(new File($PATH), $$$_)", "$BASE.resolve($PATH)", "new RandomAccessFile($PATH, $$$_)", "new RandomAccessFile(new File($PATH), $$$_)"] as $sinks
+| ["FilenameUtils.getName($X)", "$X.getName()"] as $clean
+| scan_ast("*.java"; $outside + $sinks + $clean) as $all
+| ( $all | of($sinks) | focus("PATH") | reaching($all | of($outside); $all | of($clean)) )
+| finding("java-path-traversal"; "Path traversal: $PATH came from the request and reaches a filesystem operation")
+| report

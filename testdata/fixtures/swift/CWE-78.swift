@@ -46,4 +46,31 @@ final class Tools {
         task.arguments = [name, "out.png"]
         try? task.run()
     }
+
+    func queryExec(_ url: URL) {
+        let q = url.fragment ?? ""
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/bin/sh")
+        // ruleid: swift-command-from-untrusted-input
+        task.arguments = ["-c", "echo \(q)"]
+        try? task.run()
+    }
+
+    func absoluteExec(_ url: URL) {
+        let s = url.absoluteString
+        let task = Process()
+        task.launchPath = "/bin/sh"
+        // ruleid: swift-command-from-untrusted-input
+        task.arguments = ["-c", "open " + s]
+        task.launch()
+    }
+
+    func safeDirect(_ url: URL) {
+        let name = url.lastPathComponent
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        // ok: swift-command-from-untrusted-input
+        task.arguments = [name]
+        try? task.run()
+    }
 }

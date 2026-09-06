@@ -1,0 +1,23 @@
+# CWE-798: Private key — -----BEGIN PRIVATE KEY----- / RSA PRIVATE KEY.
+# Private keys must never be checked in. The rule flags those PEM
+# headers; ok is CERTIFICATE or non-key text.
+# ruleid: detected-private-key
+-----BEGIN PRIVATE KEY-----
+MIIEogIBAAKCAQEAjosMtDUqbE1/8zxZac1t8fkh2SxGuMXHk9yxniyM2m76donW
+# ruleid: detected-private-key
+-----BEGIN RSA PRIVATE KEY-----
+MIIEogIBAAKCAQEAjosMtDUqbE1/8zxZac1t8fkh2SxGuMXHk9yxniyM2m76donW
+# ok: detected-private-key
+-----BEGIN CERTIFICATE-----
+MIIEogIBAAKCAQEAjosMtDUqbE1/8zxZac1t8fkh2SxGuMXHk9yxniyM2m76donW
+# ok: detected-private-key
+not a key
+# ruleid: detected-private-key
+-----BEGIN EC PRIVATE KEY-----
+MIIEogIBAAKCAQEAECKeyPlaceholder1234567890
+# ruleid: detected-private-key
+-----BEGIN OPENSSH PRIVATE KEY-----
+MIIEogIBAAKCAQEASSHKeyPlaceholder0987654321
+# ok: detected-private-key
+-----BEGIN CERTIFICATE-----
+MIIEogIBAAKCAQEApublicPlaceholderNotPrivateKey

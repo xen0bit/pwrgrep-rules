@@ -1,0 +1,14 @@
+# rules: scala-code-injection
+# languages: scala
+# fixture: scala/CWE-94.scala
+# from: CWE-94 Code Injection via ToolBox/ScriptEngine
+
+["$R.getParameter($$$_)", "$R.getHeader($$$_)", "$R.getQueryString()"] as $src
+| ["$TB.eval($CODE)", "$ENG.eval($CODE)"] as $sink
+| scan_ast("*.scala"; $src + $sink) as $all
+| ($all | of($sink) | focus("CODE") | reaching($all | of($src); []))
+| finding("scala-code-injection";
+        "this evaluates a value the caller chose as code, which is the whole of "
+        + "the language and not the part you meant; look the value up in a "
+        + "map of the things it is allowed to be")
+| report

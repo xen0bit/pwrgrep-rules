@@ -1,0 +1,31 @@
+# rules: python-unverified-ssl
+# languages: python
+# fixture: python/CWE-295.py
+# from: CWE-295 (Improper Certificate Validation), CWE-319 (Cleartext Transmission), python/requests/security/disabled-cert-validation.yaml
+#
+# This took over the generated `disabled-cert-validation`, which reported the
+# same `verify=False` under its own id and had no fixture. This one reads two
+# more spellings - the ssl context whose check_hostname is turned off, and the
+# unverified context helper - so it is a superset rather than a rewrite.
+#
+# `ssl._create_unverified_context` and `verify=False` turn off certificate
+# checks, so a man-in-the-middle can read or change the traffic.
+
+. as $root
+| ( ($root | scan_ast(["*.py"]; [
+      "ssl._create_unverified_context($$$_)",
+      "ssl._create_default_https_context = ssl._create_unverified_context",
+      "requests.get($$$_, verify=False, $$$_)",
+      "requests.post($$$_, verify=False, $$$_)",
+      "requests.put($$$_, verify=False, $$$_)",
+      "requests.delete($$$_, verify=False, $$$_)",
+      "requests.head($$$_, verify=False, $$$_)",
+      "requests.options($$$_, verify=False, $$$_)",
+      "requests.patch($$$_, verify=False, $$$_)",
+      "requests.request($$$_, verify=False, $$$_)"
+    ])) as $all
+    | ( $all | of(["ssl._create_unverified_context($$$_)","ssl._create_default_https_context = ssl._create_unverified_context","requests.get($$$_, verify=False, $$$_)","requests.post($$$_, verify=False, $$$_)","requests.put($$$_, verify=False, $$$_)","requests.delete($$$_, verify=False, $$$_)","requests.head($$$_, verify=False, $$$_)","requests.options($$$_, verify=False, $$$_)","requests.patch($$$_, verify=False, $$$_)","requests.request($$$_, verify=False, $$$_)"])
+        | finding("python-unverified-ssl";
+            "certificate verification is disabled; a man-in-the-middle can read "
+            + "or change the traffic — leave verification on") ) )
+| report

@@ -1,0 +1,16 @@
+# CWE-798: HockeyApp token — 32 hex after hockey.
+# HockeyApp keys after hockey keyword are secrets; rule flags 32 hex.
+# ruleid: detected-hockeyapp
+hockeyapp token = "abcdef1234567890abcdef1234567890"
+# ruleid: detected-hockeyapp
+hockey_api_token: '0123456789abcdef0123456789abcdef'
+# ok: detected-hockeyapp
+hockey token="short"
+# ok: detected-hockeyapp
+not-a-token
+# ruleid: detected-hockeyapp
+hockeyapp token = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+# ruleid: detected-hockeyapp
+hockeyapp_api: 'cccccccccccccccccccccccccccccccc'
+# ok: detected-hockeyapp
+hockeyapp token = "short_placeholder_example"

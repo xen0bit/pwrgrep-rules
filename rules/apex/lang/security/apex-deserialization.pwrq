@@ -1,0 +1,14 @@
+# rules: apex-deserialization
+# languages: apex
+# fixture: apex/CWE-502.cls
+# from: CWE-502 Deserialization of Untrusted Data
+#
+# JSON.deserialize with attacker-controlled data instantiates Apex objects via
+# type confusion; deserializeUntyped is the same. The rule flags deserialization
+# where the input is not a literal, because a literal cannot be attacker data.
+
+["JSON.deserialize($DATA, $TYPE.class)", "JSON.deserializeUntyped($DATA)", "JSON.deserialize($DATA)"] as $sinks
+| scan_ast(["*.cls"]; $sinks) as $all
+| ($all | of($sinks) | where_capture_not("DATA"; "^'.*'$") | finding("apex-deserialization";
+    "Deserialization of $DATA can instantiate arbitrary Apex types; validate input or use strict typing"))
+| report

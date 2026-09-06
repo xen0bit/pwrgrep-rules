@@ -1,0 +1,17 @@
+# rules: rust-log
+# languages: rust
+# fixture: rust/CWE-532.rs
+# from: CWE-532 (Insertion of Sensitive Information into Log File)
+#
+# `log::info!` with a sensitive variable leaks secrets into log files.
+# The sink is `log::info!`, `info!` or `log::debug!` where the argument
+# contains a sensitive name.
+
+["log::info!($MSG, $$$_)", "log::debug!($MSG, $$$_)", "log::error!($MSG, $$$_)", "info!($MSG, $$$_)", "debug!($MSG, $$$_)", "println!($MSG, $$$_)"] as $sinks
+| "(?i)password|passwd|pwd|secret|api_?key|token" as $names
+| scan_ast("*.rs"; $sinks) as $all
+| ($all | of($sinks) | where_capture("MSG"; $names))
+| finding("rust-log";
+    "sensitive data is written to the log; it will be in log files and "
+    + "shipped to any log collector — redact it")
+| report

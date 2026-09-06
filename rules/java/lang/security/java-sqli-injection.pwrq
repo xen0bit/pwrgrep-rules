@@ -1,0 +1,11 @@
+# rules: java-sqli-injection
+# languages: java
+# fixture: java/CWE-89.java
+# from: CWE-89 SQL Injection
+
+["$R.getParameter($K)", "$R.getHeader($K)", "$R.getQueryString()", "$R.getCookies()", "$R.getParameterValues($K)", "$R.getParameterMap()", "$M.get($K)", "$A[0]", "$C.getValue()", "$C.getName()", "$U.decode($$$_)", "URLDecoder.decode($$$_)", "java.net.URLDecoder.decode($$$_)"] as $outside
+| ["$S.executeQuery($Q)", "$S.executeUpdate($Q)", "$S.execute($Q)", "$C.prepareStatement($Q)", "$C.prepareCall($Q)", "$C.createStatement()", "$C.createStatement($Q)", "$T.queryForRowSet($Q)", "$T.queryForList($Q)", "$T.query($Q)", "JDBCtemplate.queryForRowSet($Q)"] as $sinks
+| scan_ast("*.java"; $outside + $sinks) as $all
+| ( $all | of($sinks) | focus("Q") | reaching($all | of($outside); []) )
+| finding("java-sqli-injection"; "SQL injection: $Q came from the request and reaches a SQL sink")
+| report

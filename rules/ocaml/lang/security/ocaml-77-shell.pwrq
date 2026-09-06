@@ -1,0 +1,15 @@
+# rules: ocaml-77-shell
+# languages: ocaml
+# fixture: ocaml/CWE-77.ml
+# from: CWE-77 OS Command Injection — Unix.system with shell metachar [|;&$`]
+#
+# Unix.system/Sys.command receives attacker-controlled data; shell
+# metacharacters [|;&$`] allow injection. The array form via Array.get or
+# literal "ls" is allowlisted via where_capture_not.
+
+["let $FUNC $CMD = $$$BODY", "let $FUNC ($CMD : string) = $$$BODY", "let $FUNC $A $CMD = $$$BODY"] as $src
+| ["Unix.system $CMD", "Unix.system($CMD)", "Sys.command $CMD", "Sys.command($CMD)"] as $sink
+| scan_ast("*.ml"; $src + $sink) as $all
+| ( ($all | of($sink) | focus("CMD") | where_capture_not("CMD"; "allowlist|whitelist|sanitized|^\"|ls|echo")) + ($all | of($sink) | focus("CMD") | reaching($all | of($src); []) | where_capture_not("CMD"; "allowlist|whitelist|sanitized|^\"|ls|echo")) )
+| finding("ocaml-77-shell"; "Command injection: $CMD reaches Unix.system with shell metachar [|;&$`]; use array form")
+| report

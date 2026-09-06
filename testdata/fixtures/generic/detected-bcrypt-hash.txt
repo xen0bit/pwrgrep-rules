@@ -1,0 +1,16 @@
+# CWE-798: bcrypt hash committed — sensitive credential material.
+# Hashes like $2b$... should not be hard-coded in source.
+# ruleid: detected-bcrypt-hash
+hash = $2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW
+# ruleid: detected-bcrypt-hash
+password_hash = $2a$12$aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+# ok: detected-bcrypt-hash
+hash = $2b$10$short
+# ok: detected-bcrypt-hash
+not-a-hash = hello world
+# ruleid: detected-bcrypt-hash
+hash = $2b$12$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+# ruleid: detected-bcrypt-hash
+pwd = $2a$10$bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+# ok: detected-bcrypt-hash
+hash = $2b$10$short

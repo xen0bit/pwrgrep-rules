@@ -1,0 +1,105 @@
+# CWE-250: Container allows running as root — runAsNonRoot false.
+# Setting runAsNonRoot to false (or missing context) lets the container
+# run as root; many images default to root. The rule flags false;
+# fix with true. Omission without context is risky but this rule
+# checks the explicit false variant.
+# checks the explicit false variant.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad1
+spec:
+  containers:
+    - name: app
+      image: nginx
+      securityContext:
+# ruleid: run-as-non-root-unsafe-value
+        runAsNonRoot: false
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad2
+spec:
+  containers:
+    - name: app
+      image: nginx
+      securityContext:
+# ruleid: run-as-non-root-unsafe-value
+        runAsNonRoot: false
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good1
+spec:
+  containers:
+    - name: app
+      image: nginx
+      securityContext:
+# ok: run-as-non-root-unsafe-value
+        runAsNonRoot: true
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good2
+spec:
+  containers:
+    - name: app
+      image: nginx
+      securityContext:
+        runAsNonRoot: true
+
+---
+# Extra: pod with no securityContext at all (omission variant).
+# For runAsNonRoot, omission is insecure in real Kubernetes but this rule
+# only flags explicit false; a pod without securityContext is not flagged here,
+# so we use it as the omission ok. Also keep explicit true as ok.
+# ok: run-as-non-root-unsafe-value
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ok-extra
+spec:
+  containers:
+    - name: app
+      image: nginx
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad3
+spec:
+  containers:
+    - name: sidecar
+      image: nginx
+      securityContext:
+# ruleid: run-as-non-root-unsafe-value
+        runAsNonRoot: false
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bad4
+spec:
+  template:
+    spec:
+      containers:
+        - name: app
+          image: nginx
+          securityContext:
+# ruleid: run-as-non-root-unsafe-value
+            runAsNonRoot: false
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good3
+spec:
+  containers:
+    - name: app
+      image: busybox
+      securityContext:
+# ok: run-as-non-root-unsafe-value
+        runAsNonRoot: true

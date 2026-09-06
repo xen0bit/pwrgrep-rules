@@ -27,6 +27,19 @@ class Files : Activity() {
         FileOutputStream("/data/local/" + path).use { it.write(0) }
     }
 
+    fun vuln3(intent: Intent) {
+        val p = intent.getStringExtra("file")
+        // ruleid: kotlin-path-from-untrusted-input
+        val f = File(p)
+        f.delete()
+    }
+
+    fun vuln4(intent: Intent) {
+        val q = intent.getStringExtra("q")
+        // ruleid: kotlin-path-from-untrusted-input
+        File(filesDir, q).mkdirs()
+    }
+
     fun open(intent: Intent) {
         val leaf = File(intent.getStringExtra("name")).name
         // ok: kotlin-path-from-untrusted-input
@@ -38,5 +51,13 @@ class Files : Activity() {
         // ok: kotlin-path-from-untrusted-input
         val out = File(cacheDir, "thumbnails")
         out.mkdirs()
+    }
+
+    fun safe2(intent: Intent) {
+        val name = intent.getStringExtra("name")
+        val safe = File(name).name
+        // ok: kotlin-path-from-untrusted-input
+        val out = File(filesDir, safe)
+        out.writeText("safe")
     }
 }

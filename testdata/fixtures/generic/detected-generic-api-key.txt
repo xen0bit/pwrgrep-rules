@@ -1,0 +1,18 @@
+# CWE-798: Generic API key — 32+ hex/base64 assigned to api_key.
+# Keys like "1234..." or high-entropy strings are flagged when bound to
+# api_key. The rule tests entropy and assignment; ok is "short" (too
+# low entropy) or unrelated variable names.
+# ruleid: detected-generic-api-key
+api_key="12345678901234567890123456789012"
+# ruleid: detected-generic-api-key
+API_KEY=AbCdEfGhIjKlMnOpQrStUvWxYz1234567890
+# ruleid: detected-generic-api-key
+api_key="abcdef1234567890abcdef1234567890abcd"
+# ruleid: detected-generic-api-key
+API_KEY="99887766554433221100aabbccddeeff"
+# ok: detected-generic-api-key
+api_key = "short"
+# ok: detected-generic-api-key
+not_api_key = "123"
+# ok: detected-generic-api-key
+api_key = "example_placeholder_low_entropy"

@@ -1,0 +1,25 @@
+# rules: php-20-strict
+# languages: php
+# fixture: php/CWE-20b.php
+# from: CWE-20 Improper Input Validation — $_GET reaching query/exec/include without filter_var/preg_match allowlist
+#
+# $_GET/$_POST without filter_var/preg_match validation reaches query/exec.
+# The rule tracks superglobal reaching query/exec and excludes those inside
+# filter_var/preg_match sanitization; safe code validates via filter_var or preg_match.
+
+["$_GET[$K]", "$_POST[$K]", "$_REQUEST[$K]", "$_COOKIE[$K]", "$_GET[\"id\"]"] as $src
+| ["$O->query($Q)", "$O->exec($Q)", "mysqli_query($C, $Q)", "mysqli_query($Q, $$$_)"] as $qSinks
+| ["exec($CMD, $$$_)", "shell_exec($CMD)", "system($CMD)", "passthru($CMD)"] as $eSinks
+| ["filter_var($X, $$$_)", "filter_input($X, $$$_)", "preg_match($P, $X, $$$_)", "preg_match_all($P, $X, $$$_)"] as $sanitizers
+| scan_ast("*.php"; $src + $qSinks + $eSinks + $sanitizers) as $all
+| ( $all | of($qSinks) | focus("Q")
+      | reaching($all | of($src); $all | of($sanitizers))
+      | outside($all | of($sanitizers))
+    | finding("php-20-strict";
+        "Improper validation: $Q from $_GET reaches query without filter_var/preg_match; add allowlist validation") )
+  + ( $all | of($eSinks) | focus("CMD")
+      | reaching($all | of($src); $all | of($sanitizers))
+      | outside($all | of($sanitizers))
+    | finding("php-20-strict";
+        "Improper validation: $CMD from $_GET reaches exec without filter_var/preg_match; add allowlist validation") )
+| report

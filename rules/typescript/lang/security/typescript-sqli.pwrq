@@ -1,0 +1,13 @@
+# rules: typescript-sqli
+# languages: typescript
+# fixture: typescript/CWE-89.ts
+# from: CWE-89 (SQL Injection)
+
+["req.query.get($$$_)", "req.params.get($$$_)", "req.body.get($$$_)", "location.search"] as $src
+| ["$CONN.query($SQL)", "$CONN.execute($SQL)", "db.query($SQL)"] as $sink
+| scan_ast(["*.ts","*.tsx"]; $src + $sink) as $all
+| ( $all | of($sink) | focus("SQL") | reaching($all | of($src); []) | finding("typescript-sqli";
+        "this query is assembled from a value the caller chose, so a quote in "
+        + "it ends the literal and the rest is SQL; bind the value as a "
+        + "parameter instead") )
+| report

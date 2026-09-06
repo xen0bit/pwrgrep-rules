@@ -1,13 +1,13 @@
 # rules: hostnetwork-pod
+# languages: yaml
+# fixture: yaml/k8s-hostnetwork.yaml
 # from: yaml/kubernetes/security/hostnetwork-pod.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml"]; [
-      "hostNetwork:\\s+true",
-      "spec:\\s+[\\s\\S]*?"
+| ( ($root | scan_ast(["*.yaml","*.yml"]; [
+      "hostNetwork: true"
     ])) as $all
-    | ( $all | of(["hostNetwork:\\s+true"])
-          | within($all | of(["spec:\\s+[\\s\\S]*?"]))
+    | ( $all | of(["hostNetwork: true"])
         | finding("hostnetwork-pod";
             "Pod may use the node network namespace.") ) )
 | report

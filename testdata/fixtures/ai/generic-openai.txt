@@ -1,0 +1,17 @@
+# Generic AI detection for OAI
+# This generic rule scans any file for AI strings
+
+# ruleid: detect-generic-ai-oai
+OpenAI API key is required for this test
+# ruleid: detect-generic-ai-oai
+The openai client is initialized here
+# ruleid: detect-generic-ai-oai
+openai api request with gpt-4 model
+# ruleid: detect-generic-ai-oai
+OpenAI service is used in production
+# ok: detect-generic-ai-oai
+This is a safe line without the marker
+# ok: detect-generic-ai-oai
+Another safe line with no match
+# ok: detect-generic-ai-oai
+This document discusses general AI concepts without vendor marker

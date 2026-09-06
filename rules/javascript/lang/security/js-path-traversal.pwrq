@@ -1,0 +1,34 @@
+# rules: js-path-traversal
+# languages: javascript, typescript
+# fixture: javascript/CWE-22.js
+# from: CWE-22 (Path Traversal)
+
+. as $root
+| ( ($root | scan_ast(["*.js","*.ts"]; [
+      "fs.readFile($PATH,$$$_)",
+      "fs.readFileSync($PATH)",
+      "fs.readFileSync($PATH,$$$_)",
+      "fs.createReadStream($PATH,$$$_)",
+      "fs.createReadStream($PATH)",
+      "fs.createWriteStream($PATH,$$$_)",
+      "$FS.readFile($PATH,$$$_)",
+      "$FS.readFileSync($PATH,$$$_)",
+      "$FS.createReadStream($PATH,$$$_)",
+      "req.query",
+      "req.params",
+      "req.body",
+      "req.headers",
+      "location.search",
+      "location.hash",
+      "new URLSearchParams(location.search).get($$$_)",
+      "$PROP = new URLSearchParams(location.search).get($$$_)\n$$$_"
+    ])) as $all
+  | ($all | of(["fs.readFile($PATH,$$$_)","fs.readFileSync($PATH)","fs.readFileSync($PATH,$$$_)","fs.createReadStream($PATH,$$$_)","fs.createReadStream($PATH)","fs.createWriteStream($PATH,$$$_)","$FS.readFile($PATH,$$$_)","$FS.readFileSync($PATH,$$$_)","$FS.createReadStream($PATH,$$$_)"])
+      | focus("PATH")
+      | reaching(($all | of(["req.query","req.params","req.body","req.headers","location.search","location.hash","new URLSearchParams(location.search).get($$$_)"])
+          + ($all | within($all | of(["$PROP = new URLSearchParams(location.search).get($$$_)\n$$$_"])) | focus("PROP"))
+        ); []))
+  | finding("js-path-traversal";
+      "untrusted path reaches filesystem read; `../` escapes the directory")
+  )
+| report

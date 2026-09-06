@@ -1,0 +1,29 @@
+# rules: ruby-command-injection
+# languages: ruby
+# fixture: ruby/CWE-78.rb
+# from: ruby/lang/security/avoid-tainted-shell-call.yaml (avoid-tainted-shell-call), CWE-78 (OS Command Injection)
+#
+# CWE-78 OS Command Injection. Sinks are shell execution APIs; sources are
+# user-controlled request data. reaching follows taint from sources to sinks.
+
+. as $root
+| ( ($root | scan_ast(["*.rb"]; [
+      "system($CMD)",
+      "exec($CMD)",
+      "spawn($CMD)",
+      "Kernel.system($CMD)",
+      "Kernel.exec($CMD)",
+      "Open3.popen3($CMD)",
+      "`$CMD`",
+      "%x($CMD)",
+      "params",
+      "params[$$$_]",
+      "params.get($$$_)",
+      "cookies",
+      "request.query_string",
+      "request.body"
+    ])) as $all
+  | ($all | of(["system($CMD)","exec($CMD)","spawn($CMD)","Kernel.system($CMD)","Kernel.exec($CMD)","Open3.popen3($CMD)","`$CMD`","%x($CMD)"]) | focus("CMD") | reaching($all | of(["params","params[$$$_]","params.get($$$_)","cookies","request.query_string","request.body"]); []))
+  | finding("ruby-command-injection"; "Untrusted input reaches shell execution; sanitize or avoid shell APIs")
+  )
+| report

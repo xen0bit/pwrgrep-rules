@@ -1,0 +1,13 @@
+# rules: apex-xxe
+# languages: apex
+# fixture: apex/CWE-611.cls
+# from: CWE-611 XML External Entity
+#
+# Dom.Document.load parses XML and resolves external entities by default.
+# Passing attacker-controlled XML allows XXE exfiltration.
+
+["$DOC.load($XML)"] as $sinks
+| scan_ast(["*.cls"]; $sinks) as $all
+| ($all | of($sinks) | where_capture_not("XML"; "^'.*'$") | finding("apex-xxe";
+    "Dom.Document.load parses $XML with external entities enabled; disable DTDs or validate input"))
+| report

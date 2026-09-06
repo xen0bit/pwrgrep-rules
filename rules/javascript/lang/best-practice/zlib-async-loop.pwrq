@@ -9,14 +9,16 @@
       "$SMTH.reduce($$$_)",
       "$SMTH.reduceRight($$$_)",
       "do {\n    $$$_\n} while ($$$_)",
-      "for ($$$_) {\n    $$$_\n}",
-      "while ($$$_) {\n    $$$_\n}",
+      "for (let $I = 0; $I < $N; $I++) { $$$BODY }",
+      "for ($K in $OBJ) { $$$BODY }",
+      "for ($V of $ARR) { $$$BODY }",
+      "while ($COND) { $$$BODY }",
       "zlib.$METHOD($$$_);"
     ])) as $all
     | ( ($all
-          | within($all | of(["for ($$$_) {\n    $$$_\n}"])))
+          | within($all | of(["for (let $I = 0; $I < $N; $I++) { $$$BODY }","for ($K in $OBJ) { $$$BODY }","for ($V of $ARR) { $$$BODY }"])))
           + ($all
-          | within($all | of(["while ($$$_) {\n    $$$_\n}"])))
+          | within($all | of(["while ($COND) { $$$BODY }"])))
           + ($all
           | within($all | of(["do {\n    $$$_\n} while ($$$_)"])))
           + ($all

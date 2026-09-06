@@ -1,0 +1,17 @@
+# rules: go-862-rbac
+# languages: go
+# fixture: go/CWE-862b.go
+# from: CWE-862 Missing Authorization — http.HandleFunc outside RBAC check allows unauthorized access
+#
+# http.HandleFunc registrations without RBAC check allow missing authorization.
+# The rule finds http.HandleFunc handlers outside a RBAC/authMiddleware wrapper;
+# safe registrations wrap the handler with authMiddleware/RequireAuth.
+
+["http.HandleFunc($P, $H)", "http.Handle($P, $H)"] as $handlers
+| ["http.HandleFunc($P, authMiddleware($H))", "http.HandleFunc($P, RequireAuth($H))", "http.HandleFunc($P, RBAC($H))", "http.HandleFunc($P, checkRole($H))", "http.Handle($P, authMiddleware($H))"] as $rbac
+| scan_ast("*.go"; $handlers + $rbac) as $all
+| ( $all | of($handlers)
+      | outside($all | of($rbac))
+    | finding("go-862-rbac";
+        "Handler $H registered via HandleFunc without RBAC check; wrap with authMiddleware/RequireAuth") )
+| report

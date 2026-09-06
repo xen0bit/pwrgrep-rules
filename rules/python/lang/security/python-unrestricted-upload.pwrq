@@ -1,0 +1,29 @@
+# rules: python-unrestricted-upload
+# languages: python
+# fixture: python/CWE-434.py
+# from: CWE-434 (Unrestricted Upload of File with Dangerous Type)
+#
+# An uploaded filename the caller chose that reaches `open`, `file.save` or
+# an S3 upload lets the caller write anywhere and with any extension. The
+# rule is `reaching`: a value from `request.files` that flows into a file
+# write without an extension whitelist check.
+
+. as $root
+| ( ($root | scan_ast(["*.py"]; [
+      "request.files.get($$$_)",
+      "request.files.get($X)",
+      "request.files[$$$_]",
+      "request.files[$X]",
+            "open($PATH, $$$_)",
+            "$F.save($PATH, $$$_)",
+      "s3.upload_file($PATH, $$$_)"
+    ])) as $all
+  | ($all | of(["open($PATH, $$$_)", "$F.save($PATH, $$$_)", "s3.upload_file($PATH, $$$_)"])
+      | focus("PATH")
+      | reaching($all | of(["request.files.get($$$_)","request.files.get($X)","request.files[$$$_]","request.files[$X]"]); [])
+      )
+  | finding("python-unrestricted-upload";
+      "unrestricted upload: filename from request.files reaches file write "
+      + "without extension whitelist — validate extension and path")
+  )
+| report

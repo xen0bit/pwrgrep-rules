@@ -1,0 +1,51 @@
+# rules: javascript-missing-auth
+# languages: javascript
+# fixture: javascript/CWE-287.js
+# from: CWE-306 (Missing Authentication for Critical Function), CWE-287
+#
+# The rule reports an endpoint in a file that protects some of its others, and
+# says nothing about a file that protects none. An application with no
+# authentication anywhere has made a decision - the check may live in a filter,
+# a gateway or a proxy, or it may be a sample with no accounts at all - and
+# reporting every endpoint in it tells the reader nothing they did not know.
+# What is a bug is the endpoint that was missed: a guard on three handlers and
+# not on the fourth.
+#
+# There is one rule per language for this, and it reports under
+# `<language>-missing-auth`. The corpus briefly carried two or three - an
+# `-authn` spelling, an `-auth` spelling and this one - written against
+# CWE-287, CWE-306 and CWE-862 but all asking the same question: is there an
+# authentication guard on this endpoint. They fired on the same lines and a
+# route with no middleware got three findings under three ids. Whether the
+# missing guard is called authentication or authorization is not something the
+# syntax says, so it is one finding; `<language>-862-rbac` is the separate rule
+# for the endpoint that does authenticate and then checks no role.
+#
+# Express routes without authenticate middleware allow unauthenticated access.
+# The rule finds app.get/post/put/delete and router.get/post that are
+# not_at an authenticate/authMiddleware/requireAuth wrapper; safe routes
+# include the middleware as second argument.
+
+. as $root
+| ( ($root | scan_ast(["*.js"]; [
+      "app.get($P, $H)",
+      "app.post($P, $H)",
+      "app.put($P, $H)",
+      "app.delete($P, $H)",
+      "app.patch($P, $H)",
+      "router.get($P, $H)",
+      "router.post($P, $H)",
+      "app.get($P, authenticate, $H)",
+      "app.post($P, authenticate, $H)",
+      "app.get($P, authMiddleware, $H)",
+      "app.post($P, authMiddleware, $H)",
+      "app.get($P, requireAuth, $H)",
+      "router.get($P, authenticate, $H)",
+      "router.post($P, authenticate, $H)"
+    ])) as $all
+    | ( $all | of(["app.get($P, $H)","app.post($P, $H)","app.put($P, $H)","app.delete($P, $H)","app.patch($P, $H)","router.get($P, $H)","router.post($P, $H)"])
+          | not_at($all | of(["app.get($P, authenticate, $H)","app.post($P, authenticate, $H)","app.get($P, authMiddleware, $H)","app.post($P, authMiddleware, $H)","app.get($P, requireAuth, $H)","router.get($P, authenticate, $H)","router.post($P, authenticate, $H)"]))
+          | in_files_with($all | of(["app.get($P, authenticate, $H)","app.post($P, authenticate, $H)","app.get($P, authMiddleware, $H)","app.post($P, authMiddleware, $H)","app.get($P, requireAuth, $H)","router.get($P, authenticate, $H)","router.post($P, authenticate, $H)"]))
+        | finding("javascript-missing-auth";
+            "Route $P handler $H lacks authentication; add authenticate/authMiddleware") ) )
+| report

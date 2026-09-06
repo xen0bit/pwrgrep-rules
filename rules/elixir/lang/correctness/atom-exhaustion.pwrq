@@ -1,5 +1,6 @@
 # rules: atom_exhaustion
 # languages: elixir
+# fixture: elixir/atom-exhaustion.ex
 # from: elixir/lang/correctness/atom-exhaustion.yaml
 
 . as $root

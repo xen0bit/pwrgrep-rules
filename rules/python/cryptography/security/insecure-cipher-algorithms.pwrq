@@ -4,11 +4,16 @@
 
 . as $root
 | ( ($root | scan_ast(["*.py"]; [
+      "Cipher($$$_)",
+      "cryptography.hazmat.primitives.ciphers.Cipher($$$_)",
+      "algorithms.$IDEA($KEY)",
       "cryptography.hazmat.primitives.ciphers.algorithms.$IDEA($KEY)"
     ])) as $all
-    | ( $all | of(["cryptography.hazmat.primitives.ciphers.algorithms.$IDEA($KEY)"])
+    | ( $all | of(["cryptography.hazmat.primitives.ciphers.algorithms.$IDEA($KEY)","algorithms.$IDEA($KEY)"])
+          | within($all | of(["Cipher($$$_)","cryptography.hazmat.primitives.ciphers.Cipher($$$_)"]))
           | where_capture("IDEA"; "^(IDEA)$")
           | focus("IDEA")
         | finding("insecure-cipher-algorithm-idea";
             "IDEA (International Data Encryption Algorithm) is a block cipher created in 1991.") ) )
 | report
+

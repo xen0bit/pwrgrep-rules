@@ -1,0 +1,15 @@
+# CWE-798: GitHub App token.
+# ruleid: detected-github-app-token
+ghu_1234567890123456789012345678901234567890AB
+# ruleid: detected-github-app-token
+ghs_AbCdEfGhIjKlMnOpQrStUvWxYz1234567890ABCD12
+# ok: detected-github-app-token
+ghu_example
+# ok: detected-github-app-token
+ghs_changeme_placeholder_token
+# ruleid: detected-github-app-token
+ghu_QwErTyUiOpAsDfGhJkLzXcVbNm1234567890ABCD
+# ruleid: detected-github-app-token
+ghs_ZxCvBnMqWeRtYuIoPaSdFgHjKl1234567890ABCD12
+# ok: detected-github-app-token
+ghu_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa

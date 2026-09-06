@@ -1,0 +1,47 @@
+# rules: go-insecure-random
+# languages: go
+# fixture: go/CWE-338.go
+# from: CWE-338 (Use of Cryptographically Weak PRNG), CWE-330
+#
+# `math/rand` is documented as unsuitable for security-sensitive work and it
+# means it: the generator is seeded from a fixed value unless you seed it, and
+# knowing a few outputs recovers the state. `crypto/rand` is the fix and reads
+# almost the same.
+#
+# What this rule does not do is report every draw. `math/rand` is the right
+# tool for a jitter, a shuffle, a load-balancer pick and a sample of test data,
+# and a rule that fires on those is one people switch off. The version this
+# replaces reported every `mrand.*` call in any file that imported the package,
+# which over a real repository is almost entirely those.
+#
+# The name the result is given is the evidence, the same reading as
+# python-weak-random and swift-insecure-random-for-secret: a programmer who
+# calls it `token`, `nonce` or `sessionID` has said it is meant to be
+# unguessable and nothing else in the syntax says which kind of draw this is.
+#
+# `Seed` is reported on its own and unguarded, because seeding the global
+# source is a statement about the whole program: a fixed seed makes every draw
+# in it reproducible, and there is no name to read.
+
+["$NAME := $DRAW", "$NAME = $DRAW"] as $binds
+| ["mrand.Seed($$$_)", "rand.Seed($$$_)"] as $seeds
+| "(?i)token|nonce|salt|^iv$|secret|key$|passw|otp|challenge|session"
+  + "|verifier|csrf|seed|id$|code$" as $namesASecret
+| "\\b(?:mrand|rand)\\.(?:Int|Intn|Int31|Int31n|Int63|Int63n|Uint32|Uint64"
+  + "|Float32|Float64|Read|Perm)\\s*\\(" as $guessableDraw
+| ["mrand \"math/rand\"", "\"math/rand\""] as $imports
+| scan_ast("*.go"; $binds + $seeds + $imports) as $all
+| ( ( $all | of($binds)
+      | where_capture("NAME"; $namesASecret)
+      | where_capture("DRAW"; $guessableDraw)
+      | in_files_with($all | of($imports))
+      | focus("DRAW")
+      | finding("go-insecure-random";
+          "math/rand is not unpredictable and the name says this value is "
+          + "meant to be; draw it from crypto/rand instead") )
+  + ( $all | of($seeds)
+      | in_files_with($all | of($imports))
+      | finding("go-insecure-random";
+          "seeding the global source makes every draw in the program "
+          + "reproducible; crypto/rand needs no seed") ) )
+| report

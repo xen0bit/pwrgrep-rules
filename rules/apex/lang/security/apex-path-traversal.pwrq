@@ -1,0 +1,12 @@
+# rules: apex-path-traversal
+# languages: apex
+# fixture: apex/CWE-22.cls
+# from: CWE-22 (Path Traversal)
+
+. as $root
+| ( $root | scan_ast(["*.cls"]; ["new File($PATH)"]) ) as $all
+| ( $all | of(["new File($PATH)"]) | where_capture_not("PATH"; "^['\"].*['\"]$") | finding("apex-path-traversal";
+        "this opens a path built from a value the caller chose, and a `../` in "
+        + "it walks out of the directory; resolve the path and check it is "
+        + "still under the root before opening it") )
+| report

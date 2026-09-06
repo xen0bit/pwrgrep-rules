@@ -1,0 +1,57 @@
+# rules: java-missing-auth
+# languages: java
+# fixture: java/CWE-306.java
+# from: CWE-306 (Missing Authentication for Critical Function), CWE-287
+#
+# The rule reports a mapping in a file that protects some of its other
+# endpoints, and says nothing about a file that protects none. An application
+# with no method-level security has made a decision - the rules may be in a
+# SecurityFilterChain, or there may be no authentication at all because it is a
+# sample - and reporting every endpoint in it tells the reader nothing they did
+# not know. What is a bug is the endpoint that was missed: `@PreAuthorize` on
+# three methods of a controller and not on the fourth. Over Spring PetClinic,
+# which has no security anywhere, that is the difference between sixteen
+# findings and none.
+#
+# The guard is a regex rather than a pattern because Java's annotations are
+# modifiers on the declaration they precede, so there is no node for
+# `@PreAuthorize` on its own and `scan_ast` cannot see one. That is also why
+# the unprotected mapping is written as `@GetMapping(...)` immediately above
+# `public`: an annotation between the two is a different modifier list and does
+# not match, which is what makes the protected methods below invisible to the
+# sink half of this rule in the first place.
+#
+# There is one rule per language for this, and it reports under
+# `<language>-missing-auth`. The corpus briefly carried two or three - an
+# `-authn` spelling, an `-auth` spelling and this one - written against
+# CWE-287, CWE-306 and CWE-862 but all asking the same question: is there an
+# authentication guard on this endpoint. They fired on the same lines and a
+# route with no middleware got three findings under three ids. Whether the
+# missing guard is called authentication or authorization is not something the
+# syntax says, so it is one finding; `<language>-862-rbac` is the separate rule
+# for the endpoint that does authenticate and then checks no role.
+#
+# Spring controllers that expose @RequestMapping/@GetMapping etc without
+# @PreAuthorize, @Secured or @RolesAllowed allow unauthenticated access.
+# The rule finds request mappings that are not protected by an auth
+# annotation; ok cases have @PreAuthorize or @Secured.
+
+. as $root
+| ($root | scan_regex("*.java";
+    ["@(?:PreAuthorize|Secured|RolesAllowed|PermitAll|DenyAll)\\s*\\("])) as $protectedSomewhere
+| ( ($root | scan_ast(["*.java"]; [
+      "@RequestMapping($$$_)\npublic $R $M($$$_) { $$$BODY }",
+      "@RequestMapping($$$_)\n$R $M($$$_) { $$$BODY }",
+      "@GetMapping($$$_)\npublic $R $M($$$_) { $$$BODY }",
+      "@PostMapping($$$_)\npublic $R $M($$$_) { $$$BODY }",
+      "@PutMapping($$$_)\npublic $R $M($$$_) { $$$BODY }",
+      "@DeleteMapping($$$_)\npublic $R $M($$$_) { $$$BODY }",
+      "@PatchMapping($$$_)\npublic $R $M($$$_) { $$$BODY }"
+    ])) as $all
+    | ( $all | of(["@RequestMapping($$$_)\npublic $R $M($$$_) { $$$BODY }","@RequestMapping($$$_)\n$R $M($$$_) { $$$BODY }","@GetMapping($$$_)\npublic $R $M($$$_) { $$$BODY }","@PostMapping($$$_)\npublic $R $M($$$_) { $$$BODY }","@PutMapping($$$_)\npublic $R $M($$$_) { $$$BODY }","@DeleteMapping($$$_)\npublic $R $M($$$_) { $$$BODY }","@PatchMapping($$$_)\npublic $R $M($$$_) { $$$BODY }"])
+          | in_files_with($protectedSomewhere)
+        | finding("java-missing-auth";
+            "this endpoint has no authentication annotation and its neighbours "
+            + "in this file do; add @PreAuthorize or @Secured, or say why it is "
+            + "deliberately open") ) )
+| report

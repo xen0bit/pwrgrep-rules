@@ -1,0 +1,30 @@
+# rules: gcp-bucket-public-iam
+# languages: hcl
+# fixture: terraform/gcp-bucket-public-iam.tf
+# from: CWE-732 (Incorrect Permission Assignment for Critical Resource)
+#
+# `allUsers` is everyone on the internet, with no credential at all;
+# `allAuthenticatedUsers` is everyone with a Google account, which in practice
+# is the same thing. Granting either on a bucket makes the objects public, and
+# on a bucket used for backups or build artefacts that is the whole of the
+# data.
+#
+# The two resources spell the grant differently and each pattern is written for
+# the one it belongs to: `google_storage_bucket_iam_member` takes a single
+# `member`, and `google_storage_bucket_iam_binding` takes a `members` list.
+# Crossing them - looking for `member =` inside a binding - is a pattern that
+# matches nothing real, and a fixture written to satisfy it has to declare both
+# arguments on one resource, which Terraform rejects.
+
+["resource \"google_storage_bucket_iam_member\" $NAME {\n  $$$_\n  member = \"allUsers\"\n  $$$_\n}",
+ "resource \"google_storage_bucket_iam_member\" $NAME {\n  $$$_\n  member = \"allAuthenticatedUsers\"\n  $$$_\n}",
+ "resource \"google_storage_bucket_iam_binding\" $NAME {\n  $$$_\n  members = [$$$_]\n  $$$_\n}",
+ "resource \"google_storage_bucket_iam_policy\" $NAME {\n  $$$_\n}"] as $grants
+| scan_ast("*.tf"; $grants) as $all
+| ( $all | of($grants)
+    | where_text("\"allUsers\"|\"allAuthenticatedUsers\"") )
+| finding("gcp-bucket-public-iam";
+    "this grants the bucket to everyone on the internet - allUsers has no "
+    + "credential and allAuthenticatedUsers is any Google account; name the "
+    + "principals that should have it")
+| report

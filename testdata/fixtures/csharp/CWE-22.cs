@@ -1,3 +1,7 @@
+// CWE-22: Path traversal via request — user controls file path.
+// Path.Combine(Root, name) with attacker name lets "../../etc/passwd"
+// escape. The rule flags File.* with request data; fix by using
+// Path.GetFileName or validating that the result stays under Root.
 using System.IO;
 using Microsoft.AspNetCore.Mvc;
 

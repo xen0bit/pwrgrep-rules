@@ -1,0 +1,14 @@
+# rules: c-xxe
+# languages: c
+# fixture: c/CWE-611.c
+# from: CWE-611 XXE
+#
+# libxml parsing of non-literal XML enables XXE.
+
+["xmlReadFile($FILE, NULL);", "xmlReadMemory($BUF, $_, $_, $_, $_);", "XML_Parse($_, $DATA, $_);"] as $sinks
+| scan_ast("*.[ch]"; $sinks) as $all
+| ($all | of($sinks) | where_capture_not("FILE"; "^L?\"") | where_capture_not("BUF"; "^L?\"") | where_capture_not("DATA"; "^L?\"") | finding("c-xxe";
+        "this parser resolves external entities, so a DOCTYPE in the document "
+        + "reads local files and makes requests from this host; disable DTDs "
+        + "and external entities on the parser"))
+| report

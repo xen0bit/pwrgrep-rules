@@ -1,0 +1,92 @@
+# CWE-250: seccomp Unconfined disables seccomp.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad1
+spec:
+  containers:
+  - name: app
+    image: nginx
+    securityContext:
+# ruleid: k8s-seccomp-unconfined
+      seccompProfile:
+        type: Unconfined
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad2
+spec:
+  containers:
+  - name: app
+    image: nginx
+    securityContext:
+# ruleid: k8s-seccomp-unconfined
+      seccompProfile:
+        type: Unconfined
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good1
+spec:
+  containers:
+  - name: app
+    image: nginx
+    securityContext:
+# ok: k8s-seccomp-unconfined
+      seccompProfile:
+        type: RuntimeDefault
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good2
+spec:
+  containers:
+  - name: app
+    image: nginx
+# ok: k8s-seccomp-unconfined
+    securityContext:
+      runAsNonRoot: true
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad3
+spec:
+  containers:
+  - name: app
+    image: nginx
+    securityContext:
+# ruleid: k8s-seccomp-unconfined
+      seccompProfile:
+        type: Unconfined
+---
+apiVersion: v1
+kind: Deployment
+metadata:
+  name: bad4
+spec:
+  template:
+    spec:
+      containers:
+      - name: app
+        image: nginx
+        securityContext:
+# ruleid: k8s-seccomp-unconfined
+          seccompProfile:
+            type: Unconfined
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good3
+spec:
+  containers:
+  - name: app
+    image: nginx
+    securityContext:
+# ok: k8s-seccomp-unconfined
+      seccompProfile:
+        type: RuntimeDefault

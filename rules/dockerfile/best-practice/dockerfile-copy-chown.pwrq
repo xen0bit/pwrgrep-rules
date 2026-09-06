@@ -1,0 +1,18 @@
+# rules: dockerfile-copy-chown
+# languages: dockerfile
+# fixture: dockerfile/CWE-copy-chown.dockerfile
+# from: CWE-732 (Incorrect Permission Assignment for Critical Resource)
+#
+# COPY without --chown may leave files owned by root.
+
+. as $root
+| ( ($root | scan_ast(["Dockerfile*","*.dockerfile"]; [
+      "COPY $SRC $DST",
+      "COPY $PARAM $SRC $DST"
+    ])) as $all
+    | ( $all | of(["COPY $SRC $DST"])
+          + ($all | of(["COPY $PARAM $SRC $DST"]) | where_capture_not("PARAM"; "--chown"))
+          | not_at($all | of(["COPY $PARAM $SRC $DST"]) | where_capture("PARAM"; "--chown"))
+        | finding("dockerfile-copy-chown";
+            "COPY without --chown — files will be owned by root; use --chown to set ownership.") ) )
+| report

@@ -1,0 +1,25 @@
+# rules: ruby-ssrf
+# languages: ruby
+# fixture: ruby/CWE-918.rb
+# from: ruby/rails/security/audit/avoid-tainted-http-request.yaml (avoid-tainted-http-request) + CWE-918
+
+. as $root
+| ( ($root | scan_ast(["*.rb"]; [
+      "Net::HTTP.get($URL)",
+      "Net::HTTP.post($URL)",
+      "Net::HTTP.get_response($URL)",
+      "open($URL)",
+      "URI.open($URL)",
+      "HTTParty.get($URL)",
+      "RestClient.get($URL)",
+      "params",
+      "params[$$$_]",
+      "params.get($$$_)",
+      "cookies",
+      "request.query_string",
+      "request.body"
+    ])) as $all
+  | ($all | of(["Net::HTTP.get($URL)","Net::HTTP.post($URL)","Net::HTTP.get_response($URL)","open($URL)","URI.open($URL)","HTTParty.get($URL)","RestClient.get($URL)"]) | focus("URL") | reaching($all | of(["params","params[$$$_]","params.get($$$_)","cookies","request.query_string","request.body"]); []))
+  | finding("ruby-ssrf"; "Untrusted input reaches URL fetch; validate URL against allowlist")
+  )
+| report

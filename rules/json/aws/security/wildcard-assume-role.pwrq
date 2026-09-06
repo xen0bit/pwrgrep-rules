@@ -1,15 +1,13 @@
 # rules: wildcard-assume-role
+# languages: json
+# fixture: json/wildcard-assume-role.json
 # from: json/aws/security/wildcard-assume-role.yaml
 
 . as $root
 | ( ($root | scan_regex(["*.json"]; [
-      "\"Principal\":\\s+\\{[\\s\\S]*?,\\s+\"AWS\":\\s+\"\\*\",\\s+[\\s\\S]*?\\}",
-      "\"Statement\":\\s+\\[[\\s\\S]*?\\]",
-      "\\{[\\s\\S]*?,\\s+\"Effect\":\\s+\"Allow\",\\s+[\\s\\S]*?,\\s+\"Action\":\\s+\"sts:AssumeRole\",\\s+[\\s\\S]*?\\}"
+      "\"AWS\"\\s*:\\s*\"\\*\""
     ])) as $all
-    | ( $all | of(["\"Principal\":\\s+\\{[\\s\\S]*?,\\s+\"AWS\":\\s+\"\\*\",\\s+[\\s\\S]*?\\}"])
-          | within($all | of(["\"Statement\":\\s+\\[[\\s\\S]*?\\]"]))
-          | within($all | of(["\\{[\\s\\S]*?,\\s+\"Effect\":\\s+\"Allow\",\\s+[\\s\\S]*?,\\s+\"Action\":\\s+\"sts:AssumeRole\",\\s+[\\s\\S]*?\\}"]))
+    | ( $all | of(["\"AWS\"\\s*:\\s*\"\\*\""])
         | finding("wildcard-assume-role";
             "Detected wildcard access granted to sts:AssumeRole.") ) )
 | report

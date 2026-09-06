@@ -1,0 +1,15 @@
+# rules: c-xss
+# languages: c
+# fixture: c/CWE-79.c
+# from: CWE-79 Cross-site Scripting
+#
+# printf/puts with non-literal HTML allows script injection; literal string is safe.
+# C pattern is read as statement, so printf($X); matches inside if as well.
+
+["printf($X);", "puts($X);", "fprintf($_, $X);", "sprintf($BUF, $FMT, $X);"] as $sinks
+| scan_ast("*.[ch]"; $sinks) as $all
+| ($all | of($sinks) | where_capture_not("X"; "^L?\"") | finding("c-xss";
+        "this is written into the page as markup, so a `<script>` in the value "
+        + "runs in the reader's session; escape it, or set text rather than "
+        + "HTML"))
+| report

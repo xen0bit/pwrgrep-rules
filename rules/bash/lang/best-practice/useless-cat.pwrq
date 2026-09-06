@@ -1,5 +1,6 @@
 # rules: useless-cat
 # languages: bash
+# fixture: bash/CWE-94.sh
 # from: bash/lang/best-practice/useless-cat.yaml
 
 . as $root

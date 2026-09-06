@@ -1,0 +1,11 @@
+# rules: tainted-sql-from-http-request
+# languages: scala
+# fixture: scala/CWE-89-play.scala
+# from: scala/play/security/tainted-sql-from-http-request.yaml, CWE-89 (SQL Injection)
+
+["$REQ.getQueryString($$$_)", "$REQ.getParameter($$$_)", "$REQ.queryString", "def $CTRL($REQ : $TYPE) = Action { $$$BODY }"] as $src
+| ["$C.prepareStatement($Q);", "$S.executeQuery($Q);", "$S.executeUpdate($Q);", "$S.execute($Q);"] as $sink
+| scan_ast("*.scala"; $src + $sink) as $all
+| ( $all | of($sink) | focus("Q") | reaching($all | of($src) | focus("REQ"); []) )
+| finding("tainted-sql-from-http-request"; "User data flows into manually-constructed SQL string; use prepared statements.")
+| report

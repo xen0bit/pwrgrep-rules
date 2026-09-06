@@ -1,5 +1,6 @@
 # rules: aws-ebs-volume-encrypted-with-cmk
 # languages: hcl
+# fixture: terraform/aws-ebs-volume-encrypted-with-cmk.tf
 # from: terraform/aws/security/aws-ebs-volume-encrypted-with-cmk.yaml
 
 . as $root

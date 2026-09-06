@@ -1,5 +1,6 @@
 # rules: aws-dynamodb-table-unencrypted
 # languages: hcl
+# fixture: terraform/aws-dynamodb-table-unencrypted.tf
 # from: terraform/aws/security/aws-dynamodb-table-unencrypted.yaml
 
 . as $root

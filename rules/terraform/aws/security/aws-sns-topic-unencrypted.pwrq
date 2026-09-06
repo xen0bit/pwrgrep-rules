@@ -1,5 +1,6 @@
 # rules: aws-sns-topic-unencrypted
 # languages: hcl
+# fixture: terraform/aws-sns-topic-unencrypted.tf
 # from: terraform/aws/security/aws-sns-topic-unencrypted.yaml
 
 . as $root

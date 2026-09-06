@@ -1,0 +1,24 @@
+# rules: swift-862-authz
+# languages: swift
+# fixture: swift/CWE-862.swift
+# from: CWE-862 Missing Authorization — NavigationLink without hasRole/auth check
+#
+# SwiftUI NavigationLink or navigationDestination without an authorization
+# check allows unauthorized navigation to sensitive views. The rule flags
+# NavigationLink destinations in files that lack any hasRole/AuthManager
+# reference; safe files gate navigation with hasRole or AuthManager.
+
+. as $root
+| ( ($root | scan_ast(["*.swift"]; [
+      "NavigationLink($$$_)",
+      ".navigationDestination($$$_)",
+      "hasRole($$$_)",
+      "hasRole",
+      "AuthManager",
+      "requiresAuth"
+    ])) as $all
+    | ( $all | of(["NavigationLink($$$_)",".navigationDestination($$$_)"])
+          | in_files_without($all | of(["hasRole($$$_)","hasRole","AuthManager","requiresAuth"]))
+        | finding("swift-862-authz";
+            "NavigationLink without authorization check; gate with hasRole or AuthManager before navigation") ) )
+| report

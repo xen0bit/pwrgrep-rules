@@ -1,0 +1,36 @@
+# rules: ruby-missing-auth
+# languages: ruby
+# fixture: ruby/CWE-306.rb
+# from: CWE-306 Missing Authentication for Critical Function
+#
+# Ruby's half of `<language>-missing-auth` is the explicit skip rather than the
+# absent guard, and that is a limit of what the syntax says. A Rails controller
+# authenticates in `ApplicationController`, in a Rack middleware or in the
+# routes, and a rule that reported every action in a controller which does not
+# declare a filter itself would report every action in every Rails application
+# there is. `skip_before_action :authenticate_user!` is the opposite: somebody
+# wrote down that this action is open, and that is a statement a rule can read.
+#
+# A rule for the absent guard was written and is not here. Being file-level -
+# "no authentication filter anywhere in this file" - it has no line in its own
+# fixture that must stay quiet, and a fixture with no `ok:` cannot show a rule
+# is not simply firing everywhere.
+#
+# Skipping authentication with skip_before_action :authenticate_user! or
+# :require_login allows unauthenticated access. The rule flags any use of
+# skip_before_action that disables an auth check; safe code keeps the
+# before_action.
+
+. as $root
+| ( ($root | scan_ast(["*.rb"]; [
+      "skip_before_action :authenticate_user!",
+      "skip_before_action :authenticate_user!, $$$_",
+      "skip_before_filter :authenticate_user!",
+      "skip_before_filter :authenticate_user!, $$$_",
+      "skip_before_action :require_login",
+      "skip_before_action :require_login, $$$_"
+    ])) as $all
+    | ( $all | of(["skip_before_action :authenticate_user!","skip_before_action :authenticate_user!, $$$_","skip_before_filter :authenticate_user!","skip_before_filter :authenticate_user!, $$$_","skip_before_action :require_login","skip_before_action :require_login, $$$_"])
+        | finding("ruby-missing-auth";
+            "Authentication skipped via skip_before_action; unauthenticated users can reach this action") ) )
+| report

@@ -1,0 +1,11 @@
+# rules: js-xss
+# languages: javascript
+# fixture: problem-based-packs/js-xss.js
+# from: CWE-79 (Cross-site Scripting)
+
+["req.query.$PROP", "req.params.$PROP", "req.body.$PROP"] as $outside
+| ["res.send($X)", "res.end($X)", "$RES.write($X)"] as $sinks
+| scan_ast("*.js"; $outside + $sinks) as $all
+| ( $all | of($sinks) | focus("X") | reaching($all | of($outside); []) )
+| finding("js-xss"; "Cross-site scripting from request to response")
+| report

@@ -1,0 +1,15 @@
+# rules: c-434-upload
+# languages: c
+# fixture: c/CWE-434b.c
+# from: CWE-434 (Unrestricted Upload of File with Dangerous Type)
+#
+# fopen with a user-controlled filename without basename sanitization allows unrestricted upload.
+# The rule tracks argv/getenv filename reaching fopen and excludes basename sanitization via where_capture_not allowlist.
+
+["argv[$_]", "getenv($$$_)", "getenv_s($$$_)", "userFilename", "req.filename", "$VAR.filename"] as $src
+| ["fopen($PATH, $$$_)", "open($PATH, $$$_)", "creat($PATH, $$$_)", "fopen($PATH, \"w\")", "open($PATH, O_WRONLY, $$$_)"] as $sink
+| ["basename($$$_)", "basename($PATH)"] as $clean
+| scan_ast("*.[ch]"; $src + $sink + $clean) as $all
+| ( $all | of($sink) | focus("PATH") | reaching($all | of($src); $all | of($clean)) | where_capture_not("PATH"; "allowlist|whitelist|basename|\\.png") )
+| finding("c-434-upload"; "Unrestricted upload: $PATH from user input reaches fopen without basename/allowlist check")
+| report

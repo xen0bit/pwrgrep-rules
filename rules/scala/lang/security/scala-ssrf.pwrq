@@ -1,0 +1,13 @@
+# rules: scala-ssrf
+# languages: scala
+# fixture: scala/CWE-918.scala
+# from: CWE-918 (SSRF)
+
+["$R.getParameter($$$_)", "$R.getHeader($$$_)", "$R.getQueryString()", "$R.getParameterValues($$$_)"] as $src
+| ["Http($URL)", "url($URL)", "Source.fromURL($URL, $$$_)", "Source.fromURI($URL, $$$_)", "$WS.url($URL)"] as $sink
+| scan_ast("*.scala"; $src + $sink) as $all
+| ( $all | of($sink) | focus("URL") | reaching($all | of($src); []) | finding("scala-ssrf";
+        "the destination of this request is a value the caller chose, so it can "
+        + "be pointed at the metadata service or anything else this host can "
+        + "reach; check it against the hosts you meant to allow") )
+| report

@@ -1,0 +1,16 @@
+# CWE-798: Outlook webhook — Teams webhook URL.
+# webhook URLs leak Teams integrations; rule flags UUID form.
+# ruleid: detected-outlook-team
+https://outlook.office.com/webhook/12345678-1234-1234-1234-123456789abc
+# ruleid: detected-outlook-team
+webhook=https://outlook.office.com/webhook/abcdefab-cdef-abcd-efab-cdefabcdef12
+# ok: detected-outlook-team
+https://example.com/webhook/12345678-1234-1234-1234-123456789abc
+# ok: detected-outlook-team
+not-a-webhook
+# ruleid: detected-outlook-team
+https://outlook.office.com/webhook/bbbbbbbb-cccc-dddd-eeee-ffffffffffff
+# ruleid: detected-outlook-team
+https://outlook.office.com/webhook/cccccccc-dddd-eeee-ffff-111111111111/IncomingWebhook/extra
+# ok: detected-outlook-team
+https://example.com/not-outlook-webhook-placeholder

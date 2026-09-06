@@ -1,0 +1,90 @@
+# CWE-250: Pod with hostPID enabled — shares host PID namespace.
+# hostPID lets the pod see and signal host processes. The rule flags
+# hostPID true; fix with false or omit the field entirely.
+kind: Pod
+metadata:
+  name: bad1
+spec:
+# ruleid: hostpid-pod
+  hostPID: true
+  containers:
+    - name: app
+      image: nginx
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad2
+spec:
+# ruleid: hostpid-pod
+  hostPID: true
+  containers:
+    - name: app
+      image: nginx
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good1
+spec:
+# ok: hostpid-pod
+  hostPID: false
+  containers:
+    - name: app
+      image: nginx
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good2
+spec:
+  containers:
+    - name: app
+      image: nginx
+
+---
+# Extra: pod without hostPID (omission secure).
+# ok: hostpid-pod
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ok-extra
+spec:
+  containers:
+    - name: app
+      image: nginx
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad3
+spec:
+# ruleid: hostpid-pod
+  hostPID: true
+  containers:
+    - name: sidecar
+      image: nginx
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bad4
+spec:
+  template:
+    spec:
+# ruleid: hostpid-pod
+      hostPID: true
+      containers:
+        - name: app
+          image: nginx
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good3
+spec:
+# ok: hostpid-pod
+  hostPID: false
+  containers:
+    - name: app
+      image: busybox

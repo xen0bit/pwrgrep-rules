@@ -1,14 +1,11 @@
 # rules: use-of-basic-authentication
+# languages: yaml
+# fixture: yaml/openapi-basic-auth.yaml
 # from: yaml/openapi/security/use-of-basic-authentication.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml"]; [
-      "openapi:\\s+(?P<VERSION>\\S+)\\s+[\\s\\S]*?\\s+components:\\s+[\\s\\S]*?\\s+securitySchemes:\\s+[\\s\\S]*?\\s+(?P<SCHEME>\\S+):\\s+[\\s\\S]*?",
-      "type:\\s+http\\s+[\\s\\S]*?\\s+scheme:\\s+basic"
+| ($root | scan_ast(["*.yaml","*.yml"]; [
+      "scheme: basic"
     ])) as $all
-    | ( $all | of(["type:\\s+http\\s+[\\s\\S]*?\\s+scheme:\\s+basic"])
-          | within($all | of(["openapi:\\s+(?P<VERSION>\\S+)\\s+[\\s\\S]*?\\s+components:\\s+[\\s\\S]*?\\s+securitySchemes:\\s+[\\s\\S]*?\\s+(?P<SCHEME>\\S+):\\s+[\\s\\S]*?"]))
-          | where_capture("VERSION"; "^(?:3.*)")
-        | finding("use-of-basic-authentication";
-            "Basic authentication is considered weak and should be avoided.") ) )
+| ($all | of(["scheme: basic"]) | finding("use-of-basic-authentication"; "Basic authentication is considered weak and should be avoided."))
 | report

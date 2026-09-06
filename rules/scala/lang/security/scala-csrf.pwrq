@@ -1,0 +1,16 @@
+# rules: scala-csrf
+# languages: scala
+# fixture: scala/CWE-352.scala
+# from: CWE-352 Cross-Site Request Forgery
+#
+# Play actions that are POST without CSRF check can be forged.
+
+. as $root
+| ( ($root | scan_regex(["*.scala"]; [
+      "def\\s+\\w+\\s*=\\s*Action\\s*\\{[^}]*\\}"
+    ])) as $all
+    | ( $all | of(["def\\s+\\w+\\s*=\\s*Action\\s*\\{[^}]*\\}"])
+          | where_text_not("CSRF|csrfToken")
+        | finding("scala-csrf";
+            "Play Action without CSRF check; add CSRF protection") ) )
+| report

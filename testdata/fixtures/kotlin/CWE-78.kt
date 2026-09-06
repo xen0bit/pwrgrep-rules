@@ -34,4 +34,21 @@ class Shell : Activity() {
         // ok: kotlin-command-from-untrusted-input
         java.io.File(dir).listFiles()
     }
+
+    fun execViaIntentData(intent: Intent) {
+        val cmd = intent.dataString ?: ""
+        // ruleid: kotlin-command-from-untrusted-input
+        Runtime.getRuntime().exec(cmd)
+    }
+
+    fun builderWithCommand(intent: Intent) {
+        val input = intent.getStringExtra("input") ?: ""
+        // ruleid: kotlin-command-from-untrusted-input
+        ProcessBuilder("sh", "-c", input).start()
+    }
+
+    fun safeSeparated() {
+        // ok: kotlin-command-from-untrusted-input
+        ProcessBuilder("ls", "-la").start()
+    }
 }

@@ -1,0 +1,11 @@
+# rules: js-xxe
+# languages: javascript, typescript
+# fixture: javascript/CWE-611.js
+# from: CWE-611 XML External Entity
+
+["req.query", "req.params", "req.body", "req.headers"] as $srcs
+| ["new DOMParser().parseFromString($DATA, $$$_)"] as $sinks
+| scan_ast(["*.js","*.ts"]; $srcs + $sinks) as $all
+| ($all | of($sinks) | focus("DATA") | reaching($all | of($srcs); []))
+| finding("js-xxe"; "untrusted XML reaches DOMParser; external entities may be resolved")
+| report

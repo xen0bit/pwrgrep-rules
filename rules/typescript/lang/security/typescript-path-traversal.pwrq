@@ -1,0 +1,13 @@
+# rules: typescript-path-traversal
+# languages: typescript
+# fixture: typescript/CWE-22.ts
+# from: CWE-22 (Path Traversal)
+
+["req.query.get($$$_)", "req.params.get($$$_)", "req.body.get($$$_)", "location.search"] as $src
+| ["fs.readFile($PATH, $$$_)", "fs.readFileSync($PATH)", "fs.createReadStream($PATH)", "fs.promises.readFile($PATH)"] as $sink
+| scan_ast(["*.ts","*.tsx"]; $src + $sink) as $all
+| ( $all | of($sink) | focus("PATH") | reaching($all | of($src); []) | finding("typescript-path-traversal";
+        "this opens a path built from a value the caller chose, and a `../` in "
+        + "it walks out of the directory; resolve the path and check it is "
+        + "still under the root before opening it") )
+| report

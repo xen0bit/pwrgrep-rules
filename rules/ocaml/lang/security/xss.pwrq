@@ -1,0 +1,12 @@
+# rules: ocaml-xss
+# languages: ocaml
+# fixture: ocaml/CWE-79.ml
+# from: CWE-79 Cross-site Scripting via Dream.html
+
+. as $root
+| ( $root | scan_ast(["*.ml"]; ["Dream.html $HTML"]) ) as $all
+| ( $all | of(["Dream.html $HTML"]) | where_capture_not("HTML"; "^\".*\"$") | finding("ocaml-xss";
+        "this is written into the page as markup, so a `<script>` in the value "
+        + "runs in the reader's session; escape it, or set text rather than "
+        + "HTML") )
+| report

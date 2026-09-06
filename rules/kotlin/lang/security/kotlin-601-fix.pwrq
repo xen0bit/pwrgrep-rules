@@ -1,0 +1,14 @@
+# rules: kotlin-601-fix
+# languages: kotlin
+# fixture: kotlin/CWE-601b.kt
+# from: CWE-601 (Open Redirect)
+#
+# redirect with request.getParameter("next") without is_safe_url allowlist check.
+# The rule tracks request.getParameter reaching redirect and excludes is_safe_url / allowlist via where_capture_not.
+
+["request.getParameter($K)", "request.getParameter(\"next\")", "request.getParameter(\"url\")", "$REQ.getParameter($K)"] as $src
+| ["response.sendRedirect($URL)", "redirect($URL)", "call.respondRedirect($URL)", "HttpResponse.redirect($URL)"] as $sink
+| scan_ast("*.kt"; $src + $sink) as $all
+| ( $all | of($sink) | focus("URL") | reaching($all | of($src); []) | where_capture_not("URL"; "allowlist|whitelist|is_safe_url|safeUrl") )
+| finding("kotlin-601-fix"; "Open redirect: $URL from request.getParameter reaches redirect without is_safe_url allowlist check")
+| report

@@ -1,3 +1,7 @@
+// CWE-295: Certificate validation disabled — accepts any cert.
+// ServerCertificateValidationCallback returning true disables expiry and
+// hostname checks, enabling MITM. The rule flags callbacks that return
+// true; fix by checking SslPolicyErrors.None.
 using System.Net;
 using System.Net.Http;
 

@@ -1,0 +1,14 @@
+# rules: java-open-redirect
+# languages: java
+# fixture: java/CWE-601b.java
+# from: CWE-601 (Open Redirect)
+#
+# response.sendRedirect with a URL that came from request.getParameter etc.
+# lets the caller redirect the victim elsewhere.
+
+["$R.getParameter($K)", "$R.getHeader($K)", "$R.getQueryString()", "$R.getCookies()", "$R.getParameterValues($K)", "$R.getParameterMap()"] as $src
+| ["$R.sendRedirect($URL)", "response.sendRedirect($URL)", "$RESP.sendRedirect($URL)"] as $sinks
+| scan_ast("*.java"; $src + $sinks) as $all
+| ( $all | of($sinks) | focus("URL") | reaching($all | of($src); []) )
+| finding("java-open-redirect"; "Open redirect: $URL came from the request and reaches sendRedirect")
+| report

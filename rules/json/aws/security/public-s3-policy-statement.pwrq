@@ -1,12 +1,13 @@
 # rules: public-s3-policy-statement
 # languages: json
+# fixture: json/public-s3-policy-statement.json
 # from: json/aws/security/public-s3-policy-statement.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.json"]; [
-      "{\n  \"Effect\": \"Allow\",\n  \"Principal\": \"*\",\n  \"Resource\": [\n    $$$_, \"=~/arn:aws:s3.*/\", $$$_\n  ],\n  $$$_\n}"
+| ( ($root | scan_regex(["*.json"]; [
+      "\"Principal\"\\s*:\\s*\"\\*\""
     ])) as $all
-    | ( $all | of(["{\n  \"Effect\": \"Allow\",\n  \"Principal\": \"*\",\n  \"Resource\": [\n    $$$_, \"=~/arn:aws:s3.*/\", $$$_\n  ],\n  $$$_\n}"])
+    | ( $all | of(["\"Principal\"\\s*:\\s*\"\\*\""])
         | finding("public-s3-policy-statement";
             "Detected public S3 bucket policy.") ) )
 | report

@@ -1,0 +1,72 @@
+# CWE-250: allowPrivilegeEscalation true
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad1
+spec:
+  containers:
+    - name: app
+      image: nginx
+      securityContext:
+# ruleid: allow-privilege-escalation
+        allowPrivilegeEscalation: true
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad2
+spec:
+  containers:
+    - name: app
+      image: nginx
+      securityContext:
+# ruleid: allow-privilege-escalation
+        allowPrivilegeEscalation: true
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad3
+spec:
+  containers:
+    - name: app
+      image: nginx
+      securityContext:
+# ruleid: allow-privilege-escalation
+        allowPrivilegeEscalation: true
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good1
+spec:
+  containers:
+    - name: app
+      image: nginx
+      securityContext:
+# ok: allow-privilege-escalation
+        allowPrivilegeEscalation: false
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good2
+spec:
+  containers:
+    - name: app
+      image: nginx
+      securityContext:
+# ok: allow-privilege-escalation
+        allowPrivilegeEscalation: false
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good3
+spec:
+  containers:
+    - name: app
+      image: nginx
+# ok: allow-privilege-escalation
+      securityContext:
+        runAsNonRoot: true

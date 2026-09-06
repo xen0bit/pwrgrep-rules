@@ -1,0 +1,16 @@
+# CWE-798: SendGrid API key — SG.<22>.<43> hard-coded.
+# SendGrid keys can send email; leaked keys are abused for spam.
+# ruleid: detected-sendgrid-api-key
+sendgrid = SG.abcDEF1234567890xyzAB1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+# ruleid: detected-sendgrid-api-key
+key = SG.XYZ1234567890abcDEFgh1.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+# ok: detected-sendgrid-api-key
+key = SG.short.key
+# ok: detected-sendgrid-api-key
+not-a-key = hello world
+# ruleid: detected-sendgrid-api-key
+SG.CCCCCCCCCCCCCCCCCCCCCC.DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+# ruleid: detected-sendgrid-api-key
+SG.EEEEEEEEEEEEEEEEEEEEEE.FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+# ok: detected-sendgrid-api-key
+sendgrid_key = "SG.example.placeholder.not.real"

@@ -1,0 +1,16 @@
+# rules: go-input-validation
+# languages: go
+# fixture: go/CWE-20.go
+# from: CWE-20 (Improper Input Validation)
+#
+# A value from `r.URL.Query().Get` that reaches `exec.Command` or a SQL
+# query without regex validation has not been checked.
+
+["$R.URL.Query().Get($$$_)"] as $sources
+| ["exec.Command($$$_)", "exec.CommandContext($$$_)", "$DB.Query($$$_)", "$DB.Exec($$$_)", "$DB.QueryContext($$$_)", "$DB.ExecContext($$$_)"] as $sinks
+| scan_ast("*.go"; $sources + $sinks) as $all
+| ($all | of($sinks) | reaching($all | of($sources); []))
+| finding("go-input-validation";
+    "unvalidated input from URL query reaches exec/SQL sink; "
+    + "validate against a regex or allow-list before use")
+| report

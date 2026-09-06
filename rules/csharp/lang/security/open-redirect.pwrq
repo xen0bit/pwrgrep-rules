@@ -5,13 +5,13 @@
 . as $root
 | ( ($root | scan_ast(["*.cs"]; [
       "Redirect($$$_)",
-      "if ($URL.IsLocalUrl($$$_)) { \n    $$$_ \n    Redirect($$$_); \n    $$$_\n}",
-      "if (IsLocalUrl($$$_)) { \n    $$$_ \n    Redirect($$$_); \n    $$$_\n}",
+      "if ($URL.IsLocalUrl($$$_)) { $$$BODY }",
+      "if (IsLocalUrl($$$_)) { $$$BODY }",
       "public $TYPE $FUNCNAME ($$$_, string $PARAM, $$$_) {\n  $$$_\n}"
     ])) as $all
     | ( (($all | of(["Redirect($$$_)"])
-          | outside($all | of(["if (IsLocalUrl($$$_)) { \n    $$$_ \n    Redirect($$$_); \n    $$$_\n}"]))
-          | outside($all | of(["if ($URL.IsLocalUrl($$$_)) { \n    $$$_ \n    Redirect($$$_); \n    $$$_\n}"]))))
+          | outside($all | of(["if (IsLocalUrl($$$_)) { $$$BODY }"]))
+          | outside($all | of(["if ($URL.IsLocalUrl($$$_)) { $$$BODY }"]))))
           | reaching((($all
           | focus("PARAM")
           | within($all | of(["public $TYPE $FUNCNAME ($$$_, string $PARAM, $$$_) {\n  $$$_\n}"]))));

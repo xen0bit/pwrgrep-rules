@@ -1,0 +1,16 @@
+# CWE-798: Mailgun key — key- prefix with 32 alnum.
+# key- 32 chars is a Mailgun secret; leaked keys can send mail.
+# ruleid: detected-mailgun-api-key
+key-abcDEF1234567890abcDEF1234567890
+# ruleid: detected-mailgun-api-key
+mailgun_key: key-0123456789abcdef0123456789ABCDEF12
+# ok: detected-mailgun-api-key
+key-short
+# ok: detected-mailgun-api-key
+not-a-token
+# ruleid: detected-mailgun-api-key
+key-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+# ruleid: detected-mailgun-api-key
+mailgun: key-DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+# ok: detected-mailgun-api-key
+mailgun_key = "example_key_placeholder"

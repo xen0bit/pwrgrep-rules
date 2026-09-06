@@ -1,0 +1,18 @@
+# rules: python-863-idor
+# languages: python
+# fixture: python/CWE-863b.py
+# from: CWE-863 Incorrect Authorization — Model.query.get(request args id) outside has_role, IDOR via direct object reference
+#
+# Model.query.get with tainted request.args id outside has_role allows IDOR.
+# The rule tracks request.args/form id reaching Model.query.get and excludes
+# those inside a has_role/requires_roles decorator.
+
+["request.args.get($K, $$$_)", "request.values.get($K, $$$_)", "request.form.get($K, $$$_)", "request.args[$K]", "request.args.get(\"id\")"] as $src
+| ["$MODEL.query.get($ID)", "$M.query.get($ID)", "Model.query.get($ID)"] as $sinks
+| ["@has_role($$$_)\ndef $FUNC($$$_):\n  $$$BODY", "@has_role\ndef $FUNC($$$_):\n  $$$BODY", "@requires_roles($$$_)\ndef $FUNC($$$_):\n  $$$BODY", "@requires_roles\ndef $FUNC($$$_):\n  $$$BODY", "@roles_required($$$_)\ndef $FUNC($$$_):\n  $$$BODY"] as $auth
+| scan_ast("*.py"; $src + $sinks + $auth) as $all
+| ( $all | of($sinks) | focus("ID") | reaching($all | of($src); [])
+      | outside($all | of($auth))
+    | finding("python-863-idor";
+        "IDOR: $ID from request.args reaches $MODEL.query.get outside has_role check; verify ownership") )
+| report

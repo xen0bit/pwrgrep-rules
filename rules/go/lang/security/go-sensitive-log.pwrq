@@ -1,0 +1,13 @@
+# rules: go-sensitive-log
+# languages: go
+# fixture: go/CWE-532.go
+# from: CWE-532 Insertion of Sensitive Information into Log File
+
+["log.Println($MSG)", "log.Printf($MSG, $$$_)", "log.Print($MSG)", "log.Fatalf($MSG, $$$_)", "log.Panicf($MSG, $$$_)"] as $sinks
+| "(?i)password|passwd|pwd|secret|api_?key|token" as $names
+| scan_ast("*.go"; $sinks) as $all
+| ($all | of($sinks) | where_capture("MSG"; $names))
+| finding("go-sensitive-log";
+    "sensitive data is written to the log; it will be in log files and "
+    + "shipped to any log collector — redact it")
+| report

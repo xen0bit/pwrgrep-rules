@@ -1,0 +1,12 @@
+# rules: apex-code-injection
+# languages: apex
+# fixture: apex/CWE-94.cls
+# from: CWE-94 Code Injection via Type.forName
+
+. as $root
+| ( $root | scan_ast(["*.cls"]; ["Type.forName($CLASS)"]) ) as $all
+| ( $all | of(["Type.forName($CLASS)"]) | where_capture_not("CLASS"; "^'.*'$") | finding("apex-code-injection";
+        "this evaluates a value the caller chose as code, which is the whole of "
+        + "the language and not the part you meant; look the value up in a "
+        + "map of the things it is allowed to be") )
+| report

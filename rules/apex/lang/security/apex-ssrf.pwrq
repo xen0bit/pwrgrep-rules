@@ -1,0 +1,12 @@
+# rules: apex-ssrf
+# languages: apex
+# fixture: apex/CWE-918.cls
+# from: CWE-918 (SSRF)
+
+. as $root
+| ( $root | scan_ast(["*.cls"]; ["$REQ.setEndpoint($URL)"]) ) as $all
+| ( $all | of(["$REQ.setEndpoint($URL)"]) | where_capture_not("URL"; "^['\"].*['\"]$") | finding("apex-ssrf";
+        "the destination of this request is a value the caller chose, so it can "
+        + "be pointed at the metadata service or anything else this host can "
+        + "reach; check it against the hosts you meant to allow") )
+| report

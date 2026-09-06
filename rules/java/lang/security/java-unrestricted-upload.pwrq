@@ -1,0 +1,16 @@
+# rules: java-unrestricted-upload
+# languages: java
+# fixture: java/CWE-434b.java
+# from: CWE-434 (Unrestricted Upload of File with Dangerous Type) — second
+#
+# A filename from `getSubmittedFileName` that reaches `Files.write` or
+# `new File` without a whitelist lets the caller write any file.
+
+["$P.getSubmittedFileName()", "$P.getOriginalFilename()", "$PART.getSubmittedFileName()", "$FILE.getSubmittedFileName()"] as $sources
+| ["Files.write($PATH, $$$_)", "new File($PATH, $$$_)", "new File($_, $PATH)", "Paths.get($PATH)"] as $sinks
+| scan_ast("*.java"; $sources + $sinks) as $all
+| ($all | of($sinks) | focus("PATH") | reaching($all | of($sources); []))
+| finding("java-unrestricted-upload";
+    "unrestricted upload: filename from getSubmittedFileName reaches file "
+    + "write without whitelist — validate extension and path")
+| report

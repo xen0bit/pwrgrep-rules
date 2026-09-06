@@ -10,11 +10,12 @@
       "$SMTH.reduce($$$_)",
       "$SMTH.reduceRight($$$_)",
       "$Y = $OBJ[$X]\n$$$_\n$Y($$$_)",
-      "for ($$$_) {$$$_}",
+      "for ($K in $OBJ) { $$$BODY }",
+      "for ($V of $ARR) { $$$BODY }",
       "if ($PWRQDEEP1) {\n  $$$_\n}\n$$$_"
     ])) as $all
     | ( $all | of(["$OBJ[$X]($$$_)","$Y = $OBJ[$X]\n$$$_\n$Y($$$_)"])
-          | outside($all | of(["for ($$$_) {$$$_}"]))
+          | outside($all | of(["for ($K in $OBJ) { $$$BODY }","for ($V of $ARR) { $$$BODY }"]))
           | outside($all | of(["$SMTH.forEach($$$_)"]))
           | outside($all | of(["$SMTH.map($$$_)"]))
           | outside($all | of(["$SMTH.reduce($$$_)"]))

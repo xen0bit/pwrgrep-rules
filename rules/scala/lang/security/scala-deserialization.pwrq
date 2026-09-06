@@ -1,0 +1,10 @@
+# rules: scala-deserialization
+# languages: scala
+# fixture: scala/CWE-502.scala
+# from: CWE-502 (Deserialization of Untrusted Data)
+
+["$R.getParameter($$$_)", "$R.getHeader($$$_)", "$R.getInputStream()", "$R.getQueryString()"] as $src
+| ["new ObjectInputStream($IN).readObject()", "new ObjectInputStream($IN).readUnshared()", "ObjectInputStream.readObject($IN)"] as $sink
+| scan_ast("*.scala"; $src + $sink) as $all
+| ( $all | of($sink) | focus("IN") | reaching($all | of($src); []) | finding("scala-deserialization"; "Insecure deserialization: $IN came from the request and reaches ObjectInputStream") )
+| report

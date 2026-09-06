@@ -1,0 +1,12 @@
+# rules: js-deserialization
+# languages: javascript, typescript
+# fixture: javascript/CWE-502.js
+# from: CWE-502 Deserialization of Untrusted Data
+
+["req.query", "req.params", "req.body", "req.headers"] as $srcs
+| ["JSON.parse($DATA)"] as $sinks
+| scan_ast(["*.js","*.ts"]; $srcs + $sinks) as $all
+| ($all | of($sinks) | where_capture_not("DATA"; "^[\"']") | focus("DATA") | reaching($all | of($srcs); []))
+| finding("js-deserialization";
+    "untrusted input reaches JSON.parse without a safe reviver; __proto__ can pollute prototype")
+| report

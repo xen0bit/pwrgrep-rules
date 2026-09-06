@@ -1,0 +1,37 @@
+# rules: js-ssrf
+# languages: javascript, typescript
+# fixture: javascript/CWE-918.js
+# from: CWE-918 (Server-Side Request Forgery)
+
+. as $root
+| ( ($root | scan_ast(["*.js","*.ts"]; [
+      "fetch($URL)",
+      "fetch($URL,$$$_)",
+      "axios.get($URL)",
+      "axios.get($URL,$$$_)",
+      "axios.post($URL,$$$_)",
+      "axios.post($URL)",
+      "http.get($URL,$$$_)",
+      "http.get($URL)",
+      "https.get($URL,$$$_)",
+      "https.get($URL)",
+      "request($URL)",
+      "request($URL,$$$_)",
+      "req.query",
+      "req.params",
+      "req.body",
+      "req.headers",
+      "location.search",
+      "location.hash",
+      "new URLSearchParams(location.search).get($$$_)",
+      "$PROP = new URLSearchParams(location.search).get($$$_)\n$$$_"
+    ])) as $all
+  | ($all | of(["fetch($URL)","fetch($URL,$$$_)","axios.get($URL)","axios.get($URL,$$$_)","axios.post($URL,$$$_)","axios.post($URL)","http.get($URL,$$$_)","http.get($URL)","https.get($URL,$$$_)","https.get($URL)","request($URL)","request($URL,$$$_)"])
+      | focus("URL")
+      | reaching(($all | of(["req.query","req.params","req.body","req.headers","location.search","location.hash","new URLSearchParams(location.search).get($$$_)"])
+          + ($all | within($all | of(["$PROP = new URLSearchParams(location.search).get($$$_)\n$$$_"])) | focus("PROP"))
+        ); []))
+  | finding("js-ssrf";
+      "untrusted URL reaches server request; attacker can fetch internal addresses")
+  )
+| report

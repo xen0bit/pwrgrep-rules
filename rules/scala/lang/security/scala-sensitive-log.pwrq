@@ -1,0 +1,13 @@
+# rules: scala-sensitive-log
+# languages: scala
+# fixture: scala/CWE-532.scala
+# from: CWE-532 Insertion of Sensitive Information into Log File
+
+["logger.info($MSG)", "logger.debug($MSG)", "println($MSG)"] as $sinks
+| "(?i)password|passwd|pwd|secret|api_?key|token" as $names
+| scan_ast("*.scala"; $sinks) as $all
+| ($all | of($sinks) | where_capture("MSG"; $names))
+| finding("scala-sensitive-log";
+    "sensitive data is written to the log; it will be in log files and "
+    + "shipped to any log collector — redact it")
+| report

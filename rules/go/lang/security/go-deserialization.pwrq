@@ -1,0 +1,11 @@
+# rules: go-deserialization
+# languages: go
+# fixture: go/CWE-502.go
+# from: CWE-502 Deserialization of Untrusted Data
+
+["r.Body", "r.URL.Query().Get($$$_)"] as $src
+| ["gob.NewDecoder($SRC).Decode($$$_)"] as $sink
+| scan_ast("*.go"; $src + $sink) as $all
+| ($all | of($sink) | focus("SRC") | reaching($all | of($src); []))
+| finding("go-deserialization"; "untrusted input reaches gob decoding; attacker controls deserialized object")
+| report

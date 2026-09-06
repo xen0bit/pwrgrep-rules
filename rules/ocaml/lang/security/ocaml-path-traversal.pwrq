@@ -1,0 +1,12 @@
+# rules: ocaml-path-traversal
+# languages: ocaml
+# fixture: ocaml/CWE-22b.ml
+# from: CWE-22 Path Traversal
+
+["Filename.concat $BASE $PATH", "open_in $PATH", "In_channel.input_all $PATH"] as $sinks
+| scan_ast(["*.ml"]; $sinks) as $all
+| ($all | of($sinks) | where_capture_not("PATH"; "^\".*\"$") | finding("ocaml-path-traversal";
+        "this opens a path built from a value the caller chose, and a `../` in "
+        + "it walks out of the directory; resolve the path and check it is "
+        + "still under the root before opening it"))
+| report

@@ -1,0 +1,10 @@
+# rules: ruby-tls-insecure
+# languages: ruby
+# fixture: ruby/CWE-295.rb
+# from: CWE-295 Improper Certificate Validation
+
+["$OBJ.verify_mode = OpenSSL::SSL::VERIFY_NONE"] as $disabled
+| scan_ast("*.rb"; $disabled)
+| finding("ruby-tls-insecure";
+    "VERIFY_NONE accepts any certificate; use VERIFY_PEER with a proper CA")
+| report

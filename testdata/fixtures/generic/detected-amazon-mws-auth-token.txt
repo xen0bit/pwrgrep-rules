@@ -1,0 +1,16 @@
+# CWE-798: Amazon MWS auth token — amzn.mws.<uuid> hard-coded.
+# Such tokens grant marketplace API access; leaked tokens are reusable.
+# ruleid: detected-amazon-mws-auth-token
+token = amzn.mws.12345678-1234-1234-1234-123456789abc
+# ruleid: detected-amazon-mws-auth-token
+auth = amzn.mws.abcdef12-3456-7890-abcd-ef1234567890
+# ok: detected-amazon-mws-auth-token
+placeholder = amzn.mws.INVALID-TOKEN
+# ok: detected-amazon-mws-auth-token
+not-a-token = hello world
+# ruleid: detected-amazon-mws-auth-token
+token = amzn.mws.11111111-2222-3333-4444-555555555555
+# ruleid: detected-amazon-mws-auth-token
+creds = amzn.mws.a1b2c3d4-e5f6-7890-abcd-ef1234567890
+# ok: detected-amazon-mws-auth-token
+token = amzn.mws.SHORT

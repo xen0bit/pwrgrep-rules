@@ -1,11 +1,13 @@
 # rules: maintainer-is-deprecated
+# languages: dockerfile
+# fixture: dockerfile/CWE-maintainer.dockerfile
 # from: dockerfile/best-practice/maintainer-is-deprecated.yaml
 
 . as $root
-| ( ($root | scan_regex(["Dockerfile*"]; [
-      "MAINTAINER\\s+(?P<NAME>\\S+)"
+| ( ($root | scan_regex(["Dockerfile*","*.dockerfile"]; [
+      "MAINTAINER"
     ])) as $all
-    | ( $all | of(["MAINTAINER\\s+(?P<NAME>\\S+)"])
+    | ( $all | of(["MAINTAINER"])
         | finding("maintainer-is-deprecated";
             "MAINTAINER has been deprecated.") ) )
 | report

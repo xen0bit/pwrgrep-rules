@@ -1,0 +1,12 @@
+# rules: elixir-code-injection
+# languages: elixir
+# fixture: elixir/CWE-94.ex
+# from: CWE-94 (Code Injection)
+
+. as $root
+| ( $root | scan_ast(["*.ex"]; ["Code.eval_string($CODE)"]) ) as $all
+| ( $all | of(["Code.eval_string($CODE)"]) | where_capture_not("CODE"; "^\".*\"$") | finding("elixir-code-injection";
+        "this evaluates a value the caller chose as code, which is the whole of "
+        + "the language and not the part you meant; look the value up in a "
+        + "map of the things it is allowed to be") )
+| report

@@ -1,0 +1,13 @@
+# rules: java-434-upload
+# languages: java
+# fixture: problem-based-packs/java-434-upload.java
+# from: CWE-434 (Unrestricted Upload of File with Dangerous Type)
+#
+# Unrestricted upload via Java MultipartFile.
+
+["request.getPart($X, $$$_)", "request.getParameter($X)", "$P.getSubmittedFileName()", "$P.getOriginalFilename()", "multipartFile.getOriginalFilename()"] as $sources
+| ["new File($PATH, $$$_)", "Files.write($PATH, $$$_)", "file.transferTo($PATH, $$$_)"] as $sinks
+| scan_ast("*.java"; $sources + $sinks) as $all
+| ( $all | of($sinks) | focus("PATH") | reaching($all | of($sources); []) )
+| finding("java-434-upload"; "Unrestricted file upload — filename from request reaches file write without validation")
+| report

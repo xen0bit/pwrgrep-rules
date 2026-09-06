@@ -21,3 +21,14 @@ def checksum(data):
 def digest(data):
     # ok: python-weak-hash
     return hashlib.sha256(data).hexdigest()
+def extra_md5(data):
+    # ruleid: python-weak-hash
+    return hashlib.md5(data).digest()
+
+def extra_sha1(data):
+    # ruleid: python-weak-hash
+    return hashlib.sha1(data).digest()
+
+def safe_sha512(data):
+    # ok: python-weak-hash
+    return hashlib.sha512(data).hexdigest()

@@ -1,0 +1,12 @@
+# rules: clojure-path-traversal
+# languages: clojure
+# fixture: clojure/CWE-22.clj
+# from: CWE-22 (Path Traversal)
+
+. as $root
+| ( $root | scan_ast(["*.clj"]; ["(slurp $PATH)", "(clojure.java.io/reader $PATH)"]) ) as $all
+| ( $all | of(["(slurp $PATH)", "(clojure.java.io/reader $PATH)"]) | where_capture_not("PATH"; "^\".*\"$") | finding("clojure-path-traversal";
+        "this opens a path built from a value the caller chose, and a `../` in "
+        + "it walks out of the directory; resolve the path and check it is "
+        + "still under the root before opening it") )
+| report

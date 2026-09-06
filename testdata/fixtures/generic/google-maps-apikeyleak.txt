@@ -1,0 +1,17 @@
+# CWE-798: Google Maps API key — AIza... in source enables billing abuse.
+# Leaked maps keys can be used by anyone until revoked. The rule flags
+# AIza* keys with length; ok is short or non-key text.
+# ruleid: google-maps-apikeyleak
+AIzaSyAOVYRIgupAurZup5y1PRh8Ismb1A3lLao
+# ruleid: google-maps-apikeyleak
+api_key = AIzaSyBOVYRIgupAurZup5y1PRh8Ismb1A3lLbo
+# ok: google-maps-apikeyleak
+AIzaSyShort
+# ok: google-maps-apikeyleak
+not-a-key = hello world
+# ruleid: google-maps-apikeyleak
+AIzaSyAOVYRIgupAurZup5y1PRh8Ismb1A3lLax
+# ruleid: google-maps-apikeyleak
+AIzaSyBOVYRIgupAurZup5y1PRh8Ismb1A3lLbx
+# ok: google-maps-apikeyleak
+AIzaSyShort

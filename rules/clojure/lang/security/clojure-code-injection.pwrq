@@ -1,0 +1,12 @@
+# rules: clojure-code-injection
+# languages: clojure
+# fixture: clojure/CWE-94.clj
+# from: CWE-94 (Code Injection)
+
+. as $root
+| ( $root | scan_ast(["*.clj"]; ["(eval $CODE)", "(load-string $CODE)", "(clojure.core/eval $CODE)"]) ) as $all
+| ( $all | of(["(eval $CODE)", "(load-string $CODE)", "(clojure.core/eval $CODE)"]) | where_capture_not("CODE"; "^\".*\"$") | finding("clojure-code-injection";
+        "this evaluates a value the caller chose as code, which is the whole of "
+        + "the language and not the part you meant; look the value up in a "
+        + "map of the things it is allowed to be") )
+| report

@@ -1,0 +1,13 @@
+# rules: scala-xss
+# languages: scala
+# fixture: scala/CWE-79.scala
+# from: CWE-79 (XSS), CWE-80
+
+["$R.getParameter($$$_)", "$R.getHeader($$$_)", "$R.getQueryString()"] as $src
+| ["Html($X)", "Html.apply($X)", "@Html($X)"] as $sink
+| scan_ast("*.scala"; $src + $sink) as $all
+| ( $all | of($sink) | focus("X") | reaching($all | of($src); []) | finding("scala-xss";
+        "this is written into the page as markup, so a `<script>` in the value "
+        + "runs in the reader's session; escape it, or set text rather than "
+        + "HTML") )
+| report

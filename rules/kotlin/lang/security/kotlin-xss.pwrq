@@ -1,0 +1,12 @@
+# rules: kotlin-xss
+# languages: kotlin
+# fixture: kotlin/CWE-79.kt
+# from: CWE-79 XSS
+
+["$VIEW.loadData($HTML, $$$_)", "$VIEW.loadDataWithBaseURL($_, $HTML, $$$_)"] as $sinks
+| scan_ast("*.kt"; $sinks) as $all
+| ($all | of($sinks) | where_capture_not("HTML"; "^\"") | finding("kotlin-xss";
+        "this is written into the page as markup, so a `<script>` in the value "
+        + "runs in the reader's session; escape it, or set text rather than "
+        + "HTML"))
+| report

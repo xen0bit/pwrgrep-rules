@@ -1,0 +1,25 @@
+# CWE-798: PGP private key block — -----BEGIN PGP PRIVATE KEY-----.
+# The private block is secret key material. The rule flags that header;
+# ok is the PUBLIC block or unrelated text.
+ # ruleid: detected-pgp-private-key-block
+ -----BEGIN PGP PRIVATE KEY BLOCK-----
+ Version: Keybase OpenPGP v1.0.0
+ # ruleid: detected-pgp-private-key-block
+ -----BEGIN PGP PRIVATE KEY BLOCK-----
+ xcFGBGA9TVIBBADAvplpHiPPayRrez7uhPb1IbpwLbiQUWuDr86E2oe2pmgq
+ # ok: detected-pgp-private-key-block
+ -----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: Keybase OpenPGP
+ # ok: detected-pgp-private-key-block
+ not a pgp block
+# ruleid: detected-pgp-private-key-block
+-----BEGIN PGP PRIVATE KEY BLOCK-----
+Version: test2
+bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+# ruleid: detected-pgp-private-key-block
+-----BEGIN PGP PRIVATE KEY BLOCK-----
+Version: test3
+cccccccccccccccccccccccccccccccc
+# ok: detected-pgp-private-key-block
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: Example

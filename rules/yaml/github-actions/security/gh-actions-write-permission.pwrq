@@ -1,0 +1,15 @@
+# rules: gh-actions-write-permission
+# languages: yaml
+# fixture: yaml/gh-actions-write-permission.yaml
+# from: CWE-732 (Incorrect Permission Assignment for Critical Resource)
+#
+# GitHub Actions workflow with overly broad write permissions.
+
+. as $root
+| ( ($root | scan_ast(["*.yaml","*.yml"]; [
+      "permissions: write-all"
+    ])) as $all
+    | ( $all | of(["permissions: write-all"])
+        | finding("gh-actions-write-permission";
+            "Workflow grants write-all permissions — restrict to least privilege") ) )
+| report

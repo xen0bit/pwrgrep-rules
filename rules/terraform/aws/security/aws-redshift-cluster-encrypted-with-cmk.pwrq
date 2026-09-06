@@ -1,5 +1,6 @@
 # rules: aws-redshift-cluster-encrypted-with-cmk
 # languages: hcl
+# fixture: terraform/aws-redshift-cluster-encrypted-with-cmk.tf
 # from: terraform/aws/security/aws-redshift-cluster-encrypted-with-cmk.yaml
 
 . as $root

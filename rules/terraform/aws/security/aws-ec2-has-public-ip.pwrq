@@ -1,5 +1,6 @@
 # rules: aws-ec2-has-public-ip
 # languages: hcl
+# fixture: terraform/aws-ec2-has-public-ip.tf
 # from: terraform/aws/security/aws-ec2-has-public-ip.yaml
 
 . as $root

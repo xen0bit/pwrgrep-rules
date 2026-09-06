@@ -1,5 +1,6 @@
 # rules: ocamllint-tempfile
 # languages: ocaml
+# fixture: ocaml/CWE-377.ml
 # from: ocaml/lang/security/tempfile.yaml
 
 . as $root

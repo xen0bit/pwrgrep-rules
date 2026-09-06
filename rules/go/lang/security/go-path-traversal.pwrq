@@ -1,0 +1,12 @@
+# rules: go-path-traversal
+# languages: go
+# fixture: go/CWE-22-2.go
+# from: CWE-22 Path Traversal
+
+["r.URL.Query().Get($_)", "$R.URL.Query().Get($_)", "$R.FormValue($_)", "$R.PostFormValue($_)", "$R.Header.Get($_)", "$R.PathValue($_)"] as $outside
+| ["os.Open($P)", "os.OpenFile($P, $$$_)", "os.Create($P)", "os.ReadFile($P)", "os.WriteFile($P, $$$_)", "os.Remove($P)", "os.Stat($P)", "filepath.Join($_, $P)"] as $opens
+| ["filepath.Base($$$_)", "path.Base($$$_)"] as $clean
+| scan_ast("*.go"; $outside + $opens + $clean) as $all
+| ( $all | of($opens) | focus("P") | reaching($all | of($outside); $all | of($clean)) )
+| finding("go-path-traversal"; "Path traversal: $P came from the request and reaches a filesystem operation")
+| report

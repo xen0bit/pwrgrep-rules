@@ -1,0 +1,11 @@
+# rules: ruby-xxe
+# languages: ruby
+# fixture: ruby/CWE-611.rb
+# from: CWE-611 XML External Entity
+
+["params", "params[$$$_]", "request.body"] as $src
+| ["REXML::Document.new($DATA)"] as $sink
+| scan_ast("*.rb"; $src + $sink) as $all
+| ($all | of($sink) | focus("DATA") | reaching($all | of($src); []))
+| finding("ruby-xxe"; "untrusted XML reaches REXML without disabling external entities")
+| report

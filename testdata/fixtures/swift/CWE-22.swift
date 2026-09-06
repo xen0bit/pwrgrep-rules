@@ -26,9 +26,21 @@ final class Files {
     func openFromQuery(_ url: URL) {
         let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
         let name = components?.queryItems?.first?.value ?? ""
-        let path = root.path + "/" + name
         // ruleid: swift-path-from-untrusted-input
-        FileManager.default.createFile(atPath: path, contents: nil)
+        FileManager.default.createFile(atPath: root.path + "/" + name, contents: nil)
+    }
+
+    func openExtra1(_ url: URL) {
+        let n = url.query ?? ""
+        // ruleid: swift-path-from-untrusted-input
+        let t = root.appendingPathComponent(n)
+        _ = t
+    }
+
+    func openExtra2(_ url: URL) {
+        let q = URLComponents(url: url, resolvingAgainstBaseURL: false)?.query ?? ""
+        // ruleid: swift-path-from-untrusted-input
+        FileManager.default.removeItem(atPath: root.path + "/" + q)
     }
 
     func openFixed() {
@@ -43,5 +55,11 @@ final class Files {
         let target = root.appendingPathComponent(name).standardizedFileURL
         guard target.path.hasPrefix(root.path) else { return }
         try? Data().write(to: target)
+    }
+
+    func openSafe2() {
+        // ok: swift-path-from-untrusted-input
+        let target = root.appendingPathComponent("safe.txt")
+        _ = target
     }
 }

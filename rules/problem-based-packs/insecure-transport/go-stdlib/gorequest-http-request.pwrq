@@ -1,18 +1,25 @@
 # rules: gorequest-http-request
 # languages: go
+# fixture: problem-based-packs/go-gorequest-http-request.go
 # from: problem-based-packs/insecure-transport/go-stdlib/gorequest-http-request.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.go"]; [
       "$REQ = gorequest.New()\n$$$_\n$RES = $$$_",
-      "$REQ.$FUNC(\"=~/[hH][tT][tT][pP]://.*/\")",
-      "gorequest.New().$FUNC(\"=~/[hH][tT][tT][pP]://.*/\")"
+      "$REQ.$FUNC($URL)",
+      "gorequest.New().$FUNC($URL)"
     ])) as $all
-    | ( ($all | of(["$REQ.$FUNC(\"=~/[hH][tT][tT][pP]://.*/\")"])
+    | ( ($all | of(["$REQ.$FUNC($URL)"])
           | within($all | of(["$REQ = gorequest.New()\n$$$_\n$RES = $$$_"]))
-          | where_capture("FUNC"; "^(?:(Get|Post|Delete|Head|Put|Patch))"))
-          + ($all | of(["gorequest.New().$FUNC(\"=~/[hH][tT][tT][pP]://.*/\")"])
-          | where_capture("FUNC"; "^(?:(Get|Post|Delete|Head|Put|Patch))"))
+          | where_capture("FUNC"; "^(?:(Get|Post|Delete|Head|Put|Patch))")
+          | where_capture("URL"; "http://")
+          | where_capture_not("URL"; "127\\.0\\.0\\.1")
+          | where_capture_not("URL"; "localhost"))
+          + ($all | of(["gorequest.New().$FUNC($URL)"])
+          | where_capture("FUNC"; "^(?:(Get|Post|Delete|Head|Put|Patch))")
+          | where_capture("URL"; "http://")
+          | where_capture_not("URL"; "127\\.0\\.0\\.1")
+          | where_capture_not("URL"; "localhost"))
         | finding("gorequest-http-request";
             "Checks for requests to http (unencrypted) sites using gorequest, a popular HTTP client library.") ) )
 | report

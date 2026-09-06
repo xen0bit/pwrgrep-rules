@@ -1,0 +1,47 @@
+# rules: laravel-api-route-sql-injection
+# languages: php
+# fixture: php/CWE-89-laravel.php
+# from: php/laravel/security/laravel-api-route-sql-injection.yaml, CWE-89 (SQL Injection)
+#
+# Laravel's query builder parameterises everything it sends. `DB::raw`,
+# `DB::select`, `DB::statement` and `DB::unprepared` are the four ways out of
+# that, and what they are given goes to the database as written - so a `'` in a
+# route segment ends the literal and the rest of the value is SQL.
+#
+# Binding is the fix and it is one argument away: `DB::select($sql, [$name])`
+# sends the value out of band, where nothing it contains can change the shape
+# of the query.
+#
+# The rule asks two things and reports either. Inside a route closure the query
+# has to be a single literal, because a route closure's parameter is the route
+# segment and anything the closure concatenates into a query came from the URL;
+# outside one, the query has to not be reached by a superglobal.
+#
+# The closure's parameter is not named as a source, and that is a limit rather
+# than a choice: in PHP `function ($name)` binds `($name)` - the whole
+# parameter list, parentheses and all - so there is no name for `reaching` to
+# follow. Requiring the literal is what stands in for it, and it is why this
+# half of the rule is scoped to route closures: demanding a literal query
+# everywhere would report every built query in the program.
+
+["Route::get($ROUTE, function ($ARG) { $$$BODY });",
+ "Route::post($ROUTE, function ($ARG) { $$$BODY });",
+ "Route::put($ROUTE, function ($ARG) { $$$BODY });",
+ "Route::patch($ROUTE, function ($ARG) { $$$BODY });",
+ "Route::delete($ROUTE, function ($ARG) { $$$BODY });"] as $routes
+| ["$_GET[$K]", "$_POST[$K]", "$_REQUEST[$K]", "$_COOKIE[$K]"] as $superglobals
+| ["DB::raw($QUERY)", "DB::select($QUERY, $$$_)",
+   "DB::statement($QUERY, $$$_)",
+   "DB::unprepared($QUERY)"] as $sinks
+| scan_ast("*.php"; $routes + $superglobals + $sinks) as $all
+| ( ( $all | of($sinks)
+      | within($all | of($routes))
+      | where_capture_not("QUERY"; "^\"[^\"]*\"$|^'[^']*'$")
+      | focus("QUERY") )
+  + ( $all | of($sinks)
+      | focus("QUERY")
+      | reaching($all | of($superglobals); []) ) )
+| finding("laravel-api-route-sql-injection";
+    "this is one of the four builder calls that does not parameterise, and the "
+    + "query is built rather than written; pass the value as a binding instead")
+| report

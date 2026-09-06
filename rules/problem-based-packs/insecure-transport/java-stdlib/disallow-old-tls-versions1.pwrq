@@ -1,4 +1,5 @@
 # rules: disallow-old-tls-versions1
+# fixture: problem-based-packs/java-disallow-old-tls-versions1.java
 # from: problem-based-packs/insecure-transport/java-stdlib/disallow-old-tls-versions1.yaml
 
 . as $root

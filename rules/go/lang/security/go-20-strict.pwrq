@@ -1,0 +1,14 @@
+# rules: go-20-strict
+# languages: go
+# fixture: go/CWE-20b.go
+# from: CWE-20 (Improper Input Validation) — strconv.Atoi without bounds
+#
+# strconv.Atoi of FormValue without bounds check reaches use.
+# The rule tracks FormValue -> Atoi reaching and excludes bounds checks via where_capture_not allowlist.
+
+["$R.FormValue($K)", "$R.PostFormValue($K)", "r.FormValue($K)", "r.PostFormValue($K)", "$R.URL.Query().Get($K)"] as $src
+| ["strconv.Atoi($VAL)", "strconv.ParseInt($VAL, $$$_)"] as $sink
+| scan_ast("*.go"; $src + $sink) as $all
+| ( $all | of($sink) | focus("VAL") | reaching($all | of($src); []) | where_capture_not("VAL"; "allowlist|whitelist|bound|max|min|100|limit") )
+| finding("go-20-strict"; "Improper validation: $VAL from FormValue reaches strconv.Atoi without bounds check")
+| report

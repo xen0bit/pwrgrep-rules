@@ -1,5 +1,6 @@
 # rules: read-string-unsafe
 # languages: clojure
+# fixture: clojure/CWE-502.clj
 # from: clojure/security/clojure-read-string/read-string-unsafe.yaml
 
 . as $root

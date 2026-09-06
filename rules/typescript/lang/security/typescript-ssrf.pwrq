@@ -1,0 +1,13 @@
+# rules: typescript-ssrf
+# languages: typescript
+# fixture: typescript/CWE-918.ts
+# from: CWE-918 (SSRF)
+
+["req.query.get($$$_)", "req.params.get($$$_)", "req.body.get($$$_)", "location.search"] as $src
+| ["fetch($URL)", "axios.get($URL)", "axios.request($URL)", "http.request($URL)", "https.request($URL)"] as $sink
+| scan_ast(["*.ts","*.tsx"]; $src + $sink) as $all
+| ( $all | of($sink) | focus("URL") | reaching($all | of($src); []) | finding("typescript-ssrf";
+        "the destination of this request is a value the caller chose, so it can "
+        + "be pointed at the metadata service or anything else this host can "
+        + "reach; check it against the hosts you meant to allow") )
+| report

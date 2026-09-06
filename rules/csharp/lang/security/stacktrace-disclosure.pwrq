@@ -5,10 +5,10 @@
 . as $root
 | ( ($root | scan_ast(["*.cs"]; [
       "$APP.UseDeveloperExceptionPage($$$_);",
-      "if ($ENV.IsDevelopment($$$_)) {\n  $$$_\n}"
+      "if ($ENV.IsDevelopment($$$_)) { $$$BODY }"
     ])) as $all
     | ( $all | of(["$APP.UseDeveloperExceptionPage($$$_);"])
-          | outside($all | of(["if ($ENV.IsDevelopment($$$_)) {\n  $$$_\n}"]))
+          | outside($all | of(["if ($ENV.IsDevelopment($$$_)) { $$$BODY }"]))
         | finding("stacktrace-disclosure";
             "Stacktrace information is displayed in a non-Development environment.") ) )
 | report

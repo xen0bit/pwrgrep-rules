@@ -1,0 +1,13 @@
+# rules: go-tls-insecure
+# languages: go
+# fixture: go/CWE-295.go
+# from: CWE-295 Improper Certificate Validation
+
+["tls.Config{$$$_, InsecureSkipVerify: true, $$$_}"] as $literal
+| ["$X.InsecureSkipVerify = true"] as $assign
+| ["tls.Config{$$$A}"] as $configs
+| scan_ast("*.go"; $literal + $assign + $configs) as $all
+| (($all | of($literal))
+   + ($all | of($assign) | in_files_with($all | of($configs))))
+| finding("go-tls-insecure"; "InsecureSkipVerify is true, so this client accepts any certificate")
+| report

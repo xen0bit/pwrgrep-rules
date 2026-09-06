@@ -1,11 +1,13 @@
 # rules: avoid-platform-with-from
+# languages: dockerfile
+# fixture: dockerfile/CWE-platform.dockerfile
 # from: dockerfile/best-practice/avoid-platform-with-from.yaml
 
 . as $root
-| ( ($root | scan_regex(["Dockerfile*"]; [
-      "FROM\\s+\\-\\-platform=(?P<PLATFORM>\\S+)\\s+(?P<IMAGE>\\S+)"
+| ( ($root | scan_regex(["Dockerfile*","*.dockerfile"]; [
+      "FROM\\s+--platform"
     ])) as $all
-    | ( $all | of(["FROM\\s+\\-\\-platform=(?P<PLATFORM>\\S+)\\s+(?P<IMAGE>\\S+)"])
+    | ( $all | of(["FROM\\s+--platform"])
         | finding("avoid-platform-with-from";
             "Using '--platform' with FROM restricts the image to build on a single platform.") ) )
 | report

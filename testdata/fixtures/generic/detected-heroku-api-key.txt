@@ -1,0 +1,16 @@
+# CWE-798: Heroku API key — heroku ... uuid pattern.
+# Heroku keys control app deployment; committed keys are compromised.
+# ruleid: detected-heroku-api-key
+heroku_api_key = 12345678-1234-1234-1234-123456789abc
+# ruleid: detected-heroku-api-key
+HEROKU_TOKEN heroku = abcdef12-3456-7890-abcd-ef1234567890
+# ok: detected-heroku-api-key
+heroku = not-a-uuid
+# ok: detected-heroku-api-key
+api_key = 12345
+# ruleid: detected-heroku-api-key
+heroku_api_key = aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+# ruleid: detected-heroku-api-key
+heroku=bbbbbbbb-cccc-dddd-eeee-ffffffffffff
+# ok: detected-heroku-api-key
+heroku_api_key = "example-not-a-uuid-placeholder"

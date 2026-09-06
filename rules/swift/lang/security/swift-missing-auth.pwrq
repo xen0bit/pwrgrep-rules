@@ -1,0 +1,26 @@
+# rules: swift-missing-auth
+# languages: swift
+# fixture: swift/CWE-306.swift
+# from: CWE-306 Missing Authentication for Critical Function
+#
+# There is one rule per language for this, and it reports under
+# `<language>-missing-auth`. The corpus briefly carried two or three - an
+# `-authn` spelling, an `-auth` spelling and this one - written against
+# CWE-287, CWE-306 and CWE-862 but all asking the same question: is there an
+# authentication guard on this endpoint. They fired on the same lines and a
+# route with no middleware got three findings under three ids. Whether the
+# missing guard is called authentication or authorization is not something the
+# syntax says, so it is one finding; `<language>-862-rbac` is the separate rule
+# for the endpoint that does authenticate and then checks no role.
+#
+# SwiftUI View that exposes sensitive data without an entitlement or auth check.
+
+. as $root
+| ( ($root | scan_regex(["*.swift"]; [
+      "struct\\s+\\w+\\s*:\\s*View\\s*\\{[\\s\\S]*?\\n\\}"
+    ])) as $all
+    | ( $all | of(["struct\\s+\\w+\\s*:\\s*View\\s*\\{[\\s\\S]*?\\n\\}"])
+          | where_text_not("entitlement|RequiresAuthentication|authorized|AuthManager|@Environment")
+        | finding("swift-missing-auth";
+            "View lacks authentication/entitlement check; gate with auth") ) )
+| report

@@ -5,14 +5,14 @@
 . as $root
 | ( ($root | scan_ast(["*.java"]; [
       "$COOKIE = ResponseCookie.from($$$_). $$$_; $$$_",
-      "$COOKIE.setSecure($$$_); $$$_",
+      "$COOKIE.setSecure(true); $$$_",
       "$COOKIE.setSecure(false);",
       "$COOKIE.setValue(\"\"); $$$_",
       "$RESPONSE.addCookie($COOKIE);"
     ])) as $all
     | ( ($all | of(["$COOKIE.setSecure(false);"]))
           + ($all | of(["$RESPONSE.addCookie($COOKIE);"])
-          | outside($all | of(["$COOKIE.setSecure($$$_); $$$_"]))
+          | in_files_without($all | of(["$COOKIE.setSecure(true); $$$_"]))
           | outside($all | of(["$COOKIE = ResponseCookie.from($$$_). $$$_; $$$_"])))
           | outside($all | of(["$COOKIE.setValue(\"\"); $$$_"]))
         | finding("cookie-missing-secure-flag";

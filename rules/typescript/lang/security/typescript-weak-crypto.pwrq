@@ -1,0 +1,11 @@
+# rules: typescript-weak-crypto
+# languages: typescript
+# fixture: typescript/CWE-327.ts
+# from: CWE-327 (Weak Crypto)
+
+. as $root
+| ( $root | scan_ast(["*.ts","*.tsx"]; ["crypto.createHash($ALGO)"]) ) as $all
+| ( $all | of(["crypto.createHash($ALGO)"]) | where_capture("ALGO"; "(?i)([\"']?md5[\"']?|[\"']?sha1[\"']?)") | finding("typescript-weak-crypto";
+        "MD5 and SHA-1 are not collision resistant, so two inputs can be found "
+        + "with the same digest; SHA-256 instead") )
+| report

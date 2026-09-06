@@ -1,0 +1,94 @@
+# CWE-250: SYS_ADMIN capability grants host admin.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad1
+spec:
+  containers:
+  - name: app
+    image: nginx
+    securityContext:
+      capabilities:
+        add:
+# ruleid: k8s-capabilities-sys-admin
+        - SYS_ADMIN
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad2
+spec:
+  containers:
+  - name: app
+    image: nginx
+    securityContext:
+      capabilities:
+        add:
+# ruleid: k8s-capabilities-sys-admin
+        - SYS_ADMIN
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good1
+spec:
+  containers:
+  - name: app
+    image: nginx
+    securityContext:
+# ok: k8s-capabilities-sys-admin
+      capabilities:
+        add: ["NET_ADMIN"]
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good2
+spec:
+  containers:
+  - name: app
+    image: nginx
+# ok: k8s-capabilities-sys-admin
+    securityContext:
+      runAsNonRoot: true
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad3
+spec:
+  containers:
+  - name: app
+    image: nginx
+    securityContext:
+      capabilities:
+        add:
+# ruleid: k8s-capabilities-sys-admin
+        - SYS_ADMIN
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad4
+spec:
+  initContainers:
+  - name: init
+    image: busybox
+    securityContext:
+      capabilities:
+        add:
+# ruleid: k8s-capabilities-sys-admin
+        - SYS_ADMIN
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good3
+spec:
+  containers:
+  - name: app
+    image: nginx
+    securityContext:
+# ok: k8s-capabilities-sys-admin
+      capabilities:
+        drop: ["ALL"]

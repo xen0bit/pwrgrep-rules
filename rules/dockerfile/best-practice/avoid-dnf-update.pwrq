@@ -1,8 +1,10 @@
 # rules: avoid-dnf-update
+# languages: dockerfile
+# fixture: dockerfile/CWE-dnf-update.dockerfile
 # from: dockerfile/best-practice/avoid-dnf-update.yaml
 
 . as $root
-| ( ($root | scan_regex(["Dockerfile*"]; [
+| ( ($root | scan_regex(["Dockerfile*","*.dockerfile"]; [
       "dnf\\s+update"
     ])) as $all
     | ( $all | of(["dnf\\s+update"])

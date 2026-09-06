@@ -1,14 +1,13 @@
 # rules: iteration-over-ls-output
 # languages: bash
+# fixture: bash/CWE-22.sh
 # from: bash/lang/best-practice/iteration-over-ls-output.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.sh"]; [
-      "$(ls $$$_)",
-      "for $VAR in $LIST; do\n  $$$_\ndone"
+| ( ($root | scan_regex(["*.sh"]; [
+      "\\$\\(ls"
     ])) as $all
-    | ( $all | of(["for $VAR in $LIST; do\n  $$$_\ndone"])
-          | at_same_place(($all | of(["$(ls $$$_)"])))
+    | ( $all | of(["\\$\\(ls"])
         | finding("iteration-over-ls-output";
             "Iterating over ls output is fragile.") ) )
 | report

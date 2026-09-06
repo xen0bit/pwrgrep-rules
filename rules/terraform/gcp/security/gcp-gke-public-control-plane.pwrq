@@ -1,5 +1,6 @@
 # rules: gcp-gke-public-control-plane
 # languages: hcl
+# fixture: terraform/gcp-gke-public-control-plane.tf
 # from: terraform/gcp/security/gcp-gke-public-control-plane.yaml
 
 . as $root

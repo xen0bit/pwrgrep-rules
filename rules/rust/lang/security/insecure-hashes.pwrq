@@ -1,5 +1,6 @@
 # rules: insecure-hashes
 # languages: rust
+# fixture: rust/CWE-327.rs
 # from: rust/lang/security/insecure-hashes.yml
 
 . as $root

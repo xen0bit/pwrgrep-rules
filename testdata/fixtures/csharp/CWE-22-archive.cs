@@ -1,3 +1,7 @@
+// CWE-22: Archive entry path traversal — entry name chooses destination.
+// A zip entry's FullName may contain ../ so Path.Combine(outDir, name)
+// writes outside the target. The rule flags that combine without a
+// check; fix by checking that the resolved path stays under outDir.
 using System.IO;
 using System.IO.Compression;
 

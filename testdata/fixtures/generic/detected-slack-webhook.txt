@@ -1,0 +1,16 @@
+# CWE-798: Slack webhook URL — hooks.slack.com/services/... hard-coded.
+# Webhooks allow posting to Slack channels; leaked URLs are abused.
+# ruleid: detected-slack-webhook
+url = https://hooks.slack.com/services/T12345678/B12345678/AbCdEfGhIjKlMnOpQrStUvWx
+# ruleid: detected-slack-webhook
+webhook = https://hooks.slack.com/services/TABCDEFGH/B87654321/ZYXWvuTSRqPoNmLkJiHgFeDcBa
+# ok: detected-slack-webhook
+url = https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX
+# ok: detected-slack-webhook
+not-a-webhook = https://example.com
+# ruleid: detected-slack-webhook
+https://hooks.slack.com/services/T99999999/B88888888/EEEEEEEEEEEEEEEEEEEEEEEE
+# ruleid: detected-slack-webhook
+https://hooks.slack.com/services/T77777777/B66666666/FFFFFFFFFFFFFFFFFFFFFFFFFF
+# ok: detected-slack-webhook
+https://example.com/services/not-slack-webhook-placeholder

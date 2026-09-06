@@ -1,0 +1,12 @@
+# rules: ocamllint-tls
+# languages: ocaml
+# fixture: ocaml/CWE-295.ml
+# from: CWE-295 (TLS Verification Disabled)
+
+. as $root
+| ( $root | scan_ast(["*.ml"]; ["Ssl.set_verify $CTX $MODE", "Verify_none", "verify_none"]) ) as $all
+| ( $all | of(["Ssl.set_verify $CTX $MODE"]) | where_capture("MODE"; "Verify_none|verify_none") | finding("ocamllint-tls";
+        "this accepts any certificate, so anything on the path can read and "
+        + "change the traffic and nothing will say so; leave verification on "
+        + "and fix the trust store instead") )
+| report

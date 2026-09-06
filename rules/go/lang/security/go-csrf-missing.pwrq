@@ -1,0 +1,23 @@
+# rules: go-csrf-missing
+# languages: go
+# fixture: go/CWE-352.go
+# from: CWE-352 Cross-Site Request Forgery
+#
+# Go handlers that register POST routes via http.HandleFunc without CSRF
+# protection can be forged from another origin. Gorilla csrf provides
+# csrf.Protect middleware; handlers not wrapped by it are vulnerable.
+# The rule flags http.HandleFunc registrations in files that lack any
+# csrf.Protect or gorilla/csrf import; ok cases wrap handlers with csrf.
+
+. as $root
+| ( ($root | scan_regex(["*.go"]; [
+      "http\\.HandleFunc\\s*\\(",
+      "http\\.Handle\\s*\\(",
+      "gorilla/csrf",
+      "csrf\\.Protect"
+    ])) as $all
+    | ( $all | of(["http\\.HandleFunc\\s*\\(", "http\\.Handle\\s*\\("])
+          | in_files_without($all | of(["gorilla/csrf", "csrf\\.Protect"]))
+        | finding("go-csrf-missing";
+            "HTTP handler registered without CSRF protection; wrap with csrf.Protect") ) )
+| report

@@ -1,0 +1,11 @@
+# rules: typescript-xxe
+# languages: typescript
+# fixture: typescript/CWE-611.ts
+# from: CWE-611 XML External Entity
+
+["req.query", "req.params", "req.body", "req.headers"] as $srcs
+| ["new DOMParser().parseFromString($DATA, $$$_)", "xml2js.parseString($DATA, $$$_)"] as $sinks
+| scan_ast(["*.ts","*.tsx"]; $srcs + $sinks) as $all
+| ($all | of($sinks) | focus("DATA") | reaching($all | of($srcs); []))
+| finding("typescript-xxe"; "untrusted XML reaches XML parser; external entities may be resolved")
+| report

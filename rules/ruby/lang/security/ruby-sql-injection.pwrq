@@ -1,0 +1,23 @@
+# rules: ruby-sql-injection
+# languages: ruby
+# fixture: ruby/CWE-89.rb
+# from: ruby/rails/security/injection/tainted-sql-string.yaml (tainted-sql-string) + CWE-89
+
+. as $root
+| ( ($root | scan_ast(["*.rb"]; [
+      "where($Q)",
+      "find_by_sql($Q)",
+      "exec_query($Q)",
+      "ActiveRecord::Base.connection.execute($Q)",
+      "ActiveRecord::Base.connection.exec_query($Q)",
+      "params",
+      "params[$$$_]",
+      "params.get($$$_)",
+      "cookies",
+      "request.query_string",
+      "request.body"
+    ])) as $all
+  | ($all | of(["where($Q)","find_by_sql($Q)","exec_query($Q)","ActiveRecord::Base.connection.execute($Q)","ActiveRecord::Base.connection.exec_query($Q)"]) | focus("Q") | reaching($all | of(["params","params[$$$_]","params.get($$$_)","cookies","request.query_string","request.body"]); []))
+  | finding("ruby-sql-injection"; "Untrusted input reaches SQL query; use parameterised queries")
+  )
+| report

@@ -1,0 +1,14 @@
+# rules: c-deserialization
+# languages: c
+# fixture: c/CWE-502.c
+# from: CWE-502 Deserialization of Untrusted Data
+#
+# json/yaml parsing of non-literal may deserialize untrusted data.
+
+["json_tokener_parse($DATA);", "json_loads($DATA, $_, $_);", "yaml_parser_load($_, $DATA);"] as $sinks
+| scan_ast("*.[ch]"; $sinks) as $all
+| ($all | of($sinks) | where_capture_not("DATA"; "^L?\"") | finding("c-deserialization";
+        "this rebuilds an object graph from bytes somebody else wrote, which "
+        + "runs whatever the graph names before you can look at it; read a "
+        + "data format instead"))
+| report

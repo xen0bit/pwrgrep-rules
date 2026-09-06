@@ -1,0 +1,27 @@
+# rules: php-xxe
+# languages:
+# fixture: php/CWE-611.php
+# from: CWE-611 XXE
+#
+# libxml_disable_entity_loader(false) or simplexml_load_string with LIBXML_NOENT allows XXE.
+
+. as $root
+| ( ($root | scan_regex(["*.php"]; [
+      "simplexml_load_string\\s*\\(\\s*\\$(?P<DATA>[^,\\)]+)",
+      "simplexml_load_file\\s*\\(\\s*\\$(?P<FILE>[^,\\)]+)",
+      "libxml_disable_entity_loader\\s*\\(\\s*false"
+    ])) as $all
+    | ( $all | of(["simplexml_load_string\\s*\\(\\s*\\$(?P<DATA>[^,\\)]+)"]) | finding("php-xxe";
+        "this parser resolves external entities, so a DOCTYPE in the document "
+        + "reads local files and makes requests from this host; disable DTDs "
+        + "and external entities on the parser"))
+      + ($all | of(["simplexml_load_file\\s*\\(\\s*\\$(?P<FILE>[^,\\)]+)"]) | finding("php-xxe";
+        "this parser resolves external entities, so a DOCTYPE in the document "
+        + "reads local files and makes requests from this host; disable DTDs "
+        + "and external entities on the parser"))
+      + ($all | of(["libxml_disable_entity_loader\\s*\\(\\s*false"]) | finding("php-xxe";
+        "this switches external entity loading back on for every parser in the "
+        + "process, so a DOCTYPE in any document read after it reads local "
+        + "files and makes requests from this host"))
+  )
+| report

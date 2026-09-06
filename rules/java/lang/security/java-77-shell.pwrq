@@ -1,0 +1,19 @@
+# rules: java-77-shell
+# languages: java
+# fixture: java/CWE-77.java
+# from: CWE-77 Command Injection — Runtime.exec($CMD) shell metachar [|;&$`] via unsanitized input
+#
+# Runtime.exec with shell metacharacters allows command chaining.
+# The rule finds Runtime.getRuntime().exec($CMD) where $CMD contains
+# shell metachars [|;&$`] and is outside a sanitizing wrapper; safe
+# cases use hardcoded literal without metachars.
+
+["Runtime.getRuntime().exec($CMD, $$$_)"] as $sinks
+| ["sanitize($CMD)", "validate($CMD)", "allowlist($CMD)"] as $sanitizers
+| scan_ast("*.java"; $sinks + $sanitizers) as $all
+| ( $all | of($sinks)
+      | where_capture("CMD"; "[|;&$`]")
+      | outside($all | of($sanitizers))
+    | finding("java-77-shell";
+        "Command injection: $CMD contains shell metachar [|;&$`] and reaches Runtime.exec; sanitize input") )
+| report

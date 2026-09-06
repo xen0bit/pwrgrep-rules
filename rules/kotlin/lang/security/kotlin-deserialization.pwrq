@@ -1,0 +1,13 @@
+# rules: kotlin-deserialization
+# languages: kotlin
+# fixture: kotlin/CWE-502b.kt
+# from: CWE-502 Deserialization of Untrusted Data
+#
+# ObjectInputStream.readObject on request data allows arbitrary object creation.
+
+["$R.getParameter($K)", "$R.getHeader($K)", "$R.getQueryString()", "intent.getStringExtra($K)", "intent.getSerializableExtra($K)"] as $src
+| ["ObjectInputStream($IN).readObject()", "ObjectInputStream($IN).readUnshared()"] as $sinks
+| scan_ast("*.kt"; $src + $sinks) as $all
+| ( $all | of($sinks) | focus("IN") | reaching($all | of($src); []) )
+| finding("kotlin-deserialization"; "Insecure deserialization: $IN from request reaches ObjectInputStream")
+| report

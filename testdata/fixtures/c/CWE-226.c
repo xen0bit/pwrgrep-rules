@@ -22,3 +22,13 @@ void reuse(unsigned char *key, size_t n)
     /* ok: insecure-use-memset */
     memset_s(key, n, 0, n);
 }
+void wipe2(char *buf, size_t len) {
+    /* ruleid: insecure-use-memset */
+    memset(buf, 0, len);
+    /* ruleid: insecure-use-memset */
+    memset(buf, 0, 32);
+}
+void safe3(char *buf) {
+    /* ok: insecure-use-memset */
+    sodium_memzero(buf, 32);
+}

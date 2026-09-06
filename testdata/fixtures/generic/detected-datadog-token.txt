@@ -1,0 +1,15 @@
+# CWE-798: Datadog token hardcoded.
+# ruleid: detected-datadog-token
+datadog_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9
+# ruleid: detected-datadog-token
+datadog_Z9Y8X7W6V5U4T3S2R1Q0P9O8N7M6L5K4J3H2G1F
+# ok: detected-datadog-token
+datadog_example
+# ok: detected-datadog-token
+datadog_test123
+# ruleid: detected-datadog-token
+datadog_Q7x9KpL2mN4vB8wZ1cD5eF6gH3jK0X2yZ4
+# ruleid: detected-datadog-token
+datadog_RtY8UiO3pA2sD4fG6hJ9kL1qW5eZ7B0
+# ok: detected-datadog-token
+datadog_aaaaaaaaaaaaaaaaaaaa

@@ -1,0 +1,13 @@
+# rules: dockerfile-user-root
+# languages: dockerfile
+# fixture: dockerfile/CWE-user-root.dockerfile
+# from: dockerfile/security/last-user-is-root.yaml
+
+. as $root
+| ( ($root | scan_regex(["Dockerfile*","*.dockerfile"]; [
+      "USER\\s+root"
+    ])) as $all
+    | ( $all | of(["USER\\s+root"])
+        | finding("dockerfile-user-root";
+            "USER root is insecure — container runs as root") ) )
+| report

@@ -1,0 +1,11 @@
+# rules: go-code-injection
+# languages: go
+# fixture: go/CWE-94.go
+# from: CWE-94 Code Injection via templates
+
+["r.URL.Query().Get($$$_)", "$R.URL.Query().Get($$$_)", "$R.FormValue($$$_)", "$R.PostFormValue($$$_)"] as $src
+| ["template.New($$$_).Parse($CODE)"] as $sink
+| scan_ast("*.go"; $src + $sink) as $all
+| ($all | of($sink) | focus("CODE") | reaching($all | of($src); []))
+| finding("go-code-injection"; "untrusted input reaches template Parse; attacker controls template code")
+| report

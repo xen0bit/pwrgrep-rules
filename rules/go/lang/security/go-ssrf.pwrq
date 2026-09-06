@@ -1,0 +1,14 @@
+# rules: go-ssrf
+# languages: go
+# fixture: go/CWE-918-2.go
+# from: CWE-918 Server-Side Request Forgery
+
+["r.URL.Query().Get($_)", "$R.URL.Query().Get($_)", "$R.FormValue($_)", "$R.Header.Get($_)", "$R.PostFormValue($_)"] as $outside
+| ["http.Get($U)", "http.Post($U, $$$_)", "http.NewRequest($_, $U, $$$_)", "http.NewRequestWithContext($_, $_, $U, $$$_)", "$C.Get($U)"] as $sinks
+| scan_ast("*.go"; $outside + $sinks) as $all
+| ( $all | of($sinks) | focus("U") | reaching($all | of($outside); []) )
+| finding("go-ssrf";
+        "the destination of this request is a value the caller chose, so it can "
+        + "be pointed at the metadata service or anything else this host can "
+        + "reach; check it against the hosts you meant to allow")
+| report

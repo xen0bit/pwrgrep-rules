@@ -1,0 +1,17 @@
+# CWE-798: Stripe API key — sk_live_... live secret key.
+# sk_live_... is a live Stripe key that can move money. The rule flags
+# that prefix; ok is sk_test or bare prefix without entropy.
+# ruleid: detected-stripe-api-key
+sk_live_xf2fh0Hu3LqXlqqUg2DEWhEz
+# ruleid: detected-stripe-api-key
+stripe_key=sk_live_1234567890abcdef12345678
+# ok: detected-stripe-api-key
+sk_live_
+# ok: detected-stripe-api-key
+sk_test_123
+# ruleid: detected-stripe-api-key
+sk_live_CCCCCCCCCCCCCCCCCCCCCCCC
+# ruleid: detected-stripe-api-key
+sk_live_DDDDDDDDDDDDDDDDDDDDDDDD
+# ok: detected-stripe-api-key
+sk_test_examplePlaceholderNotLiveKey1234567890

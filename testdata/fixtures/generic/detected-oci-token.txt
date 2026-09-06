@@ -1,0 +1,15 @@
+# CWE-798: OCI token hardcoded.
+# ruleid: detected-oci-token
+ocid1.a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9tenancy
+# ruleid: detected-oci-token
+ocid1.Z9Y8X7W6V5U4T3S2R1Q0P9O8N7M6L5K4J3H2G1Fabc
+# ok: detected-oci-token
+ocid1.example
+# ok: detected-oci-token
+ocid1_test
+# ruleid: detected-oci-token
+ocid1.Q7x9KpL2mN4vB8wZ1cD5eF6gH3jK0X2yZ4resource
+# ruleid: detected-oci-token
+ocid1.RtY8UiO3pA2sD4fG6hJ9kL1qW5eZ7B0instance
+# ok: detected-oci-token
+ocid1.aaaaaaaaaaaaaaaaaaaa

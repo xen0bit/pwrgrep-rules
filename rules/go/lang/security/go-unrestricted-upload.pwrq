@@ -1,0 +1,17 @@
+# rules: go-unrestricted-upload
+# languages: go
+# fixture: go/CWE-434.go
+# from: CWE-434 (Unrestricted Upload of File with Dangerous Type)
+#
+# A filename from `r.FormFile` that reaches `ioutil.WriteFile`, `os.Create`
+# or `os.WriteFile` without an extension whitelist lets the caller write
+# anywhere.
+
+["$R.FormFile($X)", "$R.FormFile($$$_)", "r.FormFile($$$_)", "r.FormFile($X)"] as $sources
+| ["ioutil.WriteFile($P, $$$_)", "os.WriteFile($P, $$$_)", "os.Create($P)", "os.OpenFile($P, $$$_)", "io.Copy($DST, $SRC)"] as $sinks
+| scan_ast("*.go"; $sources + $sinks) as $all
+| ($all | of($sinks) | focus("P") | reaching($all | of($sources); []))
+| finding("go-unrestricted-upload";
+    "unrestricted upload: filename from FormFile reaches file write without "
+    + "extension check — validate extension and path")
+| report

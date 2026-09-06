@@ -1,3 +1,7 @@
+// CWE-772: Stream not closed — handle stays open until GC.
+// new FileStream without using/Dispose leaks file handles. The rule
+// flags constructions not in using or disposed; fix with using or
+// explicit Dispose.
 using System.IO;
 
 namespace Fixture {

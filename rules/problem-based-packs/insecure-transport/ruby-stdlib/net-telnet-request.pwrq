@@ -1,4 +1,5 @@
 # rules: net-telnet-request
+# fixture: problem-based-packs/ruby-net-telnet-request.rb
 # languages: ruby
 # from: problem-based-packs/insecure-transport/ruby-stdlib/net-telnet-request.yaml
 

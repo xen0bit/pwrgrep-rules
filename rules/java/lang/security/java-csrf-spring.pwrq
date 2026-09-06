@@ -1,0 +1,22 @@
+# rules: java-csrf-spring
+# languages: java
+# fixture: java/CWE-352.java
+# from: CWE-352 Cross-Site Request Forgery
+#
+# Spring Security CSRF protection is disabled when http.csrf().disable() or
+# csrf().disable() is called. That allows POSTs from an attacker's origin
+# using the victim's session. The rule flags any call that disables CSRF;
+# safe configs leave CSRF enabled or configure it explicitly.
+
+. as $root
+| ( ($root | scan_ast(["*.java"]; [
+      "$OBJ.csrf($$$_).disable($$$_)",
+      "$OBJ.csrf().disable()",
+      "csrf().disable()",
+      "http.csrf().disable()",
+      "httpSecurity.csrf().disable()"
+    ])) as $all
+    | ( $all | of(["$OBJ.csrf($$$_).disable($$$_)","$OBJ.csrf().disable()","csrf().disable()","http.csrf().disable()","httpSecurity.csrf().disable()"])
+        | finding("java-csrf-spring";
+            "CSRF protection is disabled via csrf().disable(); remove the call to keep protection enabled") ) )
+| report

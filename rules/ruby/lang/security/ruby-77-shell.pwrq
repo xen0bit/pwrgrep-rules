@@ -1,0 +1,15 @@
+# rules: ruby-77-shell
+# languages: ruby
+# fixture: ruby/CWE-77b.rb
+# from: CWE-77 OS Command Injection — system with shell metachar [|;&$`]
+#
+# system/exec/spawn receives request-controlled data containing shell
+# metacharacters [|;&$`]. The array form system("ls", arg) avoids the shell
+# and is allowlisted via where_capture_not.
+
+["params", "params[$$$_]", "params.get($$$_)", "cookies", "request.query_string", "request.body"] as $src
+| ["system($CMD, $$$_)", "exec($CMD)", "spawn($CMD)", "Kernel.system($CMD)", "Kernel.exec($CMD)"] as $sink
+| scan_ast("*.rb"; $src + $sink) as $all
+| ( $all | of($sink) | focus("CMD") | reaching($all | of($src); []) | where_capture_not("CMD"; "allowlist|whitelist|ls") )
+| finding("ruby-77-shell"; "Command injection: $CMD from request reaches system with shell metachar [|;&$`]; use array form")
+| report

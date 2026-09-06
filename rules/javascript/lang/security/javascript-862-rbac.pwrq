@@ -1,0 +1,38 @@
+# rules: javascript-862-rbac
+# languages: javascript
+# fixture: javascript/CWE-862.js
+# from: CWE-862 (Missing Authorization)
+#
+# The route that authenticates and then checks nothing else. Express middleware
+# is a chain, and `authenticate` establishes who the caller is; it does not say
+# they may do this, so `/admin` behind nothing but a session is reachable by
+# every account that can log in.
+#
+# The authentication middleware is required rather than forbidden, and that is
+# the whole difference between this rule and javascript-missing-auth. A route
+# with no middleware at all is that rule's finding, not this one: reporting
+# both on one route said the same thing twice under two ids.
+#
+# The role check is asked of the registration's text rather than of a pattern,
+# because a chain is any number of middlewares long and the position of the one
+# that checks a role is not fixed. That is a weaker reading than a pattern -
+# a route that mentions `requireRole` in a comment is not reported - and it is
+# the direction that costs findings rather than inventing them.
+
+["app.get($P, authenticate, $$$_)", "app.post($P, authenticate, $$$_)",
+ "app.put($P, authenticate, $$$_)", "app.delete($P, authenticate, $$$_)",
+ "app.patch($P, authenticate, $$$_)",
+ "app.get($P, authMiddleware, $$$_)", "app.post($P, authMiddleware, $$$_)",
+ "app.put($P, authMiddleware, $$$_)", "app.delete($P, authMiddleware, $$$_)",
+ "app.get($P, requireAuth, $$$_)", "app.post($P, requireAuth, $$$_)",
+ "app.get($P, isAuthenticated, $$$_)", "app.post($P, isAuthenticated, $$$_)",
+ "router.get($P, authenticate, $$$_)", "router.post($P, authenticate, $$$_)",
+ "router.get($P, authMiddleware, $$$_)", "router.post($P, authMiddleware, $$$_)",
+ "router.get($P, requireAuth, $$$_)", "router.post($P, requireAuth, $$$_)"] as $authenticated
+| scan_ast("*.js"; $authenticated) as $all
+| ( $all | of($authenticated)
+    | where_text_not("requireRole|hasRole|checkRole|checkPermission|hasPermission|authorize") )
+| finding("javascript-862-rbac";
+    "this authenticates the caller and then checks no role, so every account "
+    + "that can log in can reach it; add a role or permission middleware")
+| report

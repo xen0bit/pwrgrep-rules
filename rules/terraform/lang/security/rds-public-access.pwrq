@@ -1,5 +1,6 @@
 # rules: rds-public-access
 # languages: hcl
+# fixture: terraform/rds-public-access.tf
 # from: terraform/lang/security/rds-public-access.yaml
 
 . as $root

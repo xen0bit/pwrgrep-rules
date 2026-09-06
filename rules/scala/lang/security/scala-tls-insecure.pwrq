@@ -1,0 +1,10 @@
+# rules: scala-tls-insecure
+# languages: scala
+# fixture: scala/CWE-295.scala
+# from: CWE-295 Improper Certificate Validation
+
+["SSLContext.getInstance($ALGO)"] as $calls
+| scan_ast("*.scala"; $calls) as $all
+| ($all | of($calls) | where_capture("ALGO"; "(?i)\"SSL\"|\"TLS\"|\"TLSv1\""))
+| finding("scala-tls-insecure"; "TLS version $ALGO is insecure; use TLSv1.2 or TLSv1.3")
+| report

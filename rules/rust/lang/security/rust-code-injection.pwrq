@@ -1,0 +1,12 @@
+# rules: rust-code-injection
+# languages: rust
+# fixture: rust/CWE-94.rs
+# from: CWE-94 Code Injection
+
+["std::process::Command::new($CMD)", "Command::new($CMD)"] as $sinks
+| scan_ast("*.rs"; $sinks) as $all
+| ($all | of($sinks) | where_capture_not("CMD"; "^\".*\"$") | finding("rust-code-injection";
+        "this evaluates a value the caller chose as code, which is the whole of "
+        + "the language and not the part you meant; look the value up in a "
+        + "map of the things it is allowed to be"))
+| report

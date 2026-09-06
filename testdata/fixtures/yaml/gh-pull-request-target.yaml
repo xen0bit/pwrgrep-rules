@@ -1,0 +1,62 @@
+# CWE-918: pull_request_target checkout of PR head is code injection.
+# The target event runs in base context but checking out the PR head
+# executes untrusted code with write permissions. The rule flags that
+# combination; fix by not checking out head SHA or using pull_request.
+name: bad
+on:
+# ruleid: pull-request-target-code-checkout
+  pull_request_target:
+    types: [opened]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "actions/checkout@v2"
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+---
+name: bad2
+on:
+# ruleid: pull-request-target-code-checkout
+  pull_request_target:
+    types: [opened]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "actions/checkout@v2"
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+---
+name: good1
+# ok: pull-request-target-code-checkout
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29"
+        with:
+          ref: ${{ github.sha }}
+---
+name: good2
+# ok: pull-request-target-code-checkout
+on: pull_request
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "actions/checkout@v2"
+        with:
+          ref: ${{ github.sha }}
+
+---
+# Extra: workflow that triggers on push (no pull_request_target) is secure.
+# ok: pull-request-target-code-checkout
+name: ok_extra
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2

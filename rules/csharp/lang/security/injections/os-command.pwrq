@@ -1,5 +1,6 @@
 # rules: os-command-injection
 # languages: c_sharp
+# fixture: csharp/CWE-78-injection.cs
 # from: csharp/lang/security/injections/os-command.yaml
 
 . as $root
@@ -12,13 +13,14 @@
       "FileName = $ARG;\n$$$_",
       "Process $PROC = new Process()\n{\n  StartInfo = new ProcessStartInfo()\n  {\n    $$$_\n  }\n};\n$$$_",
       "Process $PROC = new Process();\n$$$_",
+      "Process.Start($ARG);",
       "Process.Start($ARG, $$$_);",
       "Process.Start($PSINFO);",
       "ProcessStartInfo $PSINFO = new ProcessStartInfo()\n{\n  $$$_\n};\n$$$_",
-      "public $T $F($$$_, $ARG, $$$_)\n{\n  $$$_\n}",
+      "public $T $F($$$_, string $ARG, $$$_) { $$$BODY }",
       "using System.Diagnostics;\n$$$_"
     ])) as $all
-    | ( ($all | of(["Process.Start($ARG, $$$_);"])
+    | ( ($all | of(["Process.Start($ARG);","Process.Start($ARG, $$$_);"])
           | focus("ARG"))
           + (($all
           | in_files_with($all | of(["$PROC.StartInfo.FileName = $ARG;\n$$$_"])))
@@ -35,7 +37,7 @@
           | at_same_place(($all | of(["$PROC.Start();"])))
           | in_files_with($all | of(["Process $PROC = new Process()\n{\n  StartInfo = new ProcessStartInfo()\n  {\n    $$$_\n  }\n};\n$$$_"])))
           | in_files_with($all | of(["using System.Diagnostics;\n$$$_"]))
-          | within($all | of(["public $T $F($$$_, $ARG, $$$_)\n{\n  $$$_\n}"]))
+          | within($all | of(["public $T $F($$$_, string $ARG, $$$_) { $$$BODY }"]))
         | finding("os-command-injection";
             "The software constructs all or part of an OS command using externally-influenced input from an upstream component, but it does not neutralize or incorrectly neutralizes special elements that could modify the intended OS command when it is sent to a downstream component.") ) )
 | report

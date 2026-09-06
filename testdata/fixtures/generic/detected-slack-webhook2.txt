@@ -1,0 +1,15 @@
+# CWE-798: Slack webhook.
+# ruleid: detected-slack-webhook2
+https://hooks.slack.com/services/T12345678/B87654321/AbCdEfGhIjKlMnOpQrStUvWx123456
+# ruleid: detected-slack-webhook2
+https://hooks.slack.com/services/TABCDEFGH/BHGFEDCBA/Z9Y8X7W6V5U4T3S2R1Q0P9O8N7M6L5K4
+# ok: detected-slack-webhook2
+https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXXXX
+# ok: detected-slack-webhook2
+https://example.com/not-a-webhook
+# ruleid: detected-slack-webhook2
+https://hooks.slack.com/services/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Nm1234567890AB
+# ruleid: detected-slack-webhook2
+https://hooks.slack.com/services/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Kl1234567890CD
+# ok: detected-slack-webhook2
+https://example.com/not-a-slack-webhook-placeholder

@@ -1,0 +1,13 @@
+# rules: java-sensitive-log
+# languages: java
+# fixture: java/CWE-532-2.java
+# from: CWE-532 Insertion of Sensitive Information into Log File
+
+["logger.info($MSG)", "logger.debug($MSG)", "logger.error($MSG)", "System.out.println($MSG)", "System.out.print($MSG)"] as $sinks
+| "(?i)password|passwd|pwd|secret|api_?key|token" as $names
+| scan_ast("*.java"; $sinks) as $all
+| ($all | of($sinks) | where_capture("MSG"; $names))
+| finding("java-sensitive-log";
+    "sensitive data is written to the log; it will be in log files and "
+    + "shipped to any log collector — redact it")
+| report

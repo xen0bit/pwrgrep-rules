@@ -1,0 +1,32 @@
+# rules: csharp-ssrf
+# languages: c_sharp
+# fixture: csharp/CWE-918.cs
+# from: CWE-918 (Server-Side Request Forgery)
+
+["$T $V = $S;"] as $assigned
+| ["public $T $M($$$_, string $P, $$$_) { $$$_ }",
+   "public $T $M(string $P) { $$$_ }"] as $bound
+| ["using Microsoft.AspNetCore.Mvc;", "using System.Web.Mvc;",
+   "using System.Web.Http;", "using Microsoft.AspNetCore.Components;"] as $mvcImports
+| ["class $C : $B { $$$_ }"] as $classes
+| ["$X.GetAsync($URL, $$$_);", "$X.GetAsync($URL);",
+   "$X.GetStringAsync($URL);", "$X.GetStringAsync($URL, $$$_);",
+   "$X.GetStreamAsync($URL, $$$_);", "$X.GetStreamAsync($URL);",
+   "await $X.GetAsync($URL, $$$_);", "await $X.GetAsync($URL);",
+   "await $X.GetStringAsync($URL);", "await $X.GetStringAsync($URL, $$$_);",
+   "await $X.GetStreamAsync($URL);", "await $X.GetStreamAsync($URL, $$$_);",
+   "$T $V = await $X.GetAsync($URL, $$$_);", "$T $V = await $X.GetAsync($URL);",
+   "$T $V = await $X.GetStringAsync($URL);", "$T $V = await $X.GetStringAsync($URL, $$$_);",
+   "WebRequest.Create($URL);", "WebRequest.CreateHttp($URL);",
+   "WebRequest.Create($URL, $$$_);"] as $sinks
+| "Request\\s*\\.\\s*(Query|Form|Headers|Cookies|QueryString|Params|RouteValues)\\b" as $fromRequest
+| scan_ast("*.cs"; $assigned + $bound + $mvcImports + $classes + $sinks) as $all
+| ( ($all | of($assigned) | where_capture("S"; $fromRequest) | focus("S"))
+    + ($all | of($bound) | focus("P")
+       | in_files_with( ($all | of($mvcImports))
+                        + ($all | of($classes) | where_capture("B"; "Controller")) )) ) as $untrusted
+| ($all | of($sinks) | focus("URL"))
+| reaching($untrusted; [])
+| finding("csharp-ssrf";
+    "$URL came from the request, and this fetches it from inside the network where internal hosts are reachable")
+| report

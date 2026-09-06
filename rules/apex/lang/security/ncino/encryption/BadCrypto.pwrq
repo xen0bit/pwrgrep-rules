@@ -1,4 +1,5 @@
 # rules: bad-crypto
+# fixture: apex/CWE-327.cls
 # from: apex/lang/security/ncino/encryption/BadCrypto.yaml
 
 . as $root

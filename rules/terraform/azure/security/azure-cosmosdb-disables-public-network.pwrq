@@ -1,5 +1,6 @@
 # rules: azure-cosmosdb-disables-public-network
 # languages: hcl
+# fixture: terraform/azure-cosmosdb-disables-public-network.tf
 # from: terraform/azure/security/azure-cosmosdb-disables-public-network.yaml
 
 . as $root

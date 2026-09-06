@@ -1,0 +1,15 @@
+# CWE-798: GitLab token.
+# ruleid: detected-gitlab-token
+glpat-20_char_token_abc123XYZ7890abcdef123456
+# ruleid: detected-gitlab-token
+glpat-AnotherHighEntropyToken1234567890ABCD
+# ok: detected-gitlab-token
+glpat-example
+# ok: detected-gitlab-token
+glpat-changeme
+# ruleid: detected-gitlab-token
+glpat-QwErTyUiOpAsDfGhJkLzXcVbNm1234567890ABCD
+# ruleid: detected-gitlab-token
+glpat-ZxCvBnMqWeRtYuIoPaSdFgHjKl1234567890ABCD12
+# ok: detected-gitlab-token
+glpat_aaaaaaaaaaaaaaaaaaaa

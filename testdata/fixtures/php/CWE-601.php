@@ -13,9 +13,15 @@ function bounce()
     header('Location: ' . $_SERVER['REQUEST_URI']);
     /* ruleid: redirect-to-request-uri */
     header('Location: ' . $_SERVER['REQUEST_URI'] . '?done=1');
+    /* ruleid: redirect-to-request-uri */
+    header('Location: ' . $_SERVER['REQUEST_URI'] . '#frag');
+    /* ruleid: redirect-to-request-uri */
+    header('Location: ' . $_SERVER['REQUEST_URI'] . '&x=1');
 
     /* ok: redirect-to-request-uri */
     header('Location: /dashboard');
     /* ok: redirect-to-request-uri */
     header('Location: https://example.com/dashboard');
+    /* ok: redirect-to-request-uri */
+    header('Location: /safe/path');
 }

@@ -43,3 +43,19 @@ final class Bridge {
                                  in: .page) { _ in }
     }
 }
+    func extraFrag(_ url: URL) {
+        let frag = url.fragment ?? ""
+        // ruleid: swift-webview-evaluates-untrusted-script
+        view.evaluateJavaScript("handle('\(frag)')")
+    }
+
+    func extraPaste() {
+        let clip = UIPasteboard.general.string ?? ""
+        // ruleid: swift-webview-evaluates-untrusted-script
+        view.evaluateJavaScript("paste('" + clip + "')")
+    }
+
+    func safeLiteral() {
+        // ok: swift-webview-evaluates-untrusted-script
+        view.evaluateJavaScript("console.log('fixed')")
+    }

@@ -4,13 +4,13 @@
 
 . as $root
 | ( ($root | scan_ast(["*.cls"]; [
-      "$M($$$_,String $P,$$$_) { $$$_ }",
+      "class $C { $M($$$_, String $P, $$$_) { $$$BODY } }",
       "Database.query($PWRQDEEP1)",
       "String.escapeSingleQuotes($P)"
     ])) as $all
     | ( (($all | of(["Database.query($PWRQDEEP1)"])
           | where_capture_ast("PWRQDEEP1"; "$P")))
-          | reaching((($all | of(["$M($$$_,String $P,$$$_) { $$$_ }"])
+          | reaching((($all | of(["class $C { $M($$$_, String $P, $$$_) { $$$BODY } }"])
           | focus("P")));
               ((($all | of(["String.escapeSingleQuotes($P)"]))
           + ($all | of(["Database.query($PWRQDEEP1)"])

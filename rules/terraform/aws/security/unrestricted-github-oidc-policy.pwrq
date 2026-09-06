@@ -1,0 +1,32 @@
+# rules: unrestricted-github-oidc-policy
+# languages: hcl
+# fixture: terraform/unrestricted-github-oidc-policy.tf
+# from: terraform/aws/security/unrestricted-github-oidc-policy.yaml
+#
+# A trust policy that names GitHub's OIDC provider and then constrains nothing.
+# `token.actions.githubusercontent.com` as a federated principal says "a GitHub
+# Actions job may assume this role"; without a condition on the `:sub` claim it
+# does not say whose job, so any workflow in any repository on GitHub can
+# assume it and read whatever it grants.
+#
+# The condition is the fix and it is what the rule looks for: a
+# `token.actions.githubusercontent.com:sub` test that pins the repository, and
+# usually the branch or environment too - `repo:my-org/my-repo:ref:refs/heads/main`.
+# An `:aud` condition alone is not enough; every GitHub token carries the same
+# audience.
+#
+# The document is read as text rather than as a pattern because the condition
+# sits several blocks down inside it and HCL writes each of those blocks the
+# same way. That is the weaker reading - a `:sub` in a comment would satisfy it
+# - and it is the direction that costs findings rather than inventing them.
+
+["data \"aws_iam_policy_document\" $POLICY {\n  $$$_\n}"] as $documents
+| scan_ast("*.tf"; $documents) as $all
+| ( $all | of($documents)
+    | where_text("token\\.actions\\.githubusercontent\\.com")
+    | where_text_not("token\\.actions\\.githubusercontent\\.com:sub") )
+| finding("unrestricted-github-oidc-policy";
+    "this trusts GitHub's OIDC provider and constrains no `:sub` claim, so a "
+    + "workflow in any repository on GitHub can assume it; add a condition "
+    + "pinning `repo:<org>/<repo>`")
+| report

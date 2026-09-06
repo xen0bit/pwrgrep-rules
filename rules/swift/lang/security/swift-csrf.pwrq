@@ -1,0 +1,17 @@
+# rules: swift-csrf
+# languages: swift
+# fixture: swift/CWE-352.swift
+# from: CWE-352 Cross-Site Request Forgery
+#
+# SwiftUI Form that triggers a state-changing request without a CSRF
+# token can be forged.
+
+. as $root
+| ( ($root | scan_regex(["*.swift"]; [
+      "Form\\s*\\{[\\s\\S]*?\\}"
+    ])) as $all
+    | ( $all | of(["Form\\s*\\{[\\s\\S]*?\\}"])
+          | where_text_not("csrfToken|CSRFToken|csrf_token|X-CSRF")
+        | finding("swift-csrf";
+            "SwiftUI Form without CSRF token; add csrfToken to prevent forgery") ) )
+| report

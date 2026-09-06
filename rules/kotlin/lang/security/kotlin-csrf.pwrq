@@ -1,0 +1,29 @@
+# rules: kotlin-csrf
+# languages: kotlin
+# fixture: kotlin/CWE-352.kt
+# from: CWE-352 (Cross-Site Request Forgery)
+#
+# Spring POST mappings without CSRF token validation can be forged.
+
+. as $root
+| ( ($root | scan_ast(["*.kt"]; [
+      "@PostMapping($$$_) fun $F($$$_) { $BODY }",
+      "@PutMapping($$$_) fun $F($$$_) { $BODY }",
+      "@DeleteMapping($$$_) fun $F($$$_) { $BODY }",
+      "@PatchMapping($$$_) fun $F($$$_) { $BODY }",
+      "@RequestMapping($$$_) fun $F($$$_) { $BODY }",
+      "CsrfToken",
+      "csrfToken",
+      "CsrfTokenRepository",
+      "verifyCsrf($$$_)",
+      "_csrf"
+    ])) as $all
+    | ( $all | of(["@PostMapping($$$_) fun $F($$$_) { $BODY }","@PutMapping($$$_) fun $F($$$_) { $BODY }","@DeleteMapping($$$_) fun $F($$$_) { $BODY }","@PatchMapping($$$_) fun $F($$$_) { $BODY }","@RequestMapping($$$_) fun $F($$$_) { $BODY }"])
+          | outside($all | of(["@PostMapping($$$_) fun $F($$$_) { $BODY }"]) | where_capture("BODY"; "CsrfToken|csrfToken|CsrfTokenRepository|verifyCsrf|_csrf"))
+          | outside($all | of(["@PutMapping($$$_) fun $F($$$_) { $BODY }"]) | where_capture("BODY"; "CsrfToken|csrfToken|CsrfTokenRepository|verifyCsrf|_csrf"))
+          | outside($all | of(["@DeleteMapping($$$_) fun $F($$$_) { $BODY }"]) | where_capture("BODY"; "CsrfToken|csrfToken|CsrfTokenRepository|verifyCsrf|_csrf"))
+          | outside($all | of(["@PatchMapping($$$_) fun $F($$$_) { $BODY }"]) | where_capture("BODY"; "CsrfToken|csrfToken|CsrfTokenRepository|verifyCsrf|_csrf"))
+          | outside($all | of(["@RequestMapping($$$_) fun $F($$$_) { $BODY }"]) | where_capture("BODY"; "CsrfToken|csrfToken|CsrfTokenRepository|verifyCsrf|_csrf"))
+        | finding("kotlin-csrf";
+            "POST handler $F lacks CSRF token check; add CsrfToken validation to prevent forgery") ) )
+| report

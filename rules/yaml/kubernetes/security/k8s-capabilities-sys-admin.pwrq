@@ -1,0 +1,11 @@
+# rules: k8s-capabilities-sys-admin
+# languages: yaml
+# fixture: yaml/k8s-capabilities-sys-admin.yaml
+# from: yaml/kubernetes/security/privileged-container.yaml
+
+. as $root
+| ($root | scan_ast(["*.yaml","*.yml"]; [
+      "SYS_ADMIN"
+    ])) as $all
+| ($all | of(["SYS_ADMIN"]) | finding("k8s-capabilities-sys-admin"; "SYS_ADMIN capability is insecure — grants host admin"))
+| report

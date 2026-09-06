@@ -1,0 +1,27 @@
+# CWE-250: Compose service runs privileged — full host access.
+version: '3'
+services:
+  bad1:
+    image: nginx
+# ruleid: privileged-service
+    privileged: true
+  bad2:
+    image: nginx
+# ruleid: privileged-service
+    privileged: true
+  bad3:
+    image: nginx
+# ruleid: privileged-service
+    privileged: true
+  good1:
+    image: nginx
+# ok: privileged-service
+    privileged: false
+  good2:
+    image: nginx
+# ok: privileged-service
+    privileged: false
+  good3:
+    image: nginx
+# ok: privileged-service
+    privileged: false

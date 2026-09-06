@@ -10,7 +10,7 @@
     | ( $all | of(["$ARTIFACTS {\n  $$$_\n  type = \"$TYPE\"\n  encryption_disabled = true\n  $$$_\n}"])
           | within($all | of(["resource \"aws_codebuild_project\" \"$ANYTHING\" {\n  $$$_\n}"]))
           | where_capture("ARTIFACTS"; "^(artifacts|secondary_artifacts)$")
-          | where_capture("TYPE"; "^(CODEPIPELINE|S3)$")
+          | where_capture("TYPE"; "^\\s*(CODEPIPELINE|S3)\\s*$")
         | finding("aws-codebuild-artifacts-unencrypted";
             "The CodeBuild project artifacts are unencrypted.") ) )
 | report

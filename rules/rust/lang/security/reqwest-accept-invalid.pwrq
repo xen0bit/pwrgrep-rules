@@ -1,13 +1,16 @@
 # rules: reqwest-accept-invalid
 # languages: rust
+# fixture: rust/CWE-295.rs
 # from: rust/lang/security/reqwest-accept-invalid.yml
 
 . as $root
 | ( ($root | scan_ast(["*.rs"]; [
+      "reqwest::Client::builder().danger_accept_invalid_certs(true)",
       "reqwest::Client::builder(). $$$_ .danger_accept_invalid_certs(true)",
+      "reqwest::Client::builder().danger_accept_invalid_hostnames(true)",
       "reqwest::Client::builder(). $$$_ .danger_accept_invalid_hostnames(true)"
     ])) as $all
-    | ( $all | of(["reqwest::Client::builder(). $$$_ .danger_accept_invalid_hostnames(true)","reqwest::Client::builder(). $$$_ .danger_accept_invalid_certs(true)"])
+    | ( $all | of(["reqwest::Client::builder().danger_accept_invalid_certs(true)","reqwest::Client::builder(). $$$_ .danger_accept_invalid_certs(true)","reqwest::Client::builder().danger_accept_invalid_hostnames(true)","reqwest::Client::builder(). $$$_ .danger_accept_invalid_hostnames(true)"])
         | finding("reqwest-accept-invalid";
             "Dangerously accepting invalid TLS information") ) )
 | report

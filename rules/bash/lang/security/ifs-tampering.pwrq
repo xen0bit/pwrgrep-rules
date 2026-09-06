@@ -1,5 +1,6 @@
 # rules: ifs-tampering
 # languages: bash
+# fixture: bash/CWE-78.sh
 # from: bash/lang/security/ifs-tampering.yaml
 
 . as $root

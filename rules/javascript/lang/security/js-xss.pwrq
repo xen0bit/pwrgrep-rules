@@ -1,0 +1,30 @@
+# rules: js-xss
+# languages: javascript, typescript
+# fixture: javascript/CWE-79.js
+# from: CWE-79 (Cross-site Scripting)
+
+. as $root
+| ( ($root | scan_ast(["*.js","*.ts"]; [
+      "$EL.innerHTML = $X",
+      "$EL.outerHTML = $X",
+      "document.write($X)",
+      "$EL.insertAdjacentHTML($$$_, $X)",
+      "$EL.insertAdjacentHTML($X,$$$_)",
+      "req.query",
+      "req.params",
+      "req.body",
+      "req.headers",
+      "location.search",
+      "location.hash",
+      "new URLSearchParams(location.search).get($$$_)",
+      "$PROP = new URLSearchParams(location.search).get($$$_)\n$$$_"
+    ])) as $all
+  | ($all | of(["$EL.innerHTML = $X","$EL.outerHTML = $X","document.write($X)","$EL.insertAdjacentHTML($$$_, $X)","$EL.insertAdjacentHTML($X,$$$_)"])
+      | focus("X")
+      | reaching(($all | of(["req.query","req.params","req.body","req.headers","location.search","location.hash","new URLSearchParams(location.search).get($$$_)"])
+          + ($all | within($all | of(["$PROP = new URLSearchParams(location.search).get($$$_)\n$$$_"])) | focus("PROP"))
+        ); []))
+  | finding("js-xss";
+      "untrusted input reaches DOM sink and executes as HTML/JS")
+  )
+| report

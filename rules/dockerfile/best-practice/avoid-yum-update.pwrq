@@ -1,8 +1,10 @@
 # rules: avoid-yum-update
+# languages: dockerfile
+# fixture: dockerfile/CWE-yum-update.dockerfile
 # from: dockerfile/best-practice/avoid-yum-update.yaml
 
 . as $root
-| ( ($root | scan_regex(["Dockerfile*"]; [
+| ( ($root | scan_regex(["Dockerfile*","*.dockerfile"]; [
       "yum\\s+update"
     ])) as $all
     | ( $all | of(["yum\\s+update"])

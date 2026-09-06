@@ -1,0 +1,12 @@
+# rules: rust-deserialization
+# languages: rust
+# fixture: rust/CWE-502.rs
+# from: CWE-502 Deserialization
+
+["bincode::deserialize($DATA)", "serde_json::from_str($DATA)", "bincode::deserialize_from($_, $DATA)"] as $sinks
+| scan_ast("*.rs"; $sinks) as $all
+| ($all | of($sinks) | where_capture_not("DATA"; "^\".*\"$") | finding("rust-deserialization";
+        "this rebuilds an object graph from bytes somebody else wrote, which "
+        + "runs whatever the graph names before you can look at it; read a "
+        + "data format instead"))
+| report

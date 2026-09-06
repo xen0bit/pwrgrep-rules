@@ -1,0 +1,12 @@
+# rules: apex-command-injection
+# languages: apex
+# fixture: apex/CWE-78.cls
+# from: CWE-78 (OS Command Injection)
+
+. as $root
+| ( $root | scan_ast(["*.cls"]; ["System.exec($CMD)"]) ) as $all
+| ( $all | of(["System.exec($CMD)"]) | where_capture_not("CMD"; "^['\"].*['\"]$") | finding("apex-command-injection";
+        "this hands a value the caller chose to a shell, so a `;` or a backtick "
+        + "in it starts a second command; pass the program and its arguments "
+        + "separately instead") )
+| report

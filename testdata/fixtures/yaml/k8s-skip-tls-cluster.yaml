@@ -1,0 +1,62 @@
+# CWE-295: Kubernetes cluster with TLS verification disabled.
+# The insecure-skip-tls-verify flag disables verification for the API
+# server, enabling MITM. The rule flags clusters with that set true;
+# fix with false or omit the field (omission is secure).
+apiVersion: v1
+kind: Config
+clusters:
+- cluster:
+# ruleid: skip-tls-verify-cluster
+    insecure-skip-tls-verify: true
+    server: https://example.com
+  name: bad1
+- cluster:
+# ruleid: skip-tls-verify-cluster
+    insecure-skip-tls-verify: true
+    server: https://example2.com
+  name: bad2
+- cluster:
+# ok: skip-tls-verify-cluster
+    insecure-skip-tls-verify: false
+    server: https://good.com
+  name: good1
+- cluster:
+    server: https://good2.com
+  name: good2
+
+---
+# Extra: cluster without insecure-skip-tls-verify (omission secure).
+# ok: skip-tls-verify-cluster
+apiVersion: v1
+kind: Config
+clusters:
+- cluster:
+    server: https://ok-example.com
+  name: ok-extra
+---
+apiVersion: v1
+kind: Config
+clusters:
+- cluster:
+# ruleid: skip-tls-verify-cluster
+    insecure-skip-tls-verify: true
+    server: https://bad3.example.com
+  name: bad3
+---
+apiVersion: v1
+kind: Config
+clusters:
+- cluster:
+# ruleid: skip-tls-verify-cluster
+    insecure-skip-tls-verify: true
+    server: https://bad4.example.com
+  name: bad4
+---
+apiVersion: v1
+kind: Config
+clusters:
+- cluster:
+# ok: skip-tls-verify-cluster
+    insecure-skip-tls-verify: false
+    server: https://good3.example.com
+  name: good3

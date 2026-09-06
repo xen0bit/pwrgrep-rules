@@ -1,5 +1,6 @@
 # rules: aws-subnet-has-public-ip-address
 # languages: hcl
+# fixture: terraform/aws-subnet-has-public-ip-address.tf
 # from: terraform/aws/security/aws-subnet-has-public-ip-address.yaml
 
 . as $root

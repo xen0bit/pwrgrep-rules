@@ -1,0 +1,17 @@
+# rules: javascript-input-validation
+# languages: javascript
+# fixture: javascript/CWE-20.js
+# from: CWE-20 (Improper Input Validation)
+#
+# A value from `req.query` that reaches `innerHTML` or `eval` without
+# validation lets an attacker inject script. The rule is `reaching`: a
+# query parameter that flows into a DOM or code sink.
+
+["req.query", "req.query.get($$$_)", "req.params.get($$$_)"] as $sources
+| ["$OBJ.innerHTML = $VAL", "$EL.innerHTML = $VAL", "document.write($VAL)", "eval($CODE)", "new Function($CODE)", "$EL.outerHTML = $VAL"] as $sinks
+| scan_ast("*.js"; $sources + $sinks) as $all
+| ($all | of($sinks) | reaching($all | of($sources); []))
+| finding("javascript-input-validation";
+    "unvalidated input from req.query reaches DOM/code sink; "
+    + "validate against a regex or allow-list before use")
+| report

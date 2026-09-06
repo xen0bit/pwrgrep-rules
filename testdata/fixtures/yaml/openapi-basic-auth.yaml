@@ -1,0 +1,76 @@
+openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+paths: {}
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+# ruleid: use-of-basic-authentication
+      scheme: basic
+---
+openapi: 3.0.0
+info:
+  title: Test2
+  version: 1.0.0
+paths: {}
+components:
+  securitySchemes:
+    basicAuth2:
+      type: http
+# ruleid: use-of-basic-authentication
+      scheme: basic
+---
+openapi: 3.0.0
+info:
+  title: Test3
+  version: 1.0.0
+paths: {}
+components:
+  securitySchemes:
+    basicAuth3:
+      type: http
+# ruleid: use-of-basic-authentication
+      scheme: basic
+---
+openapi: 3.0.0
+info:
+  title: Good1
+  version: 1.0.0
+paths: {}
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+# ok: use-of-basic-authentication
+      scheme: bearer
+---
+openapi: 3.0.0
+info:
+  title: Good2
+  version: 1.0.0
+paths: {}
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+# ok: use-of-basic-authentication
+      name: api_key
+      in: header
+---
+openapi: 3.0.0
+info:
+  title: Good3
+  version: 1.0.0
+paths: {}
+components:
+  securitySchemes:
+    oauth:
+      type: oauth2
+# ok: use-of-basic-authentication
+      flows:
+        authorizationCode:
+          authorizationUrl: https://example.com/oauth/authorize
+          tokenUrl: https://example.com/oauth/token
+          scopes: {}

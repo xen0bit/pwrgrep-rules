@@ -4,3 +4,5 @@
 # - the same pattern in pwrq once swallowed a directory of rules whole.
 /.pwrq/
 /pwrq
+__pycache__/
+*.pyc

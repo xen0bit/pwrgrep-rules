@@ -1,4 +1,5 @@
 # rules: documentbuilderfactory-xxe
+# fixture: clojure/documentbuilderfactory-xxe.clj
 # from: clojure/lang/security/documentbuilderfactory-xxe.yaml
 
 . as $root

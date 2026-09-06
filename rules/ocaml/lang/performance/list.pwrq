@@ -1,5 +1,6 @@
 # rules: ocamllint-length-list-zero, ocamllint-length-more-than-zero
 # languages: ocaml
+# fixture: ocaml/ocamllint-length-list-zero.ml
 # from: ocaml/lang/performance/list.yaml
 
 . as $root

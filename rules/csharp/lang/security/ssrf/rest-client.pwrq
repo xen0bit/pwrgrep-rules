@@ -1,18 +1,18 @@
 # rules: ssrf
 # languages: c_sharp
+# fixture: csharp/rest-client.cs
 # from: csharp/lang/security/ssrf/rest-client.yaml
+#
+# As in http-client: the whole-method shapes match nothing, so the client
+# URL is a hole the method parameter reaches.
 
-. as $root
-| ( ($root | scan_ast(["*.cs"]; [
-      "$T $F($$$_, $X, $$$_)\n{\n$$$_\n$$$_ new RestClient($PWRQDEEP1);\n}",
-      "$T $F($$$_, $X, $$$_)\n{\n$$$_\n$A $B = $PWRQDEEP1;\n$$$_\n$$$_ new RestClient($B);\n}",
-      "using RestSharp;\n$$$_"
-    ])) as $all
-    | ( ($all | of(["$T $F($$$_, $X, $$$_)\n{\n$$$_\n$$$_ new RestClient($PWRQDEEP1);\n}"])
-          | where_capture_ast("PWRQDEEP1"; "$X"))
-          + ($all | of(["$T $F($$$_, $X, $$$_)\n{\n$$$_\n$A $B = $PWRQDEEP1;\n$$$_\n$$$_ new RestClient($B);\n}"])
-          | where_capture_ast("PWRQDEEP1"; "$X"))
-          | in_files_with($all | of(["using RestSharp;\n$$$_"]))
-        | finding("ssrf";
-            "SSRF is an attack vector that abuses an application to interact with the internal/external network or the machine itself.") ) )
+["public $T $M($U $A) { $$$BODY }"] as $methods
+| ["new RestClient($U);", "new RestClient($U, $$$);"] as $sinks
+| ["using RestSharp;"] as $using
+| scan_ast("*.cs"; $methods + $sinks + $using) as $all
+| ( ($all | of($sinks) | focus("U"))
+      | reaching((($all | of($methods) | focus("A"))); ([]))
+      | in_files_with($all | of($using))
+    | finding("ssrf";
+        "SSRF is an attack vector that abuses an application to interact with the internal/external network or the machine itself.") )
 | report

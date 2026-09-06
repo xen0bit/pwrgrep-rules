@@ -1,5 +1,6 @@
 # rules: useless-compare
 # languages: ocaml
+# fixture: ocaml/useless-compare.ml
 # from: ocaml/lang/correctness/useless-compare.yaml
 
 . as $root

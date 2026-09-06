@@ -1,4 +1,5 @@
 # rules: no-bidi-characters
+# fixture: solidity/no-bidi-characters.sol
 # from: solidity/security/no-bidi-characters.yaml
 
 . as $root

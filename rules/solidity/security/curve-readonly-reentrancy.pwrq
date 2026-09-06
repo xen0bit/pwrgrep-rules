@@ -1,4 +1,5 @@
 # rules: curve-readonly-reentrancy
+# fixture: solidity/curve-readonly-reentrancy.sol
 # from: solidity/security/curve-readonly-reentrancy.yaml
 
 . as $root

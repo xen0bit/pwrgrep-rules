@@ -1,4 +1,5 @@
 # rules: nonsensical-command
+# fixture: dockerfile/nonsensical-command.dockerfile
 # from: dockerfile/best-practice/nonsensical-command.yaml
 
 . as $root

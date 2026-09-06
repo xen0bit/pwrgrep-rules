@@ -1,18 +1,24 @@
 # rules: awscdk-bucket-grantpublicaccessmethod
 # languages: typescript
+# fixture: typescript/awscdk-bucket-grantpublicaccessmethod.ts
+#
+# The translated sequences put a `$$$` gap between the construction and the
+# grant, which matches nothing in TypeScript (a gap is not an ellipsis
+# there), so the two statements must stand adjacent. The imports lost their
+# trailing gaps for the same reason.
 # from: typescript/aws-cdk/security/awscdk-bucket-grantpublicaccessmethod.yml
 
 . as $root
 | ( ($root | scan_ast(["*.ts"]; [
-      "const $X = new $Y.Bucket($$$_)\n$$$_\n$X.grantPublicAccess($$$_)",
-      "const $X = new Bucket($$$_)\n$$$_\n$X.grantPublicAccess($$$_)",
-      "import * as $Y from '@aws-cdk/aws-s3'\n$$$_",
-      "import {Bucket} from '@aws-cdk/aws-s3'\n$$$_"
+      "const $X = new $Y.Bucket($$$_)\n$X.grantPublicAccess($$$_)",
+      "const $X = new Bucket($$$_)\n$X.grantPublicAccess($$$_)",
+      "import * as $Y from '@aws-cdk/aws-s3'",
+      "import {Bucket} from '@aws-cdk/aws-s3'"
     ])) as $all
-    | ( ($all | of(["const $X = new Bucket($$$_)\n$$$_\n$X.grantPublicAccess($$$_)"])
-          | in_files_with($all | of(["import {Bucket} from '@aws-cdk/aws-s3'\n$$$_"])))
-          + ($all | of(["const $X = new $Y.Bucket($$$_)\n$$$_\n$X.grantPublicAccess($$$_)"])
-          | in_files_with($all | of(["import * as $Y from '@aws-cdk/aws-s3'\n$$$_"])))
+    | ( ($all | of(["const $X = new Bucket($$$_)\n$X.grantPublicAccess($$$_)"])
+          | in_files_with($all | of(["import {Bucket} from '@aws-cdk/aws-s3'"])))
+          + ($all | of(["const $X = new $Y.Bucket($$$_)\n$X.grantPublicAccess($$$_)"])
+          | in_files_with($all | of(["import * as $Y from '@aws-cdk/aws-s3'"])))
         | finding("awscdk-bucket-grantpublicaccessmethod";
             "Using the GrantPublicAccess method on bucket contruct $X will make the objects in the bucket world accessible.") ) )
 | report

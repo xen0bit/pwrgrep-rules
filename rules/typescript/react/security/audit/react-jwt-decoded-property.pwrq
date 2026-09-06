@@ -1,17 +1,25 @@
 # rules: react-jwt-decoded-property
 # languages: javascript, typescript
+# fixture: typescript/react-jwt-decoded-property.ts
+#
+# The translated file conditions ended in `\n$$$`, which matches nothing in
+# TypeScript (a trailing gap is not an ellipsis there), and the decode was a
+# bare assignment while every program writes `const decoded = ...`. Both are
+# repaired here. The decode half stays a file-level condition: any member
+# access in a file that decodes a JWT is reported, which over-reports code
+# that never touches the token.
 # from: typescript/react/security/audit/react-jwt-decoded-property.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
       "\"jwt-decode\"",
-      "$DECODED = jwt_decode($TOKEN,$$$_);\n$$$_",
+      "$DECODED = jwt_decode($TOKEN,$$$_);", "const $DECODED = jwt_decode($TOKEN,$$$_);",
       "$DECODED.$PROPERTY",
-      "import jwt_decode from \"jwt-decode\";\n$$$_"
+      "import jwt_decode from \"jwt-decode\";"
     ])) as $all
     | ( $all | of(["$DECODED.$PROPERTY"])
-          | in_files_with($all | of(["import jwt_decode from \"jwt-decode\";\n$$$_","\"jwt-decode\""]))
-          | in_files_with($all | of(["$DECODED = jwt_decode($TOKEN,$$$_);\n$$$_"]))
+          | in_files_with($all | of(["import jwt_decode from \"jwt-decode\";","\"jwt-decode\""]))
+          | in_files_with($all | of(["$DECODED = jwt_decode($TOKEN,$$$_);", "const $DECODED = jwt_decode($TOKEN,$$$_);"]))
         | finding("react-jwt-decoded-property";
             "Property decoded from JWT token without verifying and cannot be trustworthy.") ) )
 | report

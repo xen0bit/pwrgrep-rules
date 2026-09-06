@@ -1,12 +1,19 @@
 # rules: react-legacy-component
 # languages: javascript, typescript
+# fixture: typescript/react-legacy-component.ts
 # from: typescript/react/best-practice/react-legacy-component.yaml
+#
+# The method is read inside its class, because a bare `$METHOD($$$_)` is a
+# call and a body written `$$$_` compiles to a statement literally named
+# `$$$` - either spelling on its own matches nothing. A method among others
+# cannot be said: an ellipsis beside a method in a class body is refused, so
+# only single-method classes match and the finding lands on the class line.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "$METHOD($$$_) {\n  $$$_\n}"
+      "class $CLASS {\n  $METHOD($$$_) {\n    $$$BODY\n  }\n}"
     ])) as $all
-    | ( $all | of(["$METHOD($$$_) {\n  $$$_\n}"])
+    | ( $all | of(["class $CLASS {\n  $METHOD($$$_) {\n    $$$BODY\n  }\n}"])
           | where_capture("METHOD"; "^(?:componentWillMount|componentWillReceiveProps|componentWillUpdate)")
         | finding("react-legacy-component";
             "Legacy component lifecycle was detected - $METHOD.") ) )

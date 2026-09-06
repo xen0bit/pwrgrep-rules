@@ -1,5 +1,10 @@
 # rules: nestjs-header-cors-any
 # languages: typescript
+# fixture: typescript/nestjs-header-cors-any.ts
+# The @Header spelling names the header literally: `=~/.../` in a pattern is
+# matched as text rather than as a regular expression, so the translated
+# case-insensitive regex could never match. The body is `$$$BODY` because a
+# body written `$$$` compiles to a statement literally named `$$$`.
 # from: typescript/nestjs/security/audit/nestjs-header-cors-any.yaml
 
 . as $root
@@ -8,9 +13,9 @@
       "$APP.enableCors({origin: '*'})",
       "NestFactory.create($MODULE, {cors: true})",
       "NestFactory.create($MODULE, {cors: {origin: '*'}})",
-      "class $CN {\n    @Header(\"=~/[Aa][Cc][Cc][Ee][Ss][Ss]-[Cc][Oo][Nn][Tt][Rr][Oo][Ll]-[Aa][Ll][Ll][Oo][Ww]-[Oo][Rr][Ii][Gg][Ii][Nn]/\", '*')\n    $FN($$$_) {\n        $$$_\n    }\n}"
+      "class $CN {\n    @Header(\"Access-Control-Allow-Origin\", '*')\n    $FN($$$_) {\n        $$$BODY\n    }\n}"
     ])) as $all
-    | ( $all | of(["class $CN {\n    @Header(\"=~/[Aa][Cc][Cc][Ee][Ss][Ss]-[Cc][Oo][Nn][Tt][Rr][Oo][Ll]-[Aa][Ll][Ll][Oo][Ww]-[Oo][Rr][Ii][Gg][Ii][Nn]/\", '*')\n    $FN($$$_) {\n        $$$_\n    }\n}","NestFactory.create($MODULE, {cors: true})","NestFactory.create($MODULE, {cors: {origin: '*'}})","$APP.enableCors()","$APP.enableCors({origin: '*'})"])
+    | ( $all | of(["class $CN {\n    @Header(\"Access-Control-Allow-Origin\", '*')\n    $FN($$$_) {\n        $$$BODY\n    }\n}","NestFactory.create($MODULE, {cors: true})","NestFactory.create($MODULE, {cors: {origin: '*'}})","$APP.enableCors()","$APP.enableCors({origin: '*'})"])
         | finding("nestjs-header-cors-any";
             "Access-Control-Allow-Origin response header is set to \"*\".") ) )
 | report

@@ -1,11 +1,12 @@
 # rules: not-portable-tmp-string
+# fixture: ocaml/not-portable-tmp-string.ml
 # from: ocaml/lang/portability/slash-tmp.yaml
 
 . as $root
 | ( ($root | scan_regex(["*.ml"]; [
-      "\"=~\\/\\\\\\/tmp\\/\""
+      "\"/tmp/"
     ])) as $all
-    | ( $all | of(["\"=~\\/\\\\\\/tmp\\/\""])
+    | ( $all | of(["\"/tmp/"])
         | finding("not-portable-tmp-string";
             "You should probably use Filename.get_temp_dirname().") ) )
 | report

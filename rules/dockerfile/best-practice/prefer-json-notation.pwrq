@@ -1,4 +1,5 @@
 # rules: prefer-json-notation
+# fixture: dockerfile/prefer-json-notation.dockerfile
 # from: dockerfile/best-practice/prefer-json-notation.yaml
 
 . as $root

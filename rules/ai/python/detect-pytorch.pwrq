@@ -1,5 +1,6 @@
 # rules: detect-pytorch
 # languages: python
+# fixture: ai/python/detect-pytorch.py
 # from: ai/python/detect-pytorch.yaml
 
 . as $root

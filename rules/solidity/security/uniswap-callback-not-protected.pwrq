@@ -1,5 +1,6 @@
 # rules: uniswap-callback-not-protected
 # languages: solidity
+# fixture: solidity/uniswap-callback-not-protected.sol
 # from: solidity/security/uniswap-callback-not-protected.yaml
 
 . as $root

@@ -1,13 +1,14 @@
 # rules: use_weak_rsa_encryption_padding
 # languages: c_sharp
+# fixture: csharp/use_weak_rsa_encryption_padding.cs
 # from: csharp/dotnet/security/use_weak_rsa_encryption_padding.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.cs"]; [
-      "(RSAPKCS1KeyExchangeDeformatter $DEFORMATER).DecryptKeyExchange($$$_);",
-      "(RSAPKCS1KeyExchangeFormatter $FORMATER).CreateKeyExchange($$$_);"
+      "$D.DecryptKeyExchange($$$_, $$$_);",
+      "$F.CreateKeyExchange($$$_, $$$_);"
     ])) as $all
-    | ( $all | of(["(RSAPKCS1KeyExchangeFormatter $FORMATER).CreateKeyExchange($$$_);","(RSAPKCS1KeyExchangeDeformatter $DEFORMATER).DecryptKeyExchange($$$_);"])
+    | ( $all | of(["$F.CreateKeyExchange($$$_, $$$_);","$D.DecryptKeyExchange($$$_, $$$_);"])
         | finding("use_weak_rsa_encryption_padding";
             "You are using the outdated PKCS#1 v1.5 encryption padding for your RSA key.") ) )
 | report

@@ -1,4 +1,5 @@
 # rules: set-pipefail
+# fixture: dockerfile/set-pipefail.dockerfile
 # from: dockerfile/best-practice/set-pipefail.yaml
 
 . as $root

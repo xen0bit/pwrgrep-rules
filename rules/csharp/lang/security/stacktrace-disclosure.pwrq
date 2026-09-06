@@ -1,5 +1,6 @@
 # rules: stacktrace-disclosure
 # languages: c_sharp
+# fixture: csharp/stacktrace-disclosure.cs
 # from: csharp/lang/security/stacktrace-disclosure.yaml
 
 . as $root

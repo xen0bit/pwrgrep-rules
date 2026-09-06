@@ -1,5 +1,6 @@
 # rules: unsafe-usage
 # languages: rust
+# fixture: rust/unsafe-usage.rs
 # from: rust/lang/security/unsafe-usage.yml
 
 . as $root

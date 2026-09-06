@@ -1,5 +1,6 @@
 # rules: sax-dtd-enabled
 # languages: scala
+# fixture: scala/sax-dtd-enabled.scala
 # from: scala/lang/security/audit/sax-dtd-enabled.yaml
 
 . as $root

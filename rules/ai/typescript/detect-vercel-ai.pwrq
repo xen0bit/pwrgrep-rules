@@ -1,5 +1,6 @@
 # rules: detect-vercel-ai
 # languages: javascript, typescript
+# fixture: ai/typescript/detect-vercel-ai.ts
 # from: ai/typescript/detect-vercel-ai.yaml
 
 . as $root

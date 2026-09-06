@@ -1,16 +1,17 @@
 # rules: soql-injection-unescaped-param
 # languages: apex
+# fixture: apex/soql-injection-unescaped-param.cls
 # from: apex/lang/security/ncino/injection/ApexSOQLInjectionUnescapedParam.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.cls"]; [
-      "class $C { $M($$$_, String $P, $$$_) { $$$BODY } }",
+      "$R $M(String $P) { $$$BODY }",
       "Database.query($PWRQDEEP1)",
       "String.escapeSingleQuotes($P)"
     ])) as $all
     | ( (($all | of(["Database.query($PWRQDEEP1)"])
           | where_capture_ast("PWRQDEEP1"; "$P")))
-          | reaching((($all | of(["class $C { $M($$$_, String $P, $$$_) { $$$BODY } }"])
+          | reaching((($all | of(["$R $M(String $P) { $$$BODY }"])
           | focus("P")));
               ((($all | of(["String.escapeSingleQuotes($P)"]))
           + ($all | of(["Database.query($PWRQDEEP1)"])

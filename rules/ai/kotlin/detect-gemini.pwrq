@@ -1,5 +1,6 @@
 # rules: detect-gemini
 # languages: kotlin
+# fixture: ai/kotlin/detect-gemini.kt
 # from: ai/kotlin/detect-gemini.yaml
 
 . as $root

@@ -1,19 +1,22 @@
 # rules: mvc-missing-antiforgery
-# languages: c_sharp
+# fixture: csharp/mvc-missing-antiforgery.cs
 # from: csharp/dotnet/security/mvc-missing-antiforgery.yaml
+#
+# Method attributes break AST matching entirely - `[HttpPost]` before a
+# method matches nothing, listed or not (class attributes work, method ones
+# do not). The rule reads the attribute block as text instead: stacked
+# attributes ending at a public IActionResult method, kept when one names a
+# state-changing verb and none names ValidateAntiForgeryToken or Consumes.
 
 . as $root
-| ( ($root | scan_ast(["*.cs"]; [
-      "[$HTTPMETHOD]\npublic IActionResult $METHOD($$$_){\n    $$$_\n}",
-      "[Consumes($$$_)]\npublic IActionResult $METHOD($$$_){\n  $$$_\n}",
-      "[ValidateAntiForgeryToken]\npublic IActionResult $METHOD($$$_){\n    $$$_\n}",
-      "using Microsoft.AspNetCore.Mvc;\n$$$_"
+| ( ($root | scan_regex(["*.cs"]; [
+      "(?P<ATTRS>(?:\\[[^\\]]+\\]\\s*)+)public\\s+IActionResult\\s+(?P<M>\\S+)\\((?P<P>[^)]*?)\\)\\s+\\{",
+      "using\\s+Microsoft\\.AspNetCore\\.Mvc;"
     ])) as $all
-    | ( $all | of(["[$HTTPMETHOD]\npublic IActionResult $METHOD($$$_){\n    $$$_\n}"])
-          | in_files_with($all | of(["using Microsoft.AspNetCore.Mvc;\n$$$_"]))
-          | not_at($all | of(["[ValidateAntiForgeryToken]\npublic IActionResult $METHOD($$$_){\n    $$$_\n}"]))
-          | not_at($all | of(["[Consumes($$$_)]\npublic IActionResult $METHOD($$$_){\n  $$$_\n}"]))
-          | where_capture("HTTPMETHOD"; "^(?:Http(Post|Put|Delete|Patch))")
+    | ( $all | of(["(?P<ATTRS>(?:\\[[^\\]]+\\]\\s*)+)public\\s+IActionResult\\s+(?P<M>\\S+)\\((?P<P>[^)]*?)\\)\\s+\\{"])
+          | where_capture("ATTRS"; "Http(Post|Put|Delete|Patch)")
+          | where_capture_not("ATTRS"; "ValidateAntiForgeryToken|Consumes")
+          | in_files_with($all | of(["using\\s+Microsoft\\.AspNetCore\\.Mvc;"]))
         | finding("mvc-missing-antiforgery";
-            "$METHOD is a state-changing MVC method that does not validate the antiforgery token or do strict content-type checking.") ) )
+            "$M is a state-changing MVC method that does not validate the antiforgery token or do strict content-type checking.") ) )
 | report

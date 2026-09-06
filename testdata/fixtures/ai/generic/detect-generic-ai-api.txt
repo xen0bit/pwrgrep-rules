@@ -1,0 +1,13 @@
+# Generic AI detection: OpenAI HTTP endpoint strings
+# ruleid: detect-generic-ai-api
+POST /chat/completions with gpt-4
+# ruleid: detect-generic-ai-api
+fetch /chat/completions endpoint here
+# ruleid: detect-generic-ai-api
+mirror of api.openai.com for tests
+# ok: detect-generic-ai-api
+This line has no endpoint marker
+# ok: detect-generic-ai-api
+General HTTP discussion without markers
+# ok: detect-generic-ai-api
+Another safe line of documentation

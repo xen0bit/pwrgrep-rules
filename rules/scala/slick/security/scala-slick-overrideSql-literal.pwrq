@@ -1,5 +1,6 @@
 # rules: scala-slick-overrideSql-literal
 # languages: scala
+# fixture: scala/scala-slick-overrideSql-literal.scala
 # from: scala/slick/security/scala-slick-overrideSql-literal.yaml
 
 . as $root
@@ -10,6 +11,7 @@
       "$QUERY = \"$$$_\"\n$$$_"
     ])) as $all
     | ( $all | of(["$MODEL.overrideSql($QUERY,$$$_)"])
+          | where_capture_not("QUERY"; "^\\\".*\\\"$")
           | not_at($all | of(["$MODEL.overrideSql(\"$$$_\",$$$_)"]))
           | in_files_without($all | of(["$QUERY = \"$$$_\"\n$$$_","\"$$$_\""]))
         | finding("scala-slick-overrideSql-literal";

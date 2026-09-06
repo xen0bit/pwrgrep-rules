@@ -1,5 +1,6 @@
 # rules: insecure-newtonsoft-deserialization
 # languages: c_sharp
+# fixture: csharp/newtonsoft.cs
 # from: csharp/lang/security/insecure-deserialization/newtonsoft.yaml
 
 . as $root

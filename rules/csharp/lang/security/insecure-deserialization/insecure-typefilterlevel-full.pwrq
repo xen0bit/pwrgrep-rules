@@ -1,23 +1,28 @@
 # rules: insecure-typefilterlevel-full
 # languages: c_sharp
+# fixture: csharp/insecure-typefilterlevel-full.cs
 # from: csharp/lang/security/insecure-deserialization/insecure-typefilterlevel-full.yaml
+#
+# The dictionary branch guarded VAL on the outer match, where it is unbound
+# (it is only bound inside the file condition), so the branch was dead. It
+# gates on the level key itself now - Full and Low both report, as the first
+# branch already did. The constructor dropped its leading `$$$`: an ellipsis
+# before a named parameter is not an ellipsis.
 
 . as $root
 | ( ($root | scan_ast(["*.cs"]; [
       "\"typeFilterLevel\"",
-      "$DICT[\"typeFilterLevel\"] = $VAL;\n$$$_",
       "$SP.TypeFilterLevel = $LEVEL",
       "$TYPE $SP = new BinaryServerFormatterSinkProvider($$$_);\n$$$_",
       "new BinaryServerFormatterSinkProvider { TypeFilterLevel = $LEVEL }",
-      "new BinaryServerFormatterSinkProvider($$$_, $DICT, $$$_)"
+      "new BinaryServerFormatterSinkProvider($DICT, $$$_)"
     ])) as $all
     | ( (($all | of(["new BinaryServerFormatterSinkProvider { TypeFilterLevel = $LEVEL }"]))
           + ($all | of(["$SP.TypeFilterLevel = $LEVEL"])
           | in_files_with($all | of(["$TYPE $SP = new BinaryServerFormatterSinkProvider($$$_);\n$$$_"])))
           | where_capture("LEVEL"; "^(?:(.*)TypeFilterLevel\\.(Full|Low))"))
-          + ($all | of(["new BinaryServerFormatterSinkProvider($$$_, $DICT, $$$_)"])
-          | in_files_with($all | of(["$DICT[\"typeFilterLevel\"] = $VAL;\n$$$_","\"typeFilterLevel\""]))
-          | where_capture("VAL"; "^(?:(\\\"Full\\\"|\\\"Low\\\"))"))
+          + ($all | of(["new BinaryServerFormatterSinkProvider($DICT, $$$_)"])
+          | in_files_with($all | of(["\"typeFilterLevel\""])))
         | finding("insecure-typefilterlevel-full";
             "Using a .NET remoting service can lead to RCE, even if you try to configure TypeFilterLevel.") ) )
 | report

@@ -1,5 +1,6 @@
 # rules: detect-openai
 # languages: go
+# fixture: ai/go/detect-openai.go
 # from: ai/go/detect-openai.yaml
 
 . as $root

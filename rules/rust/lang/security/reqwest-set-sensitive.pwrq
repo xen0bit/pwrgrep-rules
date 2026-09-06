@@ -1,5 +1,6 @@
 # rules: reqwest-set-sensitive
 # languages: rust
+# fixture: rust/reqwest-set-sensitive.rs
 # from: rust/lang/security/reqwest-set-sensitive.yml
 
 . as $root

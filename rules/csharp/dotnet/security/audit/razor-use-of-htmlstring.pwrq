@@ -1,20 +1,23 @@
 # rules: razor-use-of-htmlstring
+# fixture: csharp/razor-use-of-htmlstring.cshtml
 # from: csharp/dotnet/security/audit/razor-use-of-htmlstring.yaml
+#
+# The translated shapes span `[\s\S]*?`, so an exclusion starting on a
+# vulnerable line reaches into the encoded line below and removes every
+# finding, and the bare `new HtmlString` spelling reports the `@(...)` lines
+# a second time. All three shapes stay on one line now - `[^()\n]*` cannot
+# cross into another call - and only the `@(...)` output form is read, which
+# is the one that reaches the page.
 
 . as $root
 | ( ($root | scan_regex(["*.cshtml"]; [
-      "@\\(new\\s+[\\s\\S]*?HtmlString\\([\\s\\S]*?Encode\\([\\s\\S]*?\\)\\)\\)",
-      "@\\(new\\s+[\\s\\S]*?HtmlString\\([\\s\\S]*?HtmlEncode\\([\\s\\S]*?\\)\\)\\)",
-      "@\\(new\\s+[\\s\\S]*?HtmlString\\([\\s\\S]*?\\)\\)",
-      "new\\s+[\\s\\S]*?HtmlString\\([\\s\\S]*?Encode\\([\\s\\S]*?\\)\\)",
-      "new\\s+[\\s\\S]*?HtmlString\\([\\s\\S]*?HtmlEncode\\([\\s\\S]*?\\)\\)",
-      "new\\s+[\\s\\S]*?HtmlString\\([\\s\\S]*?\\)"
+      "@\\(new[^()\\n]*HtmlString\\([^()\\n]*\\)\\)",
+      "@\\(new[^()\\n]*HtmlString\\([^()\\n]*Encode\\([^()\\n]*\\)\\)\\)",
+      "@\\(new[^()\\n]*HtmlString\\([^()\\n]*HtmlEncode\\([^()\\n]*\\)\\)\\)"
     ])) as $all
-    | ( $all | of(["new\\s+[\\s\\S]*?HtmlString\\([\\s\\S]*?\\)","@\\(new\\s+[\\s\\S]*?HtmlString\\([\\s\\S]*?\\)\\)"])
-          | outside($all | of(["@\\(new\\s+[\\s\\S]*?HtmlString\\([\\s\\S]*?HtmlEncode\\([\\s\\S]*?\\)\\)\\)"]))
-          | outside($all | of(["@\\(new\\s+[\\s\\S]*?HtmlString\\([\\s\\S]*?Encode\\([\\s\\S]*?\\)\\)\\)"]))
-          | outside($all | of(["new\\s+[\\s\\S]*?HtmlString\\([\\s\\S]*?HtmlEncode\\([\\s\\S]*?\\)\\)"]))
-          | outside($all | of(["new\\s+[\\s\\S]*?HtmlString\\([\\s\\S]*?Encode\\([\\s\\S]*?\\)\\)"]))
+    | ( $all | of(["@\\(new[^()\\n]*HtmlString\\([^()\\n]*\\)\\)"])
+          | outside($all | of(["@\\(new[^()\\n]*HtmlString\\([^()\\n]*HtmlEncode\\([^()\\n]*\\)\\)\\)"]))
+          | outside($all | of(["@\\(new[^()\\n]*HtmlString\\([^()\\n]*Encode\\([^()\\n]*\\)\\)\\)"]))
         | finding("razor-use-of-htmlstring";
             "ASP.NET Core MVC provides an HtmlString class which isn't automatically encoded upon output.") ) )
 | report

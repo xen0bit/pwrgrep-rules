@@ -1,5 +1,6 @@
 # rules: detect-openai
 # languages: c_sharp
+# fixture: ai/csharp/detect-openai.cs
 # from: ai/csharp/detect-openai.yaml
 
 . as $root

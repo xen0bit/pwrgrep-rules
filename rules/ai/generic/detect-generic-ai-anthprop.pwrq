@@ -1,4 +1,5 @@
 # rules: detect-generic-ai-anthprop
+# fixture: ai/generic/detect-generic-ai-anthprop.txt
 # from: ai/generic/detect-generic-ai-anthprop.yaml
 
 . as $root

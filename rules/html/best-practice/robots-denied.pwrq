@@ -1,4 +1,5 @@
 # rules: robots-denied
+# fixture: html/robots-denied.html
 # from: html/best-practice/robots-denied.yaml
 
 . as $root

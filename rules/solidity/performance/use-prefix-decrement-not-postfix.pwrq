@@ -1,4 +1,5 @@
 # rules: use-prefix-decrement-not-postfix
+# fixture: solidity/use-prefix-decrement-not-postfix.sol
 # from: solidity/performance/use-prefix-decrement-not-postfix.yaml
 
 . as $root

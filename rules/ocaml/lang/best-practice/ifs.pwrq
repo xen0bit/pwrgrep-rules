@@ -1,16 +1,17 @@
 # rules: ocamllint-useless-else, ocamllint-backwards-if
 # languages: ocaml
+# fixture: ocaml/ocamllint-useless-else.ml
 # from: ocaml/lang/best-practice/ifs.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.ml"]; [
-      "if $E then $E1 else ()",
-      "if $E then () else $E2"
+| ( ($root | scan_regex(["*.ml"]; [
+      "else\\s+\\(\\)",
+      "then\\s+\\(\\)\\s+else"
     ])) as $all
-    | ( $all | of(["if $E then $E1 else ()"])
+    | ( $all | of(["else\\s+\\(\\)"])
         | finding("ocamllint-useless-else";
             "Useless else.") )
-      + ( $all | of(["if $E then () else $E2"])
+      + ( $all | of(["then\\s+\\(\\)\\s+else"])
         | finding("ocamllint-backwards-if";
             "Backwards if.") ) )
 | report

@@ -1,5 +1,6 @@
 # rules: oracle-price-update-not-restricted
 # languages: solidity
+# fixture: solidity/oracle-price-update-not-restricted.sol
 # from: solidity/security/oracle-price-update-not-restricted.yaml
 
 . as $root

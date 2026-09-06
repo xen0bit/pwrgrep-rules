@@ -1,19 +1,26 @@
 # rules: correctness-regioninfo-interop
 # languages: c_sharp
+# fixture: csharp/regioninfo-interop.cs
 # from: csharp/lang/correctness/regioninfo/regioninfo-interop.yaml
+#
+# The translated shape nested everything in a `using` statement, which the
+# matcher cannot read - every spelling of it (braced, named or anonymous
+# body, head alone) matches nothing in this build. The rule follows the
+# value instead: a RegionInfo built from a two-letter code that reaches a
+# Write, in a file that declares a pipe stream.
 
-. as $root
-| ( ($root | scan_ast(["*.cs"]; [
-      "$WRITER.Write($RI);",
-      "$WRITER.WriteAsync($RI);",
-      "$WRITER.WriteLine($RI);",
-      "$WRITER.WriteLineAsync($RI);",
-      "RegionInfo $RI = new RegionInfo($REGION);\n$$$_\nusing($PIPESTREAM $P = $$$_){\n  $$$_\n}"
-    ])) as $all
-    | ( $all | of(["$WRITER.Write($RI);","$WRITER.WriteAsync($RI);","$WRITER.WriteLine($RI);","$WRITER.WriteLineAsync($RI);"])
-          | within($all | of(["RegionInfo $RI = new RegionInfo($REGION);\n$$$_\nusing($PIPESTREAM $P = $$$_){\n  $$$_\n}"]))
+["RegionInfo $RI = new RegionInfo($REGION);"] as $built
+| ["$PIPESTREAM $P = $E;"] as $pipes
+| ["$WRITER.Write($RI);", "$WRITER.WriteAsync($RI);", "$WRITER.WriteLine($RI);",
+   "$WRITER.WriteLineAsync($RI);"] as $sinks
+| scan_ast("*.cs"; $built + $pipes + $sinks) as $all
+| ( ($all | of($sinks))
+      | reaching(($all | of($built)
           | where_capture("REGION"; "^\"\\w{2}\"$")
-          | where_capture("PIPESTREAM"; "^(?:(Anonymous|Named)Pipe(Server|Client)Stream)")
-        | finding("correctness-regioninfo-interop";
-            "Potential inter-process write of RegionInfo $RI via $PIPESTREAM $P that was instantiated with a two-character culture code $REGION.") ) )
+          | focus("RI"));
+        ([]))
+      | in_files_with(($all | of($pipes)
+          | where_capture("PIPESTREAM"; "^(?:(Anonymous|Named)Pipe(Server|Client)Stream)")))
+      | finding("correctness-regioninfo-interop";
+          "Potential inter-process write of a RegionInfo built from a two-character culture code via a pipe stream.") )
 | report

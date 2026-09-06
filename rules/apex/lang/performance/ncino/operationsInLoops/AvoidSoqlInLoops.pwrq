@@ -1,4 +1,5 @@
 # rules: avoid-soql-in-loops
+# fixture: apex/avoid-soql-in-loops.cls
 # from: apex/lang/performance/ncino/operationsInLoops/AvoidSoqlInLoops.yaml
 
 . as $root

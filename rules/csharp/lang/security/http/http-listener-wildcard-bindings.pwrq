@@ -1,5 +1,6 @@
 # rules: http-listener-wildcard-bindings
 # languages: c_sharp
+# fixture: csharp/http-listener-wildcard-bindings.cs
 # from: csharp/lang/security/http/http-listener-wildcard-bindings.yaml
 
 . as $root

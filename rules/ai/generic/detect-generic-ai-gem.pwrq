@@ -1,4 +1,5 @@
 # rules: detect-generic-ai-gem
+# fixture: ai/generic/detect-generic-ai-gem.txt
 # from: ai/generic/detect-generic-ai-gem.yaml
 
 . as $root

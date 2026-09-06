@@ -1,15 +1,16 @@
 # rules: specify-sharing-level
+# fixture: apex/specify-sharing-level.cls
 # from: apex/lang/security/ncino/sharing/SpecifySharingLevel.yaml
 
 . as $root
 | ( ($root | scan_regex(["*.cls"]; [
-      "\\(private\\|public\\|global\\)\\.\\*\\[with\\|without\\|inherited\\]\\\\s\\[sharing\\]\\.\\*\\\\s\\(class\\)\\\\s\\.\\*\\[\\{\\]",
-      "\\(private\\|public\\|global\\)\\.\\*\\\\s\\(class\\)\\\\s\\.\\*\\(extends\\)\\\\s\\(Exception\\)\\.\\*\\[\\{\\]",
-      "\\(private\\|public\\|global\\)\\.\\*\\\\s\\(class\\)\\\\s\\.\\*\\[\\{\\]"
+      "(private|public|global)\\s+(with|without|inherited)\\s+sharing\\s+class\\s+[A-Za-z0-9_]+",
+      "(private|public|global)\\s+class\\s+[A-Za-z0-9_]+\\s+extends\\s+Exception",
+      "(private|public|global)\\s+class\\s+[A-Za-z0-9_]+"
     ])) as $all
-    | ( $all | of(["\\(private\\|public\\|global\\)\\.\\*\\\\s\\(class\\)\\\\s\\.\\*\\[\\{\\]"])
-          | not_at($all | of(["\\(private\\|public\\|global\\)\\.\\*\\[with\\|without\\|inherited\\]\\\\s\\[sharing\\]\\.\\*\\\\s\\(class\\)\\\\s\\.\\*\\[\\{\\]"]))
-          | not_at($all | of(["\\(private\\|public\\|global\\)\\.\\*\\\\s\\(class\\)\\\\s\\.\\*\\(extends\\)\\\\s\\(Exception\\)\\.\\*\\[\\{\\]"]))
+    | ( $all | of(["(private|public|global)\\s+class\\s+[A-Za-z0-9_]+"])
+          | outside($all | of(["(private|public|global)\\s+(with|without|inherited)\\s+sharing\\s+class\\s+[A-Za-z0-9_]+"]))
+          | outside($all | of(["(private|public|global)\\s+class\\s+[A-Za-z0-9_]+\\s+extends\\s+Exception"]))
         | finding("specify-sharing-level";
             "Every Apex class should have an explicit sharing mode declared.") ) )
 | report

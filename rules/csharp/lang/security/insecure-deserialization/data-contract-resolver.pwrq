@@ -1,5 +1,6 @@
 # rules: data-contract-resolver
 # languages: c_sharp
+# fixture: csharp/data-contract-resolver.cs
 # from: csharp/lang/security/insecure-deserialization/data-contract-resolver.yaml
 
 . as $root

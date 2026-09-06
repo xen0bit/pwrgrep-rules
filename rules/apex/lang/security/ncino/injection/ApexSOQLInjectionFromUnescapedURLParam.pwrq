@@ -1,5 +1,6 @@
 # rules: soql-injection-unescaped-url-param
 # languages: apex
+# fixture: apex/soql-injection-unescaped-url-param.cls
 # from: apex/lang/security/ncino/injection/ApexSOQLInjectionFromUnescapedURLParam.yaml
 
 . as $root

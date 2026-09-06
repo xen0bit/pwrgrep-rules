@@ -1,12 +1,16 @@
 # rules: net-webconfig-trace-enabled
+# fixture: csharp/net-webconfig-trace-enabled.config
 # from: csharp/dotnet/security/net-webconfig-trace-enabled.yaml
+#
+# As in net-webconfig-debug, the translated element demanded whitespace real
+# config files do not have. It reads the attribute with optional spacing now.
 
 . as $root
 | ( ($root | scan_regex(["*web.config*"]; [
       "<system\\.web>\\s+[\\s\\S]*?\\s+<\\/system\\.web>",
-      "<trace\\s+[\\s\\S]*?\\s+enabled\\s+=\\s+\"true\"\\s+[\\s\\S]*?\\s+\\/>"
+      "<trace[^>]*?enabled\\s*=\\s*\"true\"[^>]*?\\/>"
     ])) as $all
-    | ( $all | of(["<trace\\s+[\\s\\S]*?\\s+enabled\\s+=\\s+\"true\"\\s+[\\s\\S]*?\\s+\\/>"])
+    | ( $all | of(["<trace[^>]*?enabled\\s*=\\s*\"true\"[^>]*?\\/>"])
           | within($all | of(["<system\\.web>\\s+[\\s\\S]*?\\s+<\\/system\\.web>"]))
         | finding("net-webconfig-trace-enabled";
             "OWASP guidance recommends disabling tracing for production applications to prevent accidental leakage of sensitive application information.") ) )

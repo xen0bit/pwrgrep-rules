@@ -1,5 +1,6 @@
 # rules: detect-mistral
 # languages: javascript, typescript
+# fixture: ai/typescript/detect-mistral.ts
 # from: ai/typescript/detect-mistral.yaml
 
 . as $root

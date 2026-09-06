@@ -1,5 +1,6 @@
 # rules: useselect-label-not-i18n
 # languages: javascript, typescript
+# fixture: typescript/useselect-label-not-i18n.ts
 # from: typescript/react/portability/i18next/useselect-label-not-i18n.yaml
 
 . as $root

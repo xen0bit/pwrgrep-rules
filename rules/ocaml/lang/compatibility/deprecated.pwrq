@@ -1,5 +1,6 @@
 # rules: deprecated-pervasives
 # languages: ocaml
+# fixture: ocaml/deprecated-pervasives.ml
 # from: ocaml/lang/compatibility/deprecated.yaml
 
 . as $root

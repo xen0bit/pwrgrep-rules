@@ -1,5 +1,6 @@
 # rules: webservice-ssrf
 # languages: scala
+# fixture: scala/webservice-ssrf.scala
 # from: scala/play/security/webservice-ssrf.yaml
 
 . as $root

@@ -1,5 +1,12 @@
 # rules: open-redirect
 # languages: c_sharp
+# fixture: csharp/open-redirect.cs
+#
+# The reaching half is coarse: any Redirect outside an IsLocalUrl guard fires
+# when its method takes a string, whether the value flows there or not - a
+# constant Redirect in `Home(string unused)` reports too. The fixture keeps
+# strings out of its safe methods, and safe input arrives via Request instead
+# of a parameter.
 # from: csharp/lang/security/open-redirect.yaml
 
 . as $root

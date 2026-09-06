@@ -1,0 +1,11 @@
+@* razor-use-of-htmlstring: HtmlString skips output encoding, so model data in
+   one is raw markup. Encode first (or let Razor encode by default). *@
+@using System.Web
+<!-- ruleid: razor-use-of-htmlstring -->
+<p>@(new HtmlString(Model.Bio))</p>
+<!-- ruleid: razor-use-of-htmlstring -->
+<p>@(new HtmlString(Model.Name))</p>
+<!-- ok: razor-use-of-htmlstring -->
+<p>@(new HtmlString(Html.Encode(Model.Bio)))</p>
+<!-- ok: razor-use-of-htmlstring -->
+<p>@Model.Name</p>

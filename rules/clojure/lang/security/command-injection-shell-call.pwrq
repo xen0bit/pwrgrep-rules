@@ -1,4 +1,5 @@
 # rules: command-injection-shell-call
+# fixture: clojure/command-injection-shell-call.clj
 # from: clojure/lang/security/command-injection-shell-call.yaml
 
 . as $root

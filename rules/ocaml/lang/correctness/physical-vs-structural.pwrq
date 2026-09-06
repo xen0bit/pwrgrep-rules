@@ -1,5 +1,6 @@
 # rules: physical-equal, physical-not-equal
 # languages: ocaml
+# fixture: ocaml/physical-equal.ml
 # from: ocaml/lang/correctness/physical-vs-structural.yaml
 
 . as $root

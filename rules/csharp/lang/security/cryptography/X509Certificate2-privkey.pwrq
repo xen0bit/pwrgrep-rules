@@ -1,20 +1,21 @@
 # rules: X509Certificate2-privkey
 # languages: c_sharp
+# fixture: csharp/X509Certificate2-privkey.cs
 # from: csharp/lang/security/cryptography/X509Certificate2-privkey.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.cs"]; [
       "$CERT.PrivateKey",
-      "X509Certificate2 $CERT = $$$_;\n$$$_",
-      "X509Certificate2Collection $COLLECTION = $$$_;\n$$$_",
-      "using System.Security.Cryptography;\n$$$_"
+      "X509Certificate2 $CERT = $$$_;",
+      "X509Certificate2Collection $COLLECTION = $$$_;",
+      "using System.Security.Cryptography;"
     ])) as $all
     | ( ($all
-          | in_files_with($all | of(["X509Certificate2Collection $COLLECTION = $$$_;\n$$$_"])))
+          | in_files_with($all | of(["X509Certificate2Collection $COLLECTION = $$$_;"])))
           + ($all
-          | in_files_with($all | of(["X509Certificate2 $CERT = $$$_;\n$$$_"])))
+          | in_files_with($all | of(["X509Certificate2 $CERT = $$$_;"])))
           | at_same_place(($all | of(["$CERT.PrivateKey"])))
-          | in_files_with($all | of(["using System.Security.Cryptography;\n$$$_"]))
+          | in_files_with($all | of(["using System.Security.Cryptography;"]))
         | finding("X509Certificate2-privkey";
             "X509Certificate2.PrivateKey is obsolete.") ) )
 | report

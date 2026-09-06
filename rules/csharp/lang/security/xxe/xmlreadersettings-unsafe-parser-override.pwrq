@@ -1,19 +1,20 @@
 # rules: xmlreadersettings-unsafe-parser-override
 # languages: c_sharp
+# fixture: csharp/xmlreadersettings-unsafe-parser-override.cs
 # from: csharp/lang/security/xxe/xmlreadersettings-unsafe-parser-override.yaml
+#
+# The translated settings sequence hid behind statement gaps and the method
+# linchpin had no modifier - both dead. The reader creation is the sink now,
+# gated on a DtdProcessing.Parse assignment in the file, with the method
+# parameter reaching the created stream.
 
-. as $root
-| ( ($root | scan_ast(["*.cs"]; [
-      "XmlReader $READER = XmlReader.Create($$$_,$RS,$$$_);",
-      "XmlReaderSettings $RS = new XmlReaderSettings();\n$$$_\n$RS.DtdProcessing = DtdProcessing.Parse;\n$$$_",
-      "public $T $M($$$_,string $ARG,$$$_){$$$_}"
-    ])) as $all
-    | ( (($all | of(["XmlReader $READER = XmlReader.Create($$$_,$RS,$$$_);"])
-          | in_files_with($all | of(["XmlReaderSettings $RS = new XmlReaderSettings();\n$$$_\n$RS.DtdProcessing = DtdProcessing.Parse;\n$$$_"]))))
-          | reaching((($all
-          | focus("ARG")
-          | within($all | of(["public $T $M($$$_,string $ARG,$$$_){$$$_}"]))));
-              ([]))
-        | finding("xmlreadersettings-unsafe-parser-override";
-            "XmlReaderSettings found with DtdProcessing.Parse on an XmlReader handling a string argument from a public method.") ) )
+["public $T $M($U $A) { $$$BODY }"] as $methods
+| ["XmlReader.Create($S, $RS);", "XmlReader.Create($S, $RS, $$$);"] as $sinks
+| ["$RS.DtdProcessing = DtdProcessing.Parse;"] as $setup
+| scan_ast("*.cs"; $methods + $sinks + $setup) as $all
+| ( ($all | of($sinks) | focus("S"))
+      | reaching((($all | of($methods) | focus("A"))); ([]))
+      | in_files_with($all | of($setup))
+    | finding("xmlreadersettings-unsafe-parser-override";
+        "XmlReaderSettings found with DtdProcessing.Parse on an XmlReader handling a string argument from a public method.") )
 | report

@@ -1,4 +1,5 @@
 # rules: scalac-debug
+# fixture: scala/scalac-debug.sbt
 # from: scala/lang/security/audit/scalac-debug.yaml
 
 . as $root

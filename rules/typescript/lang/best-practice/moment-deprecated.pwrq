@@ -1,5 +1,6 @@
 # rules: moment-deprecated
 # languages: javascript, typescript
+# fixture: typescript/moment-deprecated.ts
 # from: typescript/lang/best-practice/moment-deprecated.yaml
 
 . as $root

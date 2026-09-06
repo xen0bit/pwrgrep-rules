@@ -1,14 +1,15 @@
 # rules: hashtbl-find-outside-try
 # languages: ocaml
+# fixture: ocaml/hashtbl-find-outside-try.ml
 # from: ocaml/lang/best-practice/hashtbl.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.ml"]; [
-      "Hashtbl.find $$$_",
+      "Hashtbl.find $TBL $KEY",
       "match $$$_ with | $$$_ -> $$$_",
       "try $$$_ with $$$_ -> $$$_"
     ])) as $all
-    | ( $all | of(["Hashtbl.find $$$_"])
+    | ( $all | of(["Hashtbl.find $TBL $KEY"])
           | outside($all | of(["try $$$_ with $$$_ -> $$$_"]))
           | outside($all | of(["match $$$_ with | $$$_ -> $$$_"]))
         | finding("hashtbl-find-outside-try";

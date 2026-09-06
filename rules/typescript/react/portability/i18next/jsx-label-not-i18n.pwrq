@@ -1,18 +1,24 @@
 # rules: jsx-label-not-i18n
 # languages: javascript
+# fixture: typescript/jsx-label-not-i18n.tsx
+#
+# An ellipsis between JSX attributes compiles to an attribute literally named
+# `$$$`, which no program contains, so every translated sink was dead. The
+# attributes are named without gaps now (as in typescript-xss), which pins
+# `label` as the element's only attribute.
 # from: typescript/react/portability/i18next/jsx-label-not-i18n.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.js"]; [
-      "<$ELEMENT $$$_ label=\"\" $$$_ />",
-      "<$ELEMENT $$$_ label={t($KEY, $$$_)} $$$_ />",
-      "<Tab $$$_ label=\"$MESSAGE\" $$$_ />",
-      "<TextField $$$_ label=\"$MESSAGE\" $$$_ />"
+      "<$ELEMENT label=\"\" />",
+      "<$ELEMENT label={t($KEY, $$$_)} />",
+      "<Tab label=\"$MESSAGE\" />",
+      "<TextField label=\"$MESSAGE\" />"
     ])) as $all
-    | ( $all | of(["<TextField $$$_ label=\"$MESSAGE\" $$$_ />","<Tab $$$_ label=\"$MESSAGE\" $$$_ />"])
+    | ( $all | of(["<TextField label=\"$MESSAGE\" />","<Tab label=\"$MESSAGE\" />"])
           | where_capture("MESSAGE"; "^(?:(.*[a-zA-Z]+.*))")
-          | not_at($all | of(["<$ELEMENT $$$_ label=\"\" $$$_ />"]))
-          | not_at($all | of(["<$ELEMENT $$$_ label={t($KEY, $$$_)} $$$_ />"]))
+          | not_at($all | of(["<$ELEMENT label=\"\" />"]))
+          | not_at($all | of(["<$ELEMENT label={t($KEY, $$$_)} />"]))
         | finding("jsx-label-not-i18n";
             "JSX Component label not internationalized: '$MESSAGE'") ) )
 | report

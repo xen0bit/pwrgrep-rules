@@ -1,5 +1,6 @@
 # rules: unrestricted-transferownership
 # languages: solidity
+# fixture: solidity/unrestricted-transferownership.sol
 # from: solidity/security/unrestricted-transferownership.yaml
 
 . as $root

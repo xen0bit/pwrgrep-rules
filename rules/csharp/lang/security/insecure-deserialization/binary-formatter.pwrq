@@ -1,14 +1,19 @@
 # rules: insecure-binaryformatter-deserialization
 # languages: c_sharp
+#
+# The `using` file condition ended in a `\n$$$` gap, which matches nothing -
+# `new X();` must also stand as its own statement, since a declaration is not
+# an assignment. The fixture writes both accordingly.
+# fixture: csharp/binary-formatter.cs
 # from: csharp/lang/security/insecure-deserialization/binary-formatter.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.cs"]; [
       "new BinaryFormatter();",
-      "using System.Runtime.Serialization.Formatters.Binary;\n$$$_"
+      "using System.Runtime.Serialization.Formatters.Binary;"
     ])) as $all
     | ( $all | of(["new BinaryFormatter();"])
-          | in_files_with($all | of(["using System.Runtime.Serialization.Formatters.Binary;\n$$$_"]))
+          | in_files_with($all | of(["using System.Runtime.Serialization.Formatters.Binary;"]))
         | finding("insecure-binaryformatter-deserialization";
             "The BinaryFormatter type is dangerous and is not recommended for data processing.") ) )
 | report

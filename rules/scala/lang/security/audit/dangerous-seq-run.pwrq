@@ -1,5 +1,6 @@
 # rules: dangerous-seq-run
 # languages: scala
+# fixture: scala/dangerous-seq-run.scala
 # from: scala/lang/security/audit/dangerous-seq-run.yaml
 
 . as $root
@@ -14,6 +15,7 @@
       "import sys.process\n$$$_"
     ])) as $all
     | ( $all | of(["Seq($CMD, $$$_)"])
+          | where_capture_not("CMD"; "^\\\".*\\\"$")
           | at_same_place((($all
           | within($all | of(["Seq($$$_).!"])))
           + ($all

@@ -1,5 +1,6 @@
 # rules: jwt-tokenvalidationparameters-no-expiry-validation
 # languages: c_sharp
+# fixture: csharp/jwt-tokenvalidationparameters-no-expiry-validation.cs
 # from: csharp/lang/security/ad/jwt-tokenvalidationparameters-no-expiry-validation.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: rustls-dangerous
 # languages: rust
+# fixture: rust/rustls-dangerous.rs
 # from: rust/lang/security/rustls-dangerous.yml
 
 . as $root

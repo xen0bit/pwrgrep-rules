@@ -1,4 +1,5 @@
 # rules: missing-zypper-clean
+# fixture: dockerfile/zypper-clean.dockerfile
 # from: dockerfile/best-practice/missing-zypper-clean.yaml
 
 . as $root

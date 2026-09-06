@@ -1,5 +1,6 @@
 # rules: current-exe
 # languages: rust
+# fixture: rust/current-exe.rs
 # from: rust/lang/security/current-exe.yml
 
 . as $root

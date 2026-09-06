@@ -1,5 +1,12 @@
 # rules: react-href-var
 # languages: javascript
+# fixture: typescript/react-href-var.tsx
+#
+# The two function linchpins were bodies written `$$$`, which compile to a
+# statement literally named `$$$` and match nothing - the parameter sources
+# were dead. Both are `$$$BODY` now. The anchor sink was self-closing
+# (`<$EL href={$X} />`), which no anchor is; it reads `<$EL href={$X}>` with
+# children now.
 # from: typescript/react/security/audit/react-href-var.yaml
 
 . as $root
@@ -13,22 +20,22 @@
       "$X + $$$_",
       "$X.$Y",
       "$X[$$$_]",
-      "<$EL href={$X} />",
+      "<$EL href={$X}>$$$BODY</$EL>",
       "React.createElement($EL, {href: $X})",
       "`$$$_${$X}$$$_`",
       "`${$X}$$$_`",
-      "function $$$_($$$_, $X, $$$_) { $$$_ }",
-      "function $$$_({$$$_, $X, $$$_}) { $$$_ }"
+      "function $$$_($$$_, $X, $$$_) { $$$BODY }",
+      "function $$$_({$$$_, $X, $$$_}) { $$$BODY }"
     ])) as $all
-    | ( ((($all | of(["<$EL href={$X} />"]))
+    | ( ((($all | of(["<$EL href={$X}>$$$BODY</$EL>"]))
           + ($all | of(["React.createElement($EL, {href: $X})"]))
           + ($all
           | within($all | of(["$PARAMS = {href: $X};\n$$$_\nReact.createElement($EL, $PARAMS);"])))
           | focus("X")))
           | reaching(((($all
-          | within($all | of(["function $$$_({$$$_, $X, $$$_}) { $$$_ }"])))
+          | within($all | of(["function $$$_({$$$_, $X, $$$_}) { $$$BODY }"])))
           + ($all
-          | within($all | of(["function $$$_($$$_, $X, $$$_) { $$$_ }"])))
+          | within($all | of(["function $$$_($$$_, $X, $$$_) { $$$BODY }"])))
           | at_same_place(($all | of(["$X.$Y","$X[$$$_]"])))
           | focus("X")
           | outside($all | of(["$F. $$$_ .$SANITIZEUNC($$$_)"])))

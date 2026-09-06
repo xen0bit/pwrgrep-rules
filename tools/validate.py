@@ -162,14 +162,19 @@ def main():
             continue
         pairs.append({"rule": rule["Path"], "id": rule["Ids"][0], "path": path})
 
-    # One process for all of them: loading the corpus costs more than running
-    # eighteen rules over eighteen small files.
-    found = pwrq(
-        "[$pairs[] | . as $p | {rule: $p.rule, findings: "
-        "[invoke_pwrgrep($p.path; $p.rule) | {id: .RuleId, line: .LineNumber, "
-        "message: .Message}]}]",
-        pairs=pairs,
-    )[0] if pairs else []
+    # In chunks: loading the corpus costs more than running a few rules, but
+    # the whole pair list no longer fits in one argv (~259KB at 789 pairs).
+    found = []
+    CHUNK = 250
+    for i in range(0, len(pairs), CHUNK):
+        chunk = pairs[i:i + CHUNK]
+        out = pwrq(
+            "[$pairs[] | . as $p | {rule: $p.rule, findings: "
+            "[invoke_pwrgrep($p.path; $p.rule) | {id: .RuleId, line: .LineNumber, "
+            "message: .Message}]}]",
+            pairs=chunk,
+        )[0] if chunk else []
+        found.extend(out)
     by_rule = {f["rule"]: f["findings"] for f in found}
 
     exact = 0

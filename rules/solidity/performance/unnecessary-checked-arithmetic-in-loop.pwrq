@@ -1,4 +1,5 @@
 # rules: unnecessary-checked-arithmetic-in-loop
+# fixture: solidity/unnecessary-checked-arithmetic-in-loop.sol
 # from: solidity/performance/unnecessary-checked-arithmetic-in-loop.yaml
 
 . as $root

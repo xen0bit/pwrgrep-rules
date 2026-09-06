@@ -1,5 +1,6 @@
 # rules: dispatch-ssrf
 # languages: scala
+# fixture: scala/dispatch-ssrf.scala
 # from: scala/lang/security/audit/dispatch-ssrf.yaml
 
 . as $root

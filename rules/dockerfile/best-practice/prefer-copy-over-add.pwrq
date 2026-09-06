@@ -1,5 +1,6 @@
 # rules: prefer-copy-over-add
 # languages: dockerfile
+# fixture: dockerfile/prefer-copy-over-add.dockerfile
 # from: dockerfile/best-practice/prefer-copy-over-add.yaml
 
 . as $root

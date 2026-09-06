@@ -1,4 +1,5 @@
 # rules: twirl-html-var
+# fixture: scala/twirl-html-var.html
 # from: scala/play/security/twirl-html-var.yaml
 
 . as $root

@@ -1,4 +1,5 @@
 # rules: array-length-outside-loop
+# fixture: solidity/array-length-outside-loop.sol
 # from: solidity/performance/array-length-outside-loop.yaml
 
 . as $root

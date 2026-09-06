@@ -1,0 +1,13 @@
+# Generic AI detection: Gemini library strings
+# ruleid: detect-generic-ai-gem
+GoogleGenerativeAI client is used here
+# ruleid: detect-generic-ai-gem
+import google/generative-ai library below
+# ruleid: detect-generic-ai-gem
+GoogleGenerativeAI model gemini-pro selected
+# ok: detect-generic-ai-gem
+This line has no vendor marker
+# ok: detect-generic-ai-gem
+General AI discussion without names
+# ok: detect-generic-ai-gem
+Another safe line of documentation

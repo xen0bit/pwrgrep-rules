@@ -1,5 +1,6 @@
 # rules: documentbuilder-dtd-enabled
 # languages: scala
+# fixture: scala/documentbuilder-dtd-enabled.scala
 # from: scala/lang/security/audit/documentbuilder-dtd-enabled.yaml
 
 . as $root

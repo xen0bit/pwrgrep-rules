@@ -1,4 +1,5 @@
 # rules: insecure-fspickler-deserialization
+# fixture: csharp/fs-pickler.cs
 # from: csharp/lang/security/insecure-deserialization/fs-pickler.yaml
 
 . as $root

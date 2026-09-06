@@ -1,5 +1,10 @@
 # rules: react-markdown-insecure-html
+# fixture: typescript/react-markdown-insecure-html.tsx
 # from: typescript/react/security/react-markdown-insecure-html.yaml
+#
+# The file conditions only knew the side-effect import (`import
+# 'react-markdown';`), while every program writes `import ReactMarkdown from
+# 'react-markdown';`. Both spellings are read now.
 
 . as $root
 | ( ($root | scan_regex(["*.js","*.ts"]; [
@@ -10,16 +15,18 @@
       "<(?P<EL>\\S+)\\s+transformImageUri=[\\s\\S]*?\\s+\\/>",
       "<(?P<EL>\\S+)\\s+transformLinkUri=[\\s\\S]*?\\s+\\/>",
       "import\\s+'react\\-markdown';\\s+[\\s\\S]*?",
-      "import\\s+'react\\-markdown\\/with\\-html';\\s+[\\s\\S]*?"
+      "import\\s+\\S+\\s+from\\s+'react\\-markdown';?",
+      "import\\s+'react\\-markdown\\/with\\-html';\\s+[\\s\\S]*?",
+      "import\\s+\\S+\\s+from\\s+'react\\-markdown\\/with\\-html';?"
     ])) as $all
     | ( ($all
           | in_files_with($all | of(["(?P<X>\\S+)\\s+=\\s+require\\('react\\-markdown\\/with\\-html'\\);\\s+[\\s\\S]*?"])))
           + ($all
           | in_files_with($all | of(["(?P<X>\\S+)\\s+=\\s+require\\('react\\-markdown'\\);\\s+[\\s\\S]*?"])))
           + ($all
-          | in_files_with($all | of(["import\\s+'react\\-markdown\\/with\\-html';\\s+[\\s\\S]*?"])))
+          | in_files_with($all | of(["import\\s+'react\\-markdown\\/with\\-html';\\s+[\\s\\S]*?","import\\s+\\S+\\s+from\\s+'react\\-markdown\\/with\\-html';?"])))
           + ($all
-          | in_files_with($all | of(["import\\s+'react\\-markdown';\\s+[\\s\\S]*?"])))
+          | in_files_with($all | of(["import\\s+'react\\-markdown';\\s+[\\s\\S]*?","import\\s+\\S+\\s+from\\s+'react\\-markdown';?"])))
           | at_same_place(($all | of(["<(?P<EL>\\S+)\\s+allowDangerousHtml\\s+\\/>","<(?P<EL>\\S+)\\s+escapeHtml=\\{false\\}\\s+\\/>","<(?P<EL>\\S+)\\s+transformLinkUri=[\\s\\S]*?\\s+\\/>","<(?P<EL>\\S+)\\s+transformImageUri=[\\s\\S]*?\\s+\\/>"])))
         | finding("react-markdown-insecure-html";
             "Overwriting `transformLinkUri` or `transformImageUri` to something insecure, or turning `allowDangerousHtml` on, or turning `escapeHtml` off, will open the code up to XSS vectors.") ) )

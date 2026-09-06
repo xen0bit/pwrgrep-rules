@@ -1,4 +1,5 @@
 # rules: balancer-readonly-reentrancy-getrate
+# fixture: solidity/balancer-readonly-reentrancy-getrate.sol
 # from: solidity/security/balancer-readonly-reentrancy-getrate.yaml
 
 . as $root

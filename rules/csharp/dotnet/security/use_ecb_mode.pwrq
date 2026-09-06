@@ -1,14 +1,18 @@
 # rules: use_ecb_mode
 # languages: c_sharp
+# fixture: csharp/use_ecb_mode.cs
+#
+# The translated sinks read the cipher through a cast, which no call site
+# has. They read a plain receiver now.
 # from: csharp/dotnet/security/use_ecb_mode.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.cs"]; [
-      "($KEYTYPE $KEY).DecryptEcb($$$_);",
-      "($KEYTYPE $KEY).EncryptEcb($$$_);",
-      "($KEYTYPE $KEY).Mode = CipherMode.ECB;"
+      "$C.DecryptEcb($$$_, $$$_);",
+      "$C.EncryptEcb($$$_, $$$_);",
+      "$C.Mode = CipherMode.ECB;"
     ])) as $all
-    | ( $all | of(["($KEYTYPE $KEY).EncryptEcb($$$_);","($KEYTYPE $KEY).DecryptEcb($$$_);","($KEYTYPE $KEY).Mode = CipherMode.ECB;"])
+    | ( $all | of(["$C.EncryptEcb($$$_, $$$_);","$C.DecryptEcb($$$_, $$$_);","$C.Mode = CipherMode.ECB;"])
         | finding("use_ecb_mode";
             "Usage of the insecure ECB mode detected.") ) )
 | report

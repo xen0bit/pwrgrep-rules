@@ -1,4 +1,5 @@
 # rules: use-either-wget-or-curl
+# fixture: dockerfile/use-either-wget-or-curl.dockerfile
 # from: dockerfile/best-practice/use-either-wget-or-curl.yaml
 
 . as $root

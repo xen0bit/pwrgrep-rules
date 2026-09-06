@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!-- https-equiv is a typo for the http-equiv meta attribute -->
+<html>
+<head>
+<!-- ruleid: https-equiv -->
+<meta name="viewport" https-equiv="refresh">
+<title>t1</title>
+<!-- ruleid: https-equiv -->
+<meta https-equiv="content-type">
+<title>t2</title>
+<!-- ruleid: https-equiv -->
+<meta charset="x" https-equiv="refresh">
+<title>t3</title>
+<!-- ok: https-equiv -->
+<meta name="viewport" http-equiv="refresh">
+<title>t4</title>
+<!-- ok: https-equiv -->
+<meta http-equiv="content-type">
+<title>t5</title>
+<!-- ok: https-equiv -->
+<meta charset="utf-8">
+</head>
+</html>

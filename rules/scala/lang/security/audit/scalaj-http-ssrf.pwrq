@@ -1,5 +1,6 @@
 # rules: scalaj-http-ssrf
 # languages: scala
+# fixture: scala/scalaj-http-ssrf.scala
 # from: scala/lang/security/audit/scalaj-http-ssrf.yaml
 
 . as $root

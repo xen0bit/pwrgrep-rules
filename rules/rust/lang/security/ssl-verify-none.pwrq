@@ -1,5 +1,6 @@
 # rules: ssl-verify-none
 # languages: rust
+# fixture: rust/ssl-verify-none.rs
 # from: rust/lang/security/ssl-verify-none.yml
 
 . as $root

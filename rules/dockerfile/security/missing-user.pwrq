@@ -1,4 +1,5 @@
 # rules: missing-user
+# fixture: dockerfile/missing-user.dockerfile
 # from: dockerfile/security/missing-user.yaml
 
 . as $root

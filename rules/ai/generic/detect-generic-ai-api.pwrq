@@ -1,4 +1,5 @@
 # rules: detect-generic-ai-api
+# fixture: ai/generic/detect-generic-ai-api.txt
 # from: ai/generic/detect-generic-ai-api.yaml
 
 . as $root

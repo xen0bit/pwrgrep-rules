@@ -1,0 +1,13 @@
+# Generic AI detection: vendor strings
+# ruleid: detect-generic-ai-anthprop
+Anthropic API key is configured here
+# ruleid: detect-generic-ai-anthprop
+anthropic client initialized below
+# ruleid: detect-generic-ai-anthprop
+claude model opus is selected
+# ok: detect-generic-ai-anthprop
+This line has no vendor marker
+# ok: detect-generic-ai-anthprop
+General AI discussion without names
+# ok: detect-generic-ai-anthprop
+Another safe line of documentation

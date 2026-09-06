@@ -1,4 +1,5 @@
 # rules: conf-csrf-headers-bypass
+# fixture: scala/conf-csrf-headers-bypass.conf
 # from: scala/play/security/conf-csrf-headers-bypass.yaml
 
 . as $root

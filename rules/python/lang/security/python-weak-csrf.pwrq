@@ -1,0 +1,24 @@
+# rules: python-weak-csrf
+# languages: python
+# fixture: python/CWE-352-flask.py
+# from: CWE-352 Cross-Site Request Forgery
+#
+# Flask-WTF CSRF protection is disabled when WTF_CSRF_ENABLED is set to
+# False. An attacker can then POST to the application from another origin.
+# The rule finds assignments that disable the protection; ok cases either
+# leave it enabled (True) or use per-form CSRF tokens.
+
+. as $root
+| ( ($root | scan_ast(["*.py"]; [
+      "$APP.config[\"WTF_CSRF_ENABLED\"] = $VAL",
+      "$APP.config['WTF_CSRF_ENABLED'] = $VAL",
+      "$APP.config.WTF_CSRF_ENABLED = $VAL",
+      "WTF_CSRF_ENABLED = $VAL",
+      "app.config[\"WTF_CSRF_ENABLED\"] = $VAL",
+      "app.config['WTF_CSRF_ENABLED'] = $VAL"
+    ])) as $all
+    | ( $all | of(["$APP.config[\"WTF_CSRF_ENABLED\"] = $VAL","$APP.config['WTF_CSRF_ENABLED'] = $VAL","$APP.config.WTF_CSRF_ENABLED = $VAL","WTF_CSRF_ENABLED = $VAL","app.config[\"WTF_CSRF_ENABLED\"] = $VAL","app.config['WTF_CSRF_ENABLED'] = $VAL"])
+          | where_capture("VAL"; "^False$")
+        | finding("python-weak-csrf";
+            "WTF_CSRF_ENABLED is False, so CSRF protection is disabled; set it to True or remove the line") ) )
+| report

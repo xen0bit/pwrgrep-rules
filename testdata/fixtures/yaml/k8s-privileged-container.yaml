@@ -1,0 +1,72 @@
+# CWE-250: Privileged container — disables most isolation.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad1
+spec:
+  containers:
+    - name: app
+      image: nginx
+      securityContext:
+# ruleid: privileged-container
+        privileged: true
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad2
+spec:
+  containers:
+    - name: app
+      image: nginx
+      securityContext:
+# ruleid: privileged-container
+        privileged: true
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad3
+spec:
+  containers:
+    - name: app
+      image: nginx
+      securityContext:
+# ruleid: privileged-container
+        privileged: true
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good1
+spec:
+  containers:
+    - name: app
+      image: nginx
+      securityContext:
+# ok: privileged-container
+        privileged: false
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good2
+spec:
+  containers:
+    - name: app
+      image: nginx
+      securityContext:
+# ok: privileged-container
+        privileged: false
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good3
+spec:
+  containers:
+    - name: app
+      image: nginx
+# ok: privileged-container
+      securityContext:
+        runAsNonRoot: true

@@ -1,0 +1,14 @@
+# rules: swift-os-command
+# languages: swift
+# fixture: swift/CWE-78b.swift
+# from: CWE-78 OS Command Injection
+#
+# Process with shell -c and non-literal.
+
+["$$$T.arguments = $ARGS", "$$$T.setArguments($ARGS)", "Process().launchPath = $PATH"] as $runs
+| ["$$$U.lastPathComponent", "$$$U.pathComponents", "$$$U.absoluteString", "$$$U.queryItems", "$$$U.fragment", "UIPasteboard.general.string", "$$$F.text"] as $untrusted
+| "\"-c\"" as $through
+| scan_ast("*.swift"; $runs + $untrusted) as $all
+| ( $all | of($runs) | where_capture("ARGS"; "-c") | focus("ARGS") | reaching($all | of($untrusted); []) | finding("swift-os-command";
+    "Command with -c and untrusted input reaches shell"))
+| report

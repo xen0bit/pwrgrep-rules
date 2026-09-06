@@ -1,0 +1,13 @@
+# rules: dockerfile-add-http
+# languages: dockerfile
+# fixture: dockerfile/CWE-add-http.dockerfile
+# from: dockerfile/best-practice/prefer-copy-over-add.yaml
+
+. as $root
+| ( ($root | scan_regex(["Dockerfile*","*.dockerfile"]; [
+      "ADD\\s+http://"
+    ])) as $all
+    | ( $all | of(["ADD\\s+http://"])
+        | finding("dockerfile-add-http";
+            "ADD http:// is insecure — use COPY for local files, curl for remote") ) )
+| report

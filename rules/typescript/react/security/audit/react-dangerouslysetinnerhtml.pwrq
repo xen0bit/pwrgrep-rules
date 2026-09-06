@@ -34,14 +34,14 @@
       "import * as $S from \"underscore.string\"\n$$$_",
       "import * as $S from 'xss';\n$$$_",
       "import { $$$_, $S,$$$_ } from \"dompurify\"\n$$$_",
-      "{$$$_,dangerouslySetInnerHTML: {__html: $X},$$$_}",
-      "{$$$_,dangerouslySetInnerHTML:{__html: \"$$$_\"},$$$_}",
+      "{dangerouslySetInnerHTML: {__html: $X}, $$$_}",
+      "{dangerouslySetInnerHTML: {__html: \"$$$_\"}, $$$_}",
       "{$$$_}"
     ])) as $all
-    | ( (($all | of(["{$$$_,dangerouslySetInnerHTML: {__html: $X},$$$_}","<$Y $$$_ dangerouslySetInnerHTML={{__html: $X}} />"])
+    | ( (($all | of(["{dangerouslySetInnerHTML: {__html: $X}, $$$_}","<$Y $$$_ dangerouslySetInnerHTML={{__html: $X}} />"])
           | focus("X")
           | not_at($all | of(["<$Y $$$_ dangerouslySetInnerHTML={{__html: \"$$$_\"}} />"]))
-          | not_at($all | of(["{$$$_,dangerouslySetInnerHTML:{__html: \"$$$_\"},$$$_}"]))
+          | not_at($all | of(["{dangerouslySetInnerHTML: {__html: \"$$$_\"}, $$$_}"]))
           | not_at($all | of(["$PWRQDEEP1"])
           | where_capture_ast("PWRQDEEP1"; "{__html: \"$$$_\"}"))
           | not_at($all | of(["$PWRQDEEP1"])

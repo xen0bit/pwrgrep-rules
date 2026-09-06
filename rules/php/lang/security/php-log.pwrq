@@ -1,0 +1,17 @@
+# rules: php-log
+# languages: php
+# fixture: php/CWE-532b.php
+# from: CWE-532 (Insertion of Sensitive Information into Log File)
+#
+# Logging a variable whose name is sensitive exposes the secret in log
+# files. The sink is `error_log` or a logger method where the message
+# contains a sensitive name.
+
+["error_log($MSG)", "$LOGGER->info($MSG)", "$LOGGER->debug($MSG)", "$LOGGER->error($MSG)", "$LOGGER->warning($MSG)", "logger.info($MSG)"] as $sinks
+| "(?i)password|passwd|pwd|secret|api_?key|token" as $names
+| scan_ast("*.php"; $sinks) as $all
+| ($all | of($sinks) | where_capture("MSG"; $names))
+| finding("php-log";
+    "sensitive data is written to the log; it will be in log files and "
+    + "shipped to any log collector — redact it")
+| report

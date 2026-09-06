@@ -1,0 +1,10 @@
+# rules: typescript-open-redirect
+# languages: typescript
+# fixture: typescript/CWE-601.ts
+# from: CWE-601 (Open Redirect)
+
+["req.query.get($$$_)", "req.params.get($$$_)", "location.search", "window.location.search"] as $src
+| ["res.redirect($URL)", "window.location.href = $URL", "window.location.assign($URL)"] as $sink
+| scan_ast(["*.ts","*.tsx"]; $src + $sink) as $all
+| ( $all | of($sink) | focus("URL") | reaching($all | of($src); []) | finding("typescript-open-redirect"; "Open redirect: $URL came from request and reaches redirect") )
+| report

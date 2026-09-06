@@ -35,3 +35,20 @@ void seed(unsigned char *out, size_t n)
     got = read(fd, out, n);
     close(fd);
 }
+void leak2(unsigned char *out, size_t n) {
+    int fd = open("/dev/srandom", O_RDONLY);
+    /* ruleid: random-fd-exhaustion */
+    read(fd, out, n);
+    close(fd);
+    int fd2 = open("/dev/arandom", O_RDONLY);
+    /* ruleid: random-fd-exhaustion */
+    read(fd2, out, n);
+    close(fd2);
+}
+void safe3(unsigned char *out, size_t n) {
+    int fd = open("/dev/urandom", O_RDONLY);
+    /* ok: random-fd-exhaustion */
+    ssize_t r = read(fd, out, n);
+    if (r < 0) return;
+    close(fd);
+}

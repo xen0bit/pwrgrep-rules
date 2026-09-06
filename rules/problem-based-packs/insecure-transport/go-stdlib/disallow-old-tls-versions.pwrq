@@ -1,4 +1,5 @@
 # rules: disallow-old-tls-versions
+# fixture: problem-based-packs/go-disallow-old-tls-versions.go
 # from: problem-based-packs/insecure-transport/go-stdlib/disallow-old-tls-versions.yaml
 
 . as $root

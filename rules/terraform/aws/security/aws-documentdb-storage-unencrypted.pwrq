@@ -1,5 +1,6 @@
 # rules: aws-documentdb-storage-unencrypted
 # languages: hcl
+# fixture: terraform/aws-documentdb-storage-unencrypted.tf
 # from: terraform/aws/security/aws-documentdb-storage-unencrypted.yaml
 
 . as $root

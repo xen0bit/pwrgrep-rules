@@ -1,0 +1,14 @@
+# rules: javascript-77-shell
+# languages: javascript
+# fixture: javascript/CWE-77.js
+# from: CWE-77 (Command Injection) — shell metacharacter
+#
+# child_process.exec with user input containing shell metacharacters.
+# The rule tracks req.query/params/body reaching exec and excludes array form ["ls", arg] via where_capture_not.
+
+["req.query", "req.params", "req.body", "req.query.get($$$_)", "req.params.get($$$_)"] as $src
+| ["child_process.execSync($CMD)", "child_process.spawn($CMD, $$$_)", "child_process.exec($CMD, $$$_)"] as $sink
+| scan_ast("*.js"; $src + $sink) as $all
+| ( $all | of($sink) | focus("CMD") | reaching($all | of($src); []) | where_capture_not("CMD"; "\\[\"ls\"|allowlist|whitelist") )
+| finding("javascript-77-shell"; "Command injection: $CMD from request reaches shell exec without sanitization; use array form [\"ls\", arg]")
+| report

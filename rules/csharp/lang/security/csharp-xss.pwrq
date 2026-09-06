@@ -1,0 +1,31 @@
+# rules: csharp-xss
+# languages: c_sharp
+# fixture: csharp/CWE-79b.cs
+# from: CWE-79 (Cross-site Scripting)
+
+["$T $V = $S;"] as $assigned
+| ["public $T $M($$$_, string $P, $$$_) { $$$_ }",
+   "public $T $M(string $P) { $$$_ }"] as $bound
+| ["using Microsoft.AspNetCore.Mvc;", "using System.Web.Mvc;",
+   "using System.Web.Http;", "using Microsoft.AspNetCore.Components;"] as $mvcImports
+| ["class $C : $B { $$$_ }"] as $classes
+| ["Response.Write($X);", "Response.Write($X, $$$_);",
+   "Response.WriteAsync($X, $$$_);", "Response.WriteAsync($X);",
+   "new HtmlString($H, $$$_)",    "$X.Raw($H, $$$_);", "Html.Raw($H, $$$_)"] as $sinks
+| ["WebUtility.HtmlEncode($X, $$$_)", "HttpUtility.HtmlEncode($X, $$$_)",
+   "$T $V = $E.HtmlEncode($X, $$$_);", "$E.HtmlEncode($X, $$$_);",
+   "$T $V = $E.Encode($X, $$$_);", "$E.Encode($X, $$$_);"] as $clean
+| "Request\\s*\\.\\s*(Query|Form|Headers|Cookies|QueryString|Params|RouteValues)\\b" as $fromRequest
+| scan_ast("*.cs"; $assigned + $bound + $mvcImports + $classes + $sinks + $clean) as $all
+| ( ($all | of($assigned) | where_capture("S"; $fromRequest) | focus("S"))
+    + ($all | of($bound) | focus("P")
+       | in_files_with( ($all | of($mvcImports))
+                        + ($all | of($classes) | where_capture("B"; "Controller")) )) ) as $untrusted
+| ( ($all | of(["Response.Write($X);", "Response.Write($X, $$$_);",
+                "Response.WriteAsync($X, $$$_);", "Response.WriteAsync($X);"]) | focus("X"))
+    + ($all | of(["new HtmlString($H, $$$_)"]) | focus("H"))
+    + ($all | of(["$X.Raw($H, $$$_);", "Html.Raw($H, $$$_)"]) | focus("H")) )
+| reaching($untrusted; $all | of($clean))
+| finding("csharp-xss";
+    "this is markup built from the request and handed to a sink that does not encode it, so a <script> in the value is a <script> in the page")
+| report

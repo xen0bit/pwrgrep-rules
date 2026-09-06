@@ -1,0 +1,90 @@
+# CWE-250: Pod with hostNetwork enabled — shares host network.
+# hostNetwork lets the pod sniff host interfaces and bind host ports.
+# The rule flags hostNetwork true; fix with false or omit the key.
+kind: Pod
+metadata:
+  name: bad1
+spec:
+# ruleid: hostnetwork-pod
+  hostNetwork: true
+  containers:
+    - name: app
+      image: nginx
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad2
+spec:
+# ruleid: hostnetwork-pod
+  hostNetwork: true
+  containers:
+    - name: app
+      image: nginx
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good1
+spec:
+# ok: hostnetwork-pod
+  hostNetwork: false
+  containers:
+    - name: app
+      image: nginx
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good2
+spec:
+  containers:
+    - name: app
+      image: nginx
+
+---
+# Extra: pod without hostNetwork (omission secure).
+# ok: hostnetwork-pod
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ok-extra
+spec:
+  containers:
+    - name: app
+      image: nginx
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad3
+spec:
+# ruleid: hostnetwork-pod
+  hostNetwork: true
+  containers:
+    - name: sidecar
+      image: nginx
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: bad4
+spec:
+  template:
+    spec:
+# ruleid: hostnetwork-pod
+      hostNetwork: true
+      containers:
+        - name: app
+          image: nginx
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good3
+spec:
+# ok: hostnetwork-pod
+  hostNetwork: false
+  containers:
+    - name: app
+      image: busybox

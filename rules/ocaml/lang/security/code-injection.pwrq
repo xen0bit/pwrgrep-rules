@@ -1,0 +1,12 @@
+# rules: ocamllint-code-injection
+# languages: ocaml
+# fixture: ocaml/CWE-94.ml
+# from: CWE-94 (Code Injection)
+
+. as $root
+| ( $root | scan_ast(["*.ml"]; ["Dynlink.loadfile $CODE", "Toploop.execute_phrase $CODE"]) ) as $all
+| ( $all | of(["Dynlink.loadfile $CODE", "Toploop.execute_phrase $CODE"]) | where_capture_not("CODE"; "^\".*\"$") | finding("ocamllint-code-injection";
+        "this evaluates a value the caller chose as code, which is the whole of "
+        + "the language and not the part you meant; look the value up in a "
+        + "map of the things it is allowed to be") )
+| report

@@ -1,0 +1,35 @@
+# rules: js-sql-injection
+# languages: javascript, typescript
+# fixture: javascript/CWE-89.js
+# from: CWE-89 (SQL Injection)
+
+. as $root
+| ( ($root | scan_ast(["*.js","*.ts"]; [
+      "db.query($Q,$$$_)",
+      "db.query($Q)",
+      "connection.query($Q,$$$_)",
+      "connection.query($Q)",
+      "$DB.query($Q,$$$_)",
+      "$DB.query($Q)",
+      "sequelize.query($Q,$$$_)",
+      "sequelize.query($Q)",
+      "pool.query($Q,$$$_)",
+      "pool.query($Q)",
+      "req.query",
+      "req.params",
+      "req.body",
+      "req.headers",
+      "location.search",
+      "location.hash",
+      "new URLSearchParams(location.search).get($$$_)",
+      "$PROP = new URLSearchParams(location.search).get($$$_)\n$$$_"
+    ])) as $all
+  | ($all | of(["db.query($Q,$$$_)","db.query($Q)","connection.query($Q,$$$_)","connection.query($Q)","$DB.query($Q,$$$_)","$DB.query($Q)","sequelize.query($Q,$$$_)","sequelize.query($Q)","pool.query($Q,$$$_)","pool.query($Q)"])
+      | focus("Q")
+      | reaching(($all | of(["req.query","req.params","req.body","req.headers","location.search","location.hash","new URLSearchParams(location.search).get($$$_)"])
+          + ($all | within($all | of(["$PROP = new URLSearchParams(location.search).get($$$_)\n$$$_"])) | focus("PROP"))
+        ); []))
+  | finding("js-sql-injection";
+      "untrusted input concatenated into SQL query; use parameterised queries")
+  )
+| report

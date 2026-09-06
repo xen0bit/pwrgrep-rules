@@ -1,0 +1,38 @@
+# rules: python-path-traversal
+# languages: python
+# fixture: python/CWE-22.py
+# from: CWE-22 (Path Traversal)
+#
+# A path the caller chose that reaches `open` lets the caller read or write
+# outside the intended directory: `../../etc/passwd` walks up. `os.path.join`
+# does not prevent it.
+#
+# The rule is `reaching`: an untrusted value from the request (query string,
+# form, route variable, or `self.path`) that flows into an `open` sink. A
+# literal path has nothing to flow.
+
+. as $root
+| ( ($root | scan_ast(["*.py"]; [
+      "open($PATH, $$$_)",
+      "flask.request.args.get($$$_)", "flask.request.args[$$$_]",
+      "flask.request.form.get($$$_)", "flask.request.form[$$$_]",
+      "flask.request.values.get($$$_)", "flask.request.values[$$$_]",
+      "flask.request.cookies.get($$$_)", "flask.request.data",
+      "request.args.get($$$_)", "request.args[$$$_]",
+      "request.form.get($$$_)", "request.form[$$$_]",
+      "request.values.get($$$_)", "request.data",
+      "self.path", "self.headers.get($$$_)", "self.headers[$$$_]",
+      "@$APP.route($$$_)\ndef $FUNC($$$_, $ROUTEVAR, $$$_):\n  $$$_",
+      "def $FUNC(request, $$$_):\n  $$$_"
+    ])) as $all
+  | ($all | of(["open($PATH, $$$_)"])
+      | focus("PATH")
+      | reaching($all | of(["flask.request.args.get($$$_)","flask.request.args[$$$_]","flask.request.form.get($$$_)","flask.request.form[$$$_]","flask.request.values.get($$$_)","flask.request.values[$$$_]","flask.request.cookies.get($$$_)","flask.request.data","request.args.get($$$_)","request.args[$$$_]","request.form.get($$$_)","request.form[$$$_]","request.values.get($$$_)","request.data","self.path","self.headers.get($$$_)","self.headers[$$$_]"])
+          + ($all | within($all | of(["@$APP.route($$$_)\ndef $FUNC($$$_, $ROUTEVAR, $$$_):\n  $$$_"])) | focus("ROUTEVAR"))
+          + ($all | within($all | of(["def $FUNC(request, $$$_):\n  $$$_"])) | of(["request.args.get($$$_)","request.args[$$$_]","request.form.get($$$_)","request.form[$$$_]"]))
+          ; []))
+  | finding("python-path-traversal";
+      "untrusted input reaches filesystem path; a `../` in it escapes the "
+      + "intended directory — validate or allow-list the path")
+  )
+| report

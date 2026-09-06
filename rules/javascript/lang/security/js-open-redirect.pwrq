@@ -1,0 +1,37 @@
+# rules: js-open-redirect
+# languages: javascript, typescript
+# fixture: javascript/CWE-601.js
+# from: CWE-601 (Open Redirect), javascript/browser/security/open-redirect.yaml
+#
+# This took over the generated `javascript/browser/security/open-redirect`,
+# which reported under this same id and had no fixture. Both fired on
+# `location.href = <untrusted>`, so a browser file got two findings on one
+# line under one id; this is the one that is checked against a fixture.
+
+. as $root
+| ( ($root | scan_ast(["*.js","*.ts"]; [
+      "res.redirect($URL)",
+      "res.redirect($STATUS, $URL)",
+      "window.location = $URL",
+      "location.href = $URL",
+      "location.replace($URL)",
+      "window.location.href = $URL",
+      "window.location.replace($URL)",
+      "req.query",
+      "req.params",
+      "req.body",
+      "req.headers",
+      "location.search",
+      "location.hash",
+      "new URLSearchParams(location.search).get($$$_)",
+      "$PROP = new URLSearchParams(location.search).get($$$_)\n$$$_"
+    ])) as $all
+  | ($all | of(["res.redirect($URL)","res.redirect($STATUS, $URL)","window.location = $URL","location.href = $URL","location.replace($URL)","window.location.href = $URL","window.location.replace($URL)"])
+      | focus("URL")
+      | reaching(($all | of(["req.query","req.params","req.body","req.headers","location.search","location.hash","new URLSearchParams(location.search).get($$$_)"])
+          + ($all | within($all | of(["$PROP = new URLSearchParams(location.search).get($$$_)\n$$$_"])) | focus("PROP"))
+        ); []))
+  | finding("js-open-redirect";
+      "untrusted input reaches redirect; attacker can redirect to malicious site")
+  )
+| report

@@ -1,3 +1,7 @@
+// CWE-532/798: Credential written to log — log is low-confidentiality.
+// _log.LogInformation(..., password) or Console.WriteLine(connectionString)
+// leaks secrets to disk. The rule flags logging of password/token; fix
+// by logging only the user or a redacted value.
 using Microsoft.Extensions.Logging;
 
 namespace Fixture {

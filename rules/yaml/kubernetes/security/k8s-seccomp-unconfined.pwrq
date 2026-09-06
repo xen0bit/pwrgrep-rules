@@ -1,0 +1,13 @@
+# rules: k8s-seccomp-unconfined
+# languages: yaml
+# fixture: yaml/k8s-seccomp-unconfined.yaml
+# from: yaml/kubernetes/security/seccomp-confinement-disabled.yaml
+
+. as $root
+| ($root | scan_ast(["*.yaml","*.yml"]; [
+      "seccompProfile:
+      type: Unconfined"
+    ])) as $all
+| ($all | of(["seccompProfile:
+      type: Unconfined"]) | finding("k8s-seccomp-unconfined"; "seccompProfile Unconfined is insecure — disables seccomp"))
+| report

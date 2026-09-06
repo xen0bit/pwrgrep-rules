@@ -1,0 +1,11 @@
+# rules: ruby-sqli
+# languages: ruby
+# fixture: problem-based-packs/ruby-sqli.rb
+# from: CWE-89 (SQL Injection)
+
+["params[$_]", "params.get($_)", "request.params[$_]" ] as $outside
+| ["$MODEL.where($Q)", "$MODEL.find_by_sql($Q)", "ActiveRecord::Base.connection.execute($Q)" ] as $sinks
+| scan_ast("*.rb"; $outside + $sinks) as $all
+| ( $all | of($sinks) | focus("Q") | reaching($all | of($outside); []) )
+| finding("ruby-sqli"; "SQL injection from params to query")
+| report

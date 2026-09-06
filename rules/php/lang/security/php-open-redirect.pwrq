@@ -1,0 +1,16 @@
+# rules: php-open-redirect
+# languages: php
+# fixture: php/CWE-601b.php
+# from: CWE-601 (Open Redirect)
+#
+# header('Location: ' . $_GET['url']) with tainted data.
+
+["$T $V = $S;", "$T $V = $_GET[$K];", "$T $V = $_POST[$K];", "$T $V = $_REQUEST[$K];"] as $assigned
+| ["header($H, $$$_)"] as $sinks
+| ["$_GET[$K]", "$_POST[$K]", "$_REQUEST[$K]", "$_GET.get($$$_)"] as $srcDirect
+| scan_ast("*.php"; $assigned + $sinks + $srcDirect) as $all
+| ( ($all | of($assigned) | where_capture("S"; "\\$_GET|\\$_POST|\\$_REQUEST") | focus("S")) + ($all | of($srcDirect)) ) as $untrusted
+| ($all | of($sinks) | where_capture("H"; "(?i)Location:") | focus("H"))
+| reaching($untrusted; [])
+| finding("php-open-redirect"; "Open redirect: header Location with tainted $_GET/$_POST")
+| report

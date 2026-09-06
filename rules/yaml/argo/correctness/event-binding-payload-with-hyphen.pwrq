@@ -1,0 +1,9 @@
+# rules: event-binding-payload-with-hyphen
+# languages: yaml
+# fixture: yaml/argo-event-binding-hyphen.yaml
+# from: yaml/argo/correctness/event-binding-payload-with-hyphen.yaml
+
+["apiVersion: argoproj.io/v1alpha1", "kind: WorkflowEventBinding", "event: $VALUE"] as $pats
+| scan_ast("*.yaml"; $pats) as $all
+| ( $all | of(["event: $VALUE"]) | where_capture("VALUE"; "payload\\..*-.*") | in_files_with($all | of(["apiVersion: argoproj.io/v1alpha1"])) | in_files_with($all | of(["kind: WorkflowEventBinding"])) | finding("event-binding-payload-with-hyphen"; "payload value $VALUE includes hyphen; use underscores"))
+| report

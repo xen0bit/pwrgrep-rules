@@ -1,0 +1,16 @@
+# rules: typescript-xss
+# languages: typescript
+# fixture: typescript/CWE-79.tsx
+# from: CWE-79 (XSS)
+
+. as $root
+| ( ($root | scan_ast(["*.ts","*.tsx"]; [
+      "<$Y dangerouslySetInnerHTML={{__html: $X}} />"
+    ])) as $all
+    | ( $all | of(["<$Y dangerouslySetInnerHTML={{__html: $X}} />"])
+          | where_capture_not("X"; "^\"")
+        | finding("typescript-xss";
+        "this is written into the page as markup, so a `<script>` in the value "
+        + "runs in the reader's session; escape it, or set text rather than "
+        + "HTML") ) )
+| report

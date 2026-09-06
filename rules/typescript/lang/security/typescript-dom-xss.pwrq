@@ -1,0 +1,30 @@
+# rules: typescript-dom-xss
+# languages: typescript
+# fixture: typescript/CWE-79b.tsx
+# from: CWE-79 (Cross-site Scripting)
+#
+# The DOM sinks, which are the ones that exist whether or not React does.
+# `innerHTML`, `outerHTML`, `document.write` and `insertAdjacentHTML` all parse
+# what they are given as HTML, so a `<img onerror=...>` in the value runs.
+#
+# React's own escape hatch is `dangerouslySetInnerHTML` and it is a rule of its
+# own - typescript-xss - because it is React's to explain and its fix is
+# React's too. Both rules firing on one line was the bug this split fixed: they
+# carried the same id, so a component that used both spellings reported the
+# same weakness twice.
+#
+# A literal is not a finding. It is the one thing about an HTML sink that can
+# be decided from the syntax alone: a string written in the source is written
+# by the author, and nothing an attacker sends reaches it.
+
+["$EL.innerHTML = $HTML", "$EL.outerHTML = $HTML",
+ "document.write($HTML)", "document.writeln($HTML)",
+ "$EL.insertAdjacentHTML($WHERE, $HTML)"] as $sinks
+| scan_ast(["*.ts", "*.tsx"]; $sinks) as $all
+| ( $all | of($sinks)
+    | where_capture_not("HTML"; "^\"|^'|^`")
+    | focus("HTML") )
+| finding("typescript-dom-xss";
+    "this is parsed as HTML, so markup in the value runs as script; set "
+    + "textContent, or sanitize before assigning")
+| report

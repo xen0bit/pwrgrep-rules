@@ -1,0 +1,12 @@
+# rules: elixir-xss
+# languages: elixir
+# fixture: elixir/CWE-79.ex
+# from: CWE-79 XSS
+
+["Phoenix.Controller.html($CONN, $HTML)", "EEx.eval_string($TEMPLATE)"] as $sinks
+| scan_ast("*.ex"; $sinks) as $all
+| ($all | of($sinks) | where_capture_not("HTML"; "^\".*\"$") | where_capture_not("TEMPLATE"; "^\".*\"$") | finding("elixir-xss";
+        "this is written into the page as markup, so a `<script>` in the value "
+        + "runs in the reader's session; escape it, or set text rather than "
+        + "HTML"))
+| report

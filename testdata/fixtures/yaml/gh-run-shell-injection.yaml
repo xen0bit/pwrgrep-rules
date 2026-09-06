@@ -1,0 +1,57 @@
+# CWE-78: Workflow run step interpolates GitHub context (shell injection).
+# A run step that interpolates github context lets an issue title inject
+# shell commands. The rule flags run steps with github interpolation;
+# fix by using env vars or intermediate outputs.
+name: test
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+# ruleid: run-shell-injection
+      - run: echo "${{ github.event.issue.title }}"
+# ruleid: run-shell-injection
+      - run: echo "${{ github.event.pull_request.body }}"
+      - run: echo "hello"
+# ok: run-shell-injection
+      - run: echo "world"
+
+---
+# Extra: run step with static command, no interpolation (secure).
+# ok: run-shell-injection
+name: ok_extra
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "static hello"
+---
+name: bad3
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+# ruleid: run-shell-injection
+      - run: echo "${{ github.event.comment.body }}"
+---
+name: bad4
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+# ruleid: run-shell-injection
+      - run: echo "${{ github.head_ref }}"
+---
+name: good3
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      ISSUE_TITLE: ${{ github.event.issue.title }}
+    steps:
+# ok: run-shell-injection
+      - run: echo "$ISSUE_TITLE"

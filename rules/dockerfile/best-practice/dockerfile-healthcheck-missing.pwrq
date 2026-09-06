@@ -1,0 +1,18 @@
+# rules: dockerfile-healthcheck-missing
+# languages: dockerfile
+# fixture: dockerfile/CWE-healthcheck-missing.dockerfile
+# from: Dockerfile best practice (a container with no HEALTHCHECK), CWE-754 (Improper Check for Unusual or Exceptional Conditions)
+#
+# Dockerfile missing HEALTHCHECK instruction.
+
+. as $root
+| ( ($root | scan_ast(["Dockerfile*","*.dockerfile"]; [
+      "FROM $$$IMAGE",
+      "HEALTHCHECK CMD $$$CMD",
+      "HEALTHCHECK NONE"
+    ])) as $all
+    | ( $all | of(["FROM $$$IMAGE"])
+          | in_files_without($all | of(["HEALTHCHECK CMD $$$CMD","HEALTHCHECK NONE"]))
+        | finding("dockerfile-healthcheck-missing";
+            "Dockerfile is missing HEALTHCHECK — add a health check to detect container failures.") ) )
+| report

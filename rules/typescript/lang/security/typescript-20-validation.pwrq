@@ -1,0 +1,15 @@
+# rules: typescript-20-validation
+# languages: typescript
+# fixture: typescript/CWE-20.ts
+# from: CWE-20 Improper Input Validation — req.query without validation
+#
+# Query value from req.query reaches use without validation. The rule tracks
+# req.query/params reaching file or parse use and excludes allowlist cases via
+# where_capture_not.
+
+["req.query", "req.query[$$$_]", "req.query.$Q", "req.params[$$$_]", "req.params.$Q", "req.body[$$$_]", "req.body.$Q", "req.query.get($$$_)", "req.params.get($$$_)"] as $src
+| ["parseInt($VAL)", "Number($VAL)", "parseFloat($VAL)", "fs.readFile($VAL, $$$_)", "fs.readFileSync($VAL)", "db.query($VAL)"] as $sink
+| scan_ast(["*.ts","*.tsx"]; $src + $sink) as $all
+| ( $all | of($sink) | focus("VAL") | reaching($all | of($src); []) | where_capture_not("VAL"; "allowlist|whitelist|validated|sanitized") )
+| finding("typescript-20-validation"; "Improper validation: $VAL from req.query reaches use without allowlist check")
+| report

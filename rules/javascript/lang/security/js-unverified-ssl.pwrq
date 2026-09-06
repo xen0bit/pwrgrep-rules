@@ -1,0 +1,17 @@
+# rules: js-unverified-ssl
+# languages: javascript, typescript
+# fixture: javascript/CWE-295.js
+# from: CWE-295 Improper Certificate Validation
+
+. as $root
+| ( ($root | scan_ast(["*.js","*.ts"]; [
+      "{rejectUnauthorized:false}",
+      "{verify: false}",
+      "process.env[\"NODE_TLS_REJECT_UNAUTHORIZED\"] = 0;"
+    ])) as $all
+    | ( $all | of(["{rejectUnauthorized:false}","{verify: false}","process.env[\"NODE_TLS_REJECT_UNAUTHORIZED\"] = 0;"])
+        | finding("js-unverified-ssl";
+            "TLS verification is disabled; connection is encrypted but not authenticated")
+      )
+  )
+| report

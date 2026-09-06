@@ -1,0 +1,22 @@
+# rules: elixir-deserialization
+# languages: elixir
+# fixture: elixir/CWE-502.ex
+# from: CWE-502 Deserialization of Untrusted Data
+#
+# `:erlang.binary_to_term` reconstructs whatever term the binary describes,
+# and a term can be a fun or an atom the node has never seen - so a crafted
+# binary is arbitrary code and an unbounded atom table at the same time.
+# `binary_to_term(data, [:safe])` refuses both and is the fix.
+#
+# A literal is not a finding and nothing else is excluded: what would make
+# this safe is the `:safe` option, and a rule that read the option list would
+# be the better rule. This one reports every non-literal, which costs noise on
+# a call that already passes `[:safe]`.
+
+[":erlang.binary_to_term($DATA, $$$_)"] as $sinks
+| scan_ast("*.ex"; $sinks) as $all
+| ( $all | of($sinks) | focus("DATA") | where_capture_not("DATA"; "^\".*\"$") | finding("elixir-deserialization";
+        "this rebuilds an object graph from bytes somebody else wrote, which "
+        + "runs whatever the graph names before you can look at it; read a "
+        + "data format instead") )
+| report

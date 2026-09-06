@@ -1,0 +1,23 @@
+# rules: bash-os-command
+# languages: bash
+# fixture: bash/CWE-78-bash.sh
+# from: CWE-78 OS Command Injection
+#
+# Bash eval with user-controlled data executes that data as code. The rule
+# flags eval that interpolates a variable ($var, ${var}, "$var") as vulnerable;
+# safe eval uses a literal string without variable expansion.
+
+. as $root
+| ( ($root | scan_regex(["*.sh"]; [
+      "eval\\s+\\$",
+      "eval\\s+\"\\$",
+      "eval\\s+'\\$",
+      "eval\\s+\\$\\(",
+      "eval\\s+\"\\$\\("
+    ])) as $all
+    | ( $all | of(["eval\\s+\\$","eval\\s+\"\\$","eval\\s+'\\$","eval\\s+\\$\\(","eval\\s+\"\\$\\("])
+        | where_text_not("^eval\\s+\"[^\"]*\"\\s*$")
+        | where_text_not("^eval\\s+'[^']*'\\s*$")
+        | finding("bash-os-command";
+            "eval with variable expansion executes untrusted data; avoid eval or sanitize input") ) )
+| report

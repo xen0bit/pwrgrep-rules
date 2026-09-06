@@ -1,0 +1,18 @@
+# CWE-798: GitHub token — ghp_... PAT hardcoded.
+# ghp_... tokens grant repo access; committed tokens are instantly
+# exploitable. The rule flags the pattern; ok is a too-short or
+# placeholder that does not match the 36-char suffix.
+# ruleid: detected-github-token
+GITHUB_TOKEN = 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
+# ruleid: detected-github-token
+github_token: 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@github.com
+# ok: detected-github-token
+github_token=ghp_abababababababababababababababababab
+# ok: detected-github-token
+not-a-token
+# ruleid: detected-github-token
+GITHUB_TOKEN = ghp_QwErTyUiOpAsDfGhJkLzXcVbNm1234567890ABCD
+# ruleid: detected-github-token
+token = ghp_ZxCvBnMqWeRtYuIoPaSdFgHjKl1234567890ABCD12
+# ok: detected-github-token
+github_token = "example_placeholder_not_real_token_aaaa"

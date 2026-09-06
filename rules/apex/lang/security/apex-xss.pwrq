@@ -1,0 +1,12 @@
+# rules: apex-xss
+# languages: apex
+# fixture: apex/CWE-79.cls
+# from: CWE-79 Cross-site Scripting via unescaped concatenation
+
+. as $root
+| ( $root | scan_ast(["*.cls"]; ["'<div>' + $X", "'<p>' + $X", "'<span>' + $X"]) ) as $all
+| ( $all | of(["'<div>' + $X", "'<p>' + $X", "'<span>' + $X"]) | where_capture_not("X"; "^'.*'$") | finding("apex-xss";
+        "this is written into the page as markup, so a `<script>` in the value "
+        + "runs in the reader's session; escape it, or set text rather than "
+        + "HTML") )
+| report

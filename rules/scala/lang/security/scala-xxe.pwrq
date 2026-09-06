@@ -1,0 +1,17 @@
+# rules: scala-xxe
+# languages: scala
+# fixture: scala/CWE-611.scala
+# from: CWE-611 (XXE), CWE-776
+
+. as $root
+| ( ($root | scan_ast(["*.scala"]; [
+      "val $DB = DocumentBuilderFactory.newInstance($$$_)",
+      "val $SF = SAXParserFactory.newInstance($$$_)",
+      "val $SR = new SAXBuilder($$$_)"
+    ])) as $all
+    | ( $all | of(["val $DB = DocumentBuilderFactory.newInstance($$$_)","val $SF = SAXParserFactory.newInstance($$$_)","val $SR = new SAXBuilder($$$_)"])
+        | finding("scala-xxe";
+        "this parser resolves external entities, so a DOCTYPE in the document "
+        + "reads local files and makes requests from this host; disable DTDs "
+        + "and external entities on the parser") ) )
+| report

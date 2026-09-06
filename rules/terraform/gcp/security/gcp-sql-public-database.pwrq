@@ -1,5 +1,6 @@
 # rules: gcp-sql-public-database
 # languages: hcl
+# fixture: terraform/gcp-sql-public-database.tf
 # from: terraform/gcp/security/gcp-sql-public-database.yaml
 
 . as $root

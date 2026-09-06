@@ -1,0 +1,40 @@
+# rules: js-command-injection
+# languages: javascript, typescript
+# fixture: javascript/CWE-78.js
+# from: CWE-78 (OS Command Injection), CWE-88
+
+. as $root
+| ( ($root | scan_ast(["*.js","*.ts"]; [
+      "child_process.exec($CMD,$$$_)",
+      "child_process.execSync($CMD,$$$_)",
+      "child_process.spawn($CMD,$$$_)",
+      "child_process.spawnSync($CMD,$$$_)",
+      "child_process.execFile($CMD,$$$_)",
+      "$CP.exec($CMD,$$$_)",
+      "$CP.execSync($CMD,$$$_)",
+      "$CP.spawn($CMD,$$$_)",
+      "$CP.spawnSync($CMD,$$$_)",
+      "$CP.execFile($CMD,$$$_)",
+      "req.query",
+      "req.params",
+      "req.body",
+      "req.headers",
+      "req.cookies",
+      "location.search",
+      "location.hash",
+      "location.href",
+      "new URLSearchParams(location.search).get($$$_)",
+      "new URLSearchParams(location.hash).get($$$_)",
+      "$PROP = new URLSearchParams(location.search).get($$$_)\n$$$_",
+      "$PROP = new URLSearchParams(location.hash).get($$$_)\n$$$_"
+    ])) as $all
+  | ($all | of(["child_process.exec($CMD,$$$_)","child_process.execSync($CMD,$$$_)","child_process.spawn($CMD,$$$_)","child_process.spawnSync($CMD,$$$_)","child_process.execFile($CMD,$$$_)","$CP.exec($CMD,$$$_)","$CP.execSync($CMD,$$$_)","$CP.spawn($CMD,$$$_)","$CP.spawnSync($CMD,$$$_)","$CP.execFile($CMD,$$$_)"])
+      | focus("CMD")
+      | reaching(($all | of(["req.query","req.params","req.body","req.headers","req.cookies","location.search","location.hash","location.href","new URLSearchParams(location.search).get($$$_)","new URLSearchParams(location.hash).get($$$_)"])
+          + ($all | within($all | of(["$PROP = new URLSearchParams(location.search).get($$$_)\n$$$_"])) | focus("PROP"))
+          + ($all | within($all | of(["$PROP = new URLSearchParams(location.hash).get($$$_)\n$$$_"])) | focus("PROP"))
+        ); []))
+  | finding("js-command-injection";
+      "untrusted input reaches child_process shell sink; a `;` or backtick starts a second command")
+  )
+| report

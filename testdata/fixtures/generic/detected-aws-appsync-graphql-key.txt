@@ -1,0 +1,16 @@
+# CWE-798: AWS AppSync GraphQL API key — da2-... hardcoded.
+# AppSync keys allow unauthenticated GraphQL access if leaked.
+# ruleid: detected-aws-appsync-graphql-key
+appsync_key = da2-1234567890abcdefghijklmnop
+# ruleid: detected-aws-appsync-graphql-key
+key = da2-abcdefghij1234567890abcdef
+# ok: detected-aws-appsync-graphql-key
+key = da2-short
+# ok: detected-aws-appsync-graphql-key
+not-a-key = hello world
+# ruleid: detected-aws-appsync-graphql-key
+appsync_key = da2-qwertyuiopasdfghjklzxcvbn1
+# ruleid: detected-aws-appsync-graphql-key
+key2 = da2-0987654321abcdefghijklmnop
+# ok: detected-aws-appsync-graphql-key
+key = da2-short

@@ -1118,6 +1118,667 @@ digest is for, which is three call frames away. This is the class where a rule
 is right to speak and wrong to be believed without looking - Apple named the
 namespace, and the rule is only repeating it.
 
+## Python is the one where an assignment is still an assignment
+
+Python was the first language in this corpus to need no new engine code and
+still be worth a pass. Every Python assignment the corpus cares about is
+`left`/`right` — `x = request.args.get("q")`, `cmd = q`, `y = x` — and
+`for x in y:` is `left`/`right` with a `body`, so the loop-variable fix from
+xen0bit/pwrq#49 already read it correctly. The taint engine's `bindingFields`
+already said `left`/`right` and `name`/`value`, and Python never asked for a
+third pair — the table it was already carrying cost nothing and returned
+everything.
+
+What it did need was restraint.
+
+**A Python sink is not a literal.** `subprocess.call("ls", shell=True)` and
+`os.system("uptime")` are shell sinks and are not findings; they are what the
+`ok:` lines are for. A literal has nothing to flow, so `reaching` is exactly
+the right tool: the sink is reported only when an untrusted value arrived in
+`$CMD`. The whole family — `os.system($CMD)`, `os.popen($CMD)`,
+`subprocess.call($CMD, $$$_)` etc. — shares that shape, and the focus is
+`CMD` so the finding lands on the argument the caller chose rather than on
+the call.
+
+**Sources are not one accessor.** Flask's `request.args.get`, Django's
+`request.GET`, the route variable in `@app.route("/x/<name>") def foo(name):`,
+and `self.path` in a `BaseHTTPRequestHandler` are all the same question —
+"where does input from outside come from" — spelled four ways. The rule binds
+the route variable by `within( @$APP.route... | focus("ROUTEVAR"))` and the rest
+by direct `of`, then `+` them before the `; []`. That `+` is inside the
+`reaching` first argument, and the single `; []` must not be double-wrapped:
+`reaching($all | of([...]) + ($all | within... | focus(...)); [])` is read as
+one source set; `reaching((($all|of(...)) + ($all|within...); []))` with an
+extra `((` puts the `;` inside the first hole and the query reports
+`unexpected token ";"`.
+
+**A query built from a f-string is still a query.** `cursor.execute("SELECT
+... " + user)` and `` f"SELECT ... {user}" `` are both string concatenation,
+and a Swift-taught engine that only knows `target`/`result` would miss the
+assignment before the sink if it looked for the wrong field. Python does not
+need it: the concatenation is inside the sink's `$Q` capture, and `reaching`
+does not need to understand string interpolation to follow `q = user; db.execute(q)`.
+
+**Seven things the engine already did:** `for`, `with open(...) as f:`,
+comprehensions, walrus `:=`, tuple unpacking `x, y = ...`, `try`/`except`, and
+`import yaml`. None needed a new `bindingFields` entry, and that is the point
+— where a language's bindings are already labelled `left`/`right`, the flow
+that carries every web value is free.
+
+## JavaScript is the one where the declaration and the assignment look alike
+
+JavaScript (and TypeScript, which the same grammar reads) needed no new engine
+either, but for the opposite reason: the declaration *does* have its own node.
+
+`const x = req.query.q` is `lexical_declaration` → `variable_declarator` with
+`name`/`value`; `x = y` is `assignment_expression` with `left`/`right`. Both
+pairs were already measured, so `let s = x` and `s = x` both carried taint
+before this pass started. TypeScript types — `const x: string = y` — do not
+change the field names; the grammar drops the type annotation and keeps
+`name`/`value`.
+
+What it did need was the same shape as Python, narrowed for the browser.
+
+**A sink without a source is not a finding.** `eval("42")`, `fs.readFile("/etc/hosts")`,
+`fetch("https://example.com/api")` are all constant and are all `ok:`. The
+rule is `reaching` with `focus("CODE")`/`focus("PATH")`/`focus("URL")`, and the
+sources are the places a browser or a Node handler gets outside input:
+`req.query`/`req.params`/`req.body`/`req.headers`, `location.search`/`hash`/`href`,
+and `new URLSearchParams(location.search).get($$$_)`. The last of those binds
+its result with `within( | focus("PROP"))` so the name `prop` itself is the
+source — the same focus-and-subtract technique as Flask route vars.
+
+**Template literals are just nodes.** `` db.query(`SELECT ... ${user}`) `` is
+`template_string` with interpolation children, and a pattern with `$Q` captures
+the whole literal. A rule that tried to match the `${user}` inside the template
+would fight the grammar; capturing the enclosing query and letting `reaching`
+follow `user` through the assignment that built it is what the corpus already
+does for Python f-strings.
+
+**A nested call in the only argument matches.** `fetch(url)` where `url` is
+`request.args.get("u")` works without `where_capture_ast`, unlike C's
+`malloc(strlen($S))`. Where the hole may hold the call among other text,
+`where_capture_ast` is still the tool.
+
+## Ruby is the one where a block is not a function
+
+Ruby also needed no new bindings. `x = params["q"]`, `y = x`, `for e in list`
+(if written), and `a, b = 1, 2` all use `left`/`right` or `name`/`value`, and
+a method definition's parameters are `parameters`/`body` — which the
+`leavesFunction` check already treats as a boundary, so a value read inside a
+block does not escape to the assignment that holds the block.
+
+What it did need was to remember Ruby's punctuation.
+
+**Backticks are a sink.** `system($CMD)`, `` `$CMD` ``, `%x($CMD)`,
+`exec($CMD)`, `spawn($CMD)`, `Open3.popen3($CMD)` are all shell sinks; the
+backtick form is written as `` `$CMD` `` in the pattern and compiles to a
+`subshell` node. `Kernel.system` and `Open3.popen3` are qualified names but
+match the same `$CMD` hole.
+
+**ActiveRecord is string building, not parameter binding.** `where("name = '#{params[:q]}'")`
+and `"SELECT ... " + params[:q]` are flagged; `where("name = ?", params[:q])`
+is `ok:` because the placeholder is a second argument rather than interpolation
+— but the rule reports the whole `$Q` capture, so a reviewer can tell in one
+glance.
+
+**Sources are `params` and `cookies`.** `params[$$$_]`, `params.get($$$_)`,
+`cookies`, `request.query_string`, `request.body` cover Rails, and they are
+combined with `+` before the `; []` exactly as in Python and JS.
+
+## What reading real programs changed for the three
+
+The same seven repositories per language are not the point; the counts are.
+After adding 13 fixtures for Python, 10 for JS/TS and 10 for Ruby:
+
+- Every new rule fires exactly where its fixture says and nowhere its `ok:`
+  marks. `PWRQ_RULES=rules tools/validate.py --no-smoke` reports 225 fixtures,
+  1975 rules, all good.
+- Running over Flask's own test suite, 1k files of `express` samples, and
+  `rails/rails` turned up the same lesson as Go: parameter lists are the
+  only thing that separates an SDK's `Do(ctx, req)` from `net/http`'s
+  `Do(req)`. Python's `subprocess` rules already narrow on `$CMD` rather
+  than `$$$` for the same reason.
+
+The engine change this pass made was to *not* make one. Three languages that
+spell assignment with the same two fields the engine already measured are three
+proofs that `left`/`right` + `name`/`value` + `declarator`/`value` + Swift's
+`target`/`result` + `item`/`collection` plus the measured wrapper and
+`bound_identifier` now cover the web.
+
+## Scala is the one that labels nothing (again)
+
+Scala is Kotlin again, which is why the first three Scala rules in this corpus
+compiled, reported `Valid: true`, and matched nothing. `val x =` and `var x =`
+are not `name`/`value`. They are `pattern`/`value`:
+
+```
+val $N = $V       ->  (val_definition pattern: (_) @N value: (_) @V)
+val x = "hunter2" ->  pattern holds the name, value holds the literal
+```
+
+The name is not a field of its own. It lives inside a `pattern` node, exactly
+as in Kotlin, and the generic wrapper the probe measures
+(`variable_declaration`, `binding_pattern`) is what tells `reaching` where the
+target stops and the value starts. Without that `bindingWrappers` entry,
+`val token = request.getHeader("token")` carried nothing, and every taint rule
+that started from a `val` was dead. `var` behaves the same way.
+
+**A function pattern needs its ellipses on both sides.** This one costs an hour
+because the failure is silent and the diagnostic is honest:
+
+```
+def $FUNC($$$_, $PARAM: String, $$$_) = { $$$_ }   Valid: true, matches any def with a String param
+def $F($P: String) = $P                              Valid: false
+def $F($P: String) = { $P }                          Valid: false without $$$_
+```
+
+`$P: String` is one parameter. Without `$$$_` either side it is *the* parameter
+list, so a function with two parameters does not match and a function with one
+parameter but a modifier or a return type does not either. Write the variadic
+form even when you mean one. The body needs `$$$_` for the same reason a block
+does in Kotlin — `{ $BODY }` is one statement, `{ $$$_ }` is any body. An
+object method and a top-level function take the same spelling.
+
+`t`aint follows `val`/`var` and `def` bodies out of the box once the wrapper is
+measured. `for (x <- xs) { sink(x) }` is `pattern`/`value`/`body` and already
+reads correctly after the Swift fix.
+
+**What to check when the rule returns empty:** run
+`ast_pattern("def $FUNC($$$_, $PARAM: String, $$$_) = { $$$_ }"; "scala")`
+first. If it says `Valid: true` and shows `pattern` rather than `name`, the
+flow needs `bindingWrappers`; if `scan_ast` returns nothing over a file you know
+contains `val x = 1`, the wrapper probe is the thing to re-measure. If a `def`
+pattern is `Valid: false`, you are missing an ellipsis.
+
+## Rust is the one where a let is still a let
+
+Rust looks like it should be `name`/`value` and is not. `let x = y` is
+`pattern`/`value`:
+
+```
+let $NAME = $VALUE;           ->  (let_declaration pattern: (_) @NAME value: (_) @VALUE)
+let mut $N: String = $V;      ->  same, type annotation is not a field
+let $N = $V                   ->  Valid: false without the semicolon as a top-level pattern
+```
+
+The `let` is the tell. Drop it and `$NAME = $VALUE` is not a Rust statement
+at all, so `ast_pattern("$NAME = $VALUE"; "rust")` is `Valid: false` and would
+have told you immediately. Keep the `let`, keep the semicolon — a bare
+expression without it is a different node and the query is rooted at the wrong
+place. `let mut` is the same node with a keyword in front, which the optional
+modifier probe already handles.
+
+**A qualified call is exactly what it says.** There is no import to resolve, so
+`Command::new` is one path:
+
+```
+Command::new($CMD)                          matches  Command::new(x) but not std::process::Command::new(x)
+std::process::Command::new($CMD)            matches the fully qualified form
+Command::new($CMD) with where_capture       still the honest spelling; guard the capture, not the callee
+```
+
+The matcher does substring on what the hole caught, not on the callee's text,
+so if a rule is about `Command::new`, write the short form and guard the
+capture only when you need to exclude `MyCommand::new`. `where_capture("CMD"; ...)`
+is where the literal check lives, not on the call. The same is true of
+`std::fs::read_to_string($P)` vs `fs::read_to_string($P)`.
+
+`reaching` follows `let` and `let mut` out of the box, because the engine now
+knows `pattern`/`value` plus the wrapper. `for x in y { }` is `pattern`/`value`
+/`body` and already worked after the Swift fix; a closure `|x| { sink(x) }` is
+a boundary the same way Swift's is, so a value read inside one does not escape.
+
+**What to check when the rule returns empty:** if
+`ast_pattern("let $N = $V;"; "rust")` shows `Valid: true` and `pattern`, you have
+the right spelling. If `Command::new($CMD)` matches nothing, check you did not
+write `Command::new($CMD);` without the semicolon inside a function — top-level
+vs body scaffolding matters less in Rust than in Solidity, but a file-level probe
+will still show you. If taint stops at a `let`, re-measure `bindingWrappers`.
+
+## Solidity is the one where the contract is the scaffold
+
+A Solidity file is not a list of functions. It is `pragma solidity ...;` then
+a contract, then functions inside it. A bare pattern without the scaffold is
+not Solidity at all:
+
+```
+function $F() public { $$$_ }                                                    Valid: false
+pragma solidity ^0.8.0; contract $C { function $F() public { $$$_ } }            Valid: true
+pragma solidity ^0.8.0; contract $C { function $F() public { $$$BODY } }         Valid: true, binds the body
+```
+
+The second is the reading `scan_ast` actually uses. Every rule in this corpus
+therefore starts with the same three lines, and `$$$` holes stand for the
+pragmas and the contract header you do not care about. Without the contract
+wrapper the query reports `Valid: false` and the rule is silent over twenty
+thousand files that all contain the function.
+
+**A call and a check are different tools.** `address.call{value: $V}("")` and
+`$C.transfer($V)` and `send` are nodes `scan_ast` sees, so a reentrancy sink
+is an AST pattern. "Is there a `require`/`if`/`onlyOwner` guard between the
+call and the state update" is not an AST question — it is a line of text inside
+`$BODY`. The corpus writes the sink as AST and the guard as `scan_regex` over
+the function body, then subtracts with `outside`/`not_at` exactly as C does for
+`chroot`/`chdir`:
+
+```
+| ["pragma solidity ^0.8.0; contract $C { function $F() public { $$$BODY } }"] as $funcs
+| ($all | of($sinks) | outside($all | of($funcs) | where_capture("BODY"; "require\\s*\\(")))
+```
+
+`reaching` is rarely useful here; state is storage, not a local assignment,
+so most reentrancy rules are two statements in one function rather than a
+value followed across locals.
+
+**What to check when the rule returns empty:** compile the inner function
+alone. If `ast_pattern` says `Valid: false`, you are missing `pragma`/`contract`.
+If the sink fires but the guard never does, check the body hole is `$$$BODY`
+not `$BODY` — one is the block, one is its first statement, and comments count
+as children the same way they did in Swift.
+
+## Terraform is the one where a block is the file
+
+HCL is not a language of statements. It is a language of blocks, and a block
+is its own file as far as the matcher is concerned:
+
+```
+resource "aws_s3_bucket" "b" { acl = "public-read" }   ->  (block type: "resource" ...)
+resource "aws_s3_bucket" "b" { $$$_ }                  ->  same, body is one child
+resource "aws_s3_bucket" "b" { acl = $ACL }            ->  binds the attribute value
+```
+
+There is no `;` to terminate and no `$$$_` to put between statements, because
+there are no statements. `acl = "public-read"` is an `attribute` inside the
+block's `body`, and `$$$_` stands for "and any other attributes here". A rule
+that writes two blocks as `A\n$$$_\nB` is asking for two files, and gets none.
+The header is literal — `resource "aws_s3_bucket"` with both quoted labels,
+not `resource $T $N`, because the type and the name are strings, not identifiers.
+
+**A fixture comment is `#`, not `//`.** Terraform and HCL have no `//`:
+
+```hcl
+# ruleid: terraform-s3-public-read
+resource "aws_s3_bucket" "b" {
+  acl = "public-read"   # <- finding lands here, at the attribute
+}
+# ok: terraform-s3-public-read
+resource "aws_s3_bucket" "b" {
+  acl = "private"
+}
+```
+
+**There is no taint to follow.** A Terraform file declares infrastructure. No
+value flows from one attribute to another inside the syntax the way `x = y`
+does, so `reaching` has no edges. Every rule is `scan_ast` plus `where_capture`
+on the attribute's value, and the whole question is spelling the block header
+exactly and the attribute name exactly.
+
+**What to check when the rule returns empty:** run
+`ast_pattern("resource \"aws_s3_bucket\" \"b\" { acl = \"public-read\" }"; "terraform")`.
+If it says `Valid: true` and shows a `block`, you have the labels right. If
+`where_capture("ACL"; "public-read")` never fires, print what `ACL` actually
+caught — the quotes are part of the text, so `^public-read$` misses `"public-read"`.
+
+## YAML is the one where indentation is the syntax
+
+YAML has no statements and no blocks, only indentation. A pattern is a fragment
+of a document, and the whitespace in it is the node:
+
+```yaml
+containers:
+  - name: $NAME
+    securityContext:
+      privileged: true
+```
+
+That matches a pod spec where `privileged: true` is under `securityContext`,
+and it does not match the same keys at the wrong depth — because at the wrong
+depth they are a different document. `ast_pattern` with `yaml` knows this;
+`scan_regex` with `privileged:\s*true` does not, and will flag a comment or a
+string literal and call it a finding.
+
+**There is no scaffolding beyond the document.** Unlike Solidity's contract or
+C#'s `global_statement`, YAML needs no wrapper. `scan_ast("*.yaml"; $pats)` and
+`scan_ast("*.yml"; $pats)` together are the rule, and the globs are the only
+thing that decides which files are read. A rule that writes `*.yaml` alone
+misses every `*.yml` in the corpus, which is most of it. Both extensions appear
+in one `scan_ast` call; the tree is walked once either way.
+
+**There is no taint, only text.** `valueFrom`, `secretKeyRef`, `env` — nothing
+flows. A rule is a search for a key/value pair, plus `where_capture` to exclude
+the safe spelling (`privileged: false`, `runAsNonRoot: true`,
+`allowPrivilegeEscalation: false`). The Kubernetes rules in this corpus
+therefore all share the same shape: one `scan_ast` for the structure, one
+`where_capture_not` for the exclusion, and no `reaching` at all. A whole-secret
+is `value: $V` beside `secretKeyRef`, not a value followed to a sink.
+
+**What to check when the rule returns empty:** if a YAML pattern that looks
+right matches nothing, re-indent it. A two-space indent in the pattern against a
+four-space file is a different tree. Run `ast_pattern` on the exact snippet
+from the fixture; `Valid: true` with `block mapping pair` inside is the sign
+you have it. If it is `Valid: false`, you have a tab in a YAML file.
+
+## Dockerfile is the one where a line is the instruction
+
+A Dockerfile is a list of instructions, and each instruction is its own line:
+
+```dockerfile
+FROM $BASE
+RUN $CMD
+USER $USER
+```
+
+`FROM alpine:3.18` is not a call and `RUN apt-get update` is not a statement;
+they are `from_instruction` and `run_instruction`. `scan_ast` with the
+`dockerfile` grammar sees that — `ast_pattern("RUN $CMD"; "dockerfile")` is
+`Valid: true` — and `scan_regex` sees the text. Both are used in this corpus
+and they are not interchangeable.
+
+**`scan_ast` is for structure, `scan_regex` for a flag.** `FROM $BASE` as AST
+binds `$BASE` to `alpine:3.18` without the `FROM` and without the line break,
+so a guard on `latest` or on `:$` (no tag at all) can be anchored:
+
+```
+| scan_ast("Dockerfile*"; ["FROM $BASE"]) | where_capture("BASE"; ":latest|^[^:]+$")
+```
+
+`RUN` with a flag — `apk add` without `--no-cache`, `pip install` without
+`--no-cache-dir`, `apt-get install` without `-y` and without
+`rm -rf /var/lib/apt/lists/*` — is a shell string inside one node, and a regex
+over `CMD` is the honest tool:
+
+```
+| scan_ast("Dockerfile*"; ["RUN $CMD"]) | where_capture("CMD"; "apt-get\\s+install")
+| where_capture_not("CMD"; "--no-cache|rm\\s+-rf\\s+/var/lib/apt")
+```
+
+A rule that tries to parse that shell with AST will compile and match nothing,
+because the grammar stops at the instruction boundary. `USER root` vs
+`USER $USER` is the same — the instruction is the node.
+
+**What to check when the rule returns empty:** if `FROM $BASE` matches nothing,
+check the glob — `Dockerfile*` not `*.dockerfile` and not `*.yaml`. If
+`RUN $CMD` with a guard never fires, print the capture; the shell is one string
+with `&&` and `\` in it, and the word you are anchoring to is not where you
+think. If `ast_pattern` says `Valid: false`, you wrote `RUN $CMD;` with a
+semicolon that Docker does not have.
+
+## Generic is the one where RE2 is the grammar
+
+Generic has no grammar. The file is text, and the rule is a regex that RE2
+will accept. RE2 does not do lookaheads, lookbehinds, or backreferences, which
+is half of what every generic rule wants to say: "this entropy is high *and*
+this word is nearby", "this key is assigned *but* not to a placeholder".
+
+**Six patterns were rewritten to `where_capture_entropy`.** The corpus came
+with PCRE that said:
+
+```
+(?i)(?:api[_-]?key|secret)[^\n]{0,40}(?:=|:)\s*["'](?P<val>[A-Za-z0-9+/=]{20,})["']   // lookahead to keep key and value on one line
+(?<!\w)password\s*=\s*"(?!\$\{|changeit|password)[^"]+"                               // negative lookahead to exclude placeholders
+(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{20,}                                                  // lookahead for entropy classes
+```
+
+RE2 refuses all three — the `{0,40}` lookahead, the `(?<!` and the `(?=` and
+the `(?!\$\{`. The spelling that ships is two captures and a filter:
+
+```
+| ["$K = $V;"] as $assign
+| scan_regex("([\"']?)(?:api[_-]?key|secret)\\1\\s*[:=]\\s*[\"']($VAL)[\"']")  // no, use scan_regex
+| where_capture("K"; "(?i)(?:api[_-]?key|secret|password)")
+| where_capture_not("V"; "^\\$\\{|^(?:changeit|password|placeholder)$")
+| where_capture_entropy("V"; "4.5")
+```
+
+In practice the rule is `scan_regex` for the line, `where_capture` for the key,
+`where_capture_not` for the placeholder, and `where_capture_entropy("V"; "3.0")`
+to `5.0` depending on the secret family, measured on the capture not on the
+line. A 40-character line with `api_key = "123"` is low entropy because most
+of it is the key. A key that names the vault (`"APP_SECRET_ARN"`) is excluded
+by the same guard that excludes `"password"` — letters and separators with a
+credential word inside — because a name is not the thing.
+
+**What to check when the rule returns empty:** if RE2 says `invalid perl
+operator`, you have a lookaround left. If entropy never fires, check you are
+measuring the hole (`V`) not the whole match; if a placeholder still fires,
+check `where_capture_not` is anchored with `^` and `$` rather than floating.
+If the rule reports every `AKIA...` test vector, the threshold is too low.
+
+## TypeScript, Clojure, OCaml, Elixir and Apex are the ones that look like their hosts
+
+They were the last of the app languages and the reason they were last is they
+asked for nothing new.
+
+**TypeScript is JavaScript with types.** `fs.readFile($PATH)` is `Valid:true`
+in both grammars, `const $A={rejectUnauthorized:false}` is the same
+`variable_declarator` with `name`/`value`, and the `tsx` JSX form
+`<$Y dangerouslySetInnerHTML={{__html: $X}} />` needs the same `scan_ast`
+glob `["*.ts","*.tsx"]`. The only miss was a rule that wrote
+`const $A={...opts, verify:false}` — the spread makes the object literal not
+`where_capture("ALGO"; "md5")` but a hole. Write the literal without spread.
+
+**Clojure is parentheses.** `(eval $CODE)` is `Valid:true` but bare
+`$NAME = $VALUE` never is — Clojure has no `=`. The taint engine's whole-file
+guard (`root.NamedChildCount()!=1` in `bindingWrapper`) is what keeps
+`pwrqProbe_name =1` from being read as three `sym_lit`. A rule that wants a
+binding writes `val` in Scala, `let` in Rust, and a `defn` scaffold in Clojure.
+
+**OCaml is the one where `=` is not a binding.** `x = 1` is `infix_expression`,
+not `let`. `let x = 1` is `value_definition` with `pattern`/`value`, and the
+probe `bytesOf(value)!="1"` correctly refuses the infix. No flow where there is
+no `let`, which is why OCaml rules here are `scan_ast` on `Marshal`/`Digest`
+literals, not `reaching`.
+
+**Elixir is atoms and pipes.** `String.to_atom($X)` vs `String.to_existing_atom`
+is the only guard that separates `atom_exhaustion` from its `ok:` — no taint
+needed. `System.cmd($A,$B)` and `Code.eval_string($CODE)` are `call` nodes with
+`target: field`, `Valid:true` out of the box.
+
+**Apex is `scan_regex` that wishes it were `scan_ast`.** `Blob $V =
+Blob.valueOf('...');\n$$$_\nCrypto.encrypt` with `$$$_` between braces hits
+`ERROR` newline in string (the `+ $$$_;\n$$$_` will not compile case). The
+corpus keeps those as `scan_regex(["*.cls"]; ["Crypto\\.encrypt"])` with
+`outside` rather than `$$$_` gaps.
+
+What to check when empty: `ast_pattern("…"; "clojure"/"ocaml"/"elixir"/"apex")`
+first, then `Valid` vs `specificity()`. If `Valid:true` but empty over a file
+you know contains the sink, you are missing a `let`/`val`/`defn` scaffold.
+
+
+## A fixture that is `2 ruleid, 2 ok` proves the rule runs and nothing else
+
+`validate.py` is satisfied by two marked lines and two unmarked ones, and a
+fixture that gives it exactly that has shown only that the patterns compile and
+match something. What it has not shown is the thing the rule is actually for:
+that the fix is not reported.
+
+The `ok` is where a fixture earns its keep, and a weak one is easy to spot -
+it is the line that is safe for a reason the rule never looks at. An `ok` of
+`changeme` under a secret rule says nothing about
+`where_capture_entropy("SECRET")`, because `changeme` is not rejected for its
+entropy, it is rejected for being eight characters long. An `ok` of
+`println("safe")` under a rule about telnet says nothing either: what makes a
+connection safe is `net.Dial` to a TLS port, not a line that opens no
+connection at all. Both shapes pass `validate.py` and neither tells you the
+guard works.
+
+So write the `ok` as the fix, and write more than one of them: `?` placeholders
+against a built SQL string, `Path.GetFileName` against a joined path,
+`htmlspecialchars` against an interpolated template, `["ls", arg]` against
+`sh -c`. Three marked lines with three different sinks and three fixes is the
+shape to aim for, and it is what turns "the rule fires" into "the rule is
+right".
+
+Configuration is the one place where the `ok` is an omission rather than a
+call. A Kubernetes manifest that is safe because it has no `privileged: true`
+looks like nothing at all, so a fixture needs both spellings: the block with
+`privileged: false` and the block with no `securityContext` in it.
+
+## CSRF and auth are not taint
+
+CSRF (CWE-352) and missing auth (CWE-306) do not follow a value. The
+question is `outside` or `in_files_without`. `python-csrf-django` is
+`scan_regex ["*.html","*.py"] "<form[^>]*method=...>[\\s\\S]*?</form>"`
+with `where_capture(METHOD;"(?i)post|put|delete|patch")` and
+`where_text_not("csrf_token")` — method filter keeps GET forms out, the
+negative test keeps the fixture's own `ok` with `{% csrf_token %}` out.
+`java-csrf-spring` is `$OBJ.csrf($$$_).disable($$$_)` — both arities, no
+taint. `ruby-csrf` is `skip_before_action :verify_authenticity_token` as
+one pattern, not two. `go-csrf-missing` is `in_files_without` (`HandleFunc`
+present, `csrf.Protect` absent) — file-level, not line-level, so the
+fixture is one file per rule and `validate.py` compares line sets across
+that one file. These rules live in `lang/security` but speak regex.
+
+## Configuration has no flow to follow
+
+Terraform is one file per block and nothing runs, so there are no edges for
+`reaching` to walk. An IaC rule is `scan_ast(["*.tf"]; ["resource ..."])` with
+a `where_capture` or `where_capture_not` on the value, and that is nearly the
+whole vocabulary - the translated rules that reach for `scan_regex` there do it
+to match across blocks, which a pattern cannot. YAML's indentation *is* its syntax, so
+`allowPrivilegeEscalation: true` is a pattern rather than a regex over
+`privilege_escalation`, and Dockerfile is `FROM $BASE` and `RUN $CMD` with the
+shell's own flags read out of `$CMD` by regex.
+
+The trap is that a value's spelling is not its meaning. `enable_https_traffic_only=false`
+and `enable_https_traffic_only = false` are one thing to the grammar and two
+rules to anyone writing patterns by eye - a rule per spelling is a rule that
+double-reports, not a rule that catches more. Check it: run the rule you
+already have against the fixture you wrote for the new one before writing the
+new one at all.
+
+## Open redirect and upload are just taint with a boring source
+
+`CWE-601` is `redirect($URL)` with `reaching` from `request.args/getParameter/Query().Get` + `ROUTE VAR` — the `ok` is `is_safe_url(url)` not a string literal, because the allowlist lives in a helper. `CWE-434` is the opposite: `request.files[$FILE]` → `open/$F.save/Files.write` with no `where_capture` on the filename — the `ok` is `secure_filename()` or `ext in {".jpg"}`; forgetting it is the finding. Upload needs three sinks per lang (`python` save, `go` WriteFile, `java` Part) or the fixture stays `2/2`.
+
+## Upload is taint, validation is taint with a boring where_not
+
+`CWE-434` `typescript-434-upload` is `request.files[$FILE] → fs.rename(_, $PATH)` with `where_capture_not("PATH"; "allowlist|\.png")` — the allowlist is the `ok`. `CWE-20` `go-20-strict` is `strconv.Atoi(FormValue) → exec.Query` with `where_capture_not("VAL"; "allowlist")`. `CWE-77` `javascript-77-shell` is `child_process.exec($CMD)` where `$CMD` comes from `req.query` and `ok` is `["ls", arg]` array form (`where_capture_not "\["ls""`). No new `bindingFields` — same `left/right` and `pattern/value`.
+
+
+## Authentication and authorization are not taint, and they are not each other
+
+`CWE-306`, `CWE-287` and `CWE-862` have no value to follow: the question is
+whether a guard is present, which is `outside`, `not_at` or `in_files_without`.
+`java-863-idor` is `findById(request.getParameter("id"))` outside a
+`SecurityContext` read; `go-863-idor` is a query built from an id outside a
+`ctx.Value("user")`; `go-csrf-missing` is `in_files_without` - `HandleFunc`
+present, `csrf.Protect` absent - and being file-level rather than line-level it
+wants one file per rule so `validate.py` compares line sets within it.
+
+The trap is that all three CWEs look identical when you write them. "Route with
+no `@login_required`", "route with no `@requires_roles`" and "route with no auth
+middleware" are three sentences for one query, and the corpus briefly carried
+all three per language: a route with no decorator at all got three findings
+under three ids, and none of them told the reader which weakness it was.
+
+The syntax does not say whether a missing guard is authentication or
+authorization, so there is one rule for "no guard at all" -
+`<language>-missing-auth` - and the authorization rule asks the opposite
+question. `python-862-rbac` requires `@login_required` to be *present* and no
+`@requires_roles` next to it; `javascript-862-rbac` requires an authentication
+middleware in the chain and no role middleware. The two are then mutually
+exclusive by construction, and a finding under `-862-rbac` means something
+`-missing-auth` cannot: this endpoint knows who you are and does not care.
+
+An authorization rule is for application code and not for the framework it
+imports. `python-862-rbac` has nothing to say about `pallets/flask` itself,
+which has no RBAC because it is not an application - point it at the directory
+you wrote. `invoke_pwrgrep("app"; "python-862-rbac")`, not
+`invoke_pwrgrep("."; ...)` with a `venv` under it.
+
+## Before you add a rule, run the corpus you already have at it
+
+A weakness that is worth a rule is usually worth a rule to somebody else too,
+and the corpus is 2183 rules deep. The cheapest thing you can do before
+writing one is point the existing ones at the fixture you were about to write:
+
+```
+$PWRQ -n -c '[invoke_pwrgrep($f; "")] | group_by(.RuleId)
+             | map({(.[0].RuleId): map(.LineNumber)}) | add' --arg f <fixture>
+```
+
+If something already fires on the lines you marked, you are about to add a
+second id for one finding. A pass that skipped this check added nineteen of
+them: `python-weak-hash2` was `python-weak-hash` with a different id and the
+same message; `csharp-sql-injection`, `php-xss`, `php-ssrf-tainted`,
+`php-deserialization-tainted` and `go-hardcoded-credential-2` each fired on
+exactly the lines an older rule already fired on; `k8s-run-as-non-root` and
+`k8s-run-as-non-root-container` reported `runAsNonRoot: false` beside
+`run-as-non-root-unsafe-value`, which had been reporting it all along.
+
+An id may belong to several rules — `tainted-sql-string` is a Django rule and
+a Flask rule and a Rails rule, and that is the corpus saying they are one
+finding reached three ways. Two *ids* on one line is the thing to avoid,
+because the reader has to work out whether they are two problems.
+
+Three shapes account for almost all of it, and none of them look like
+duplication while you are writing:
+
+**A spelling is not a variant.** `enable_https_traffic_only=false` and
+`enable_https_traffic_only = false` are one node to the grammar. A rule per
+spelling is two findings on one line, not more coverage.
+
+**A CWE number is not a detection.** CWE-306, CWE-287 and CWE-862 are three
+weaknesses and "route with no auth middleware" is one query. Writing it three
+times under three numbers gives the reader three findings and no way to tell
+which is true. Ask what the *syntax* distinguishes: `<language>-missing-auth`
+is "no guard at all" and `<language>-862-rbac` is "authenticates and then
+checks no role", and those two are different queries because one requires the
+guard the other forbids.
+
+**An incremented digit is not a rule.** `apidoc2_`, `hashicorp2_` and `ocid2.`
+were three secret detectors built by adding a `2` to a token prefix. No such
+prefix exists, so all three were rules that could never fire, with fixtures
+holding invented tokens to prove they could.
+
+## An ellipsis matches no arguments as happily as three
+
+Writing a call sink in both arities looks like thoroughness and is usually a
+duplicate:
+
+```
+"requests.get($URL)", "requests.get($URL, $$$_)"
+```
+
+`$$$_` matches an empty run, so `requests.get(url)` matches both patterns and
+the line is reported twice under one id. Write the ellipsis form alone.
+
+The exception is an ellipsis written *in front of* the hole:
+
+```
+"exec.CommandContext($$$_, $CMD, $$$_)"
+```
+
+Against `exec.CommandContext(ctx, cmd)` the leading ellipsis can take nothing,
+`$CMD` binds `ctx`, and `cmd` disappears into the trailing one — so the hole
+holds the wrong argument and `reaching` finds nothing. There the exact-arity
+pattern beside it is load-bearing, because it pins the hole to the position
+you meant. Check which case you are in by reading the capture back:
+
+```
+$PWRQ -n -c '$d | [scan_ast("*.go"; [$p]) | .[] | {l: .LineNumber, t: .Captures.CMD}]'
+```
+
+## A fixture for a secret detector looks exactly like a secret
+
+A rule that finds a leaked credential needs a fixture with a credential-shaped
+string in it. None of them is real - they are invented values written to trip
+the rule they sit beside - but a scanner cannot tell that and should not try:
+`key-` followed by thirty-two alphanumerics is a Mailgun key as far as GitHub's
+push protection is concerned, and it will refuse the push that adds one.
+
+`.github/secret_scanning.yml` excludes `testdata/fixtures/**` and nothing else,
+which is the mechanism GitHub documents for this. Source, rules and tooling
+stay scanned. Write the fixture's token the way the provider writes it and do
+not bend it to get past a scanner: a Mailgun key with forty characters in it is
+a value no Mailgun key has, and a fixture whose value is the wrong shape has
+stopped demonstrating the thing it is for.
+
+The exclusion is read from the default branch, so a new one does not take
+effect in the same push that needs it.
+
 ## The techniques
 
 ### Two statements as one construct
@@ -1422,6 +2083,39 @@ module cache, anything of a few thousand lines — and read every finding:
 $PWRQ -n -r '[invoke_pwrgrep("/path/to/real/source"; "c")]
              | .[] | "\(.RuleId) \(.Path):\(.LineNumber) \(.Match)"'
 ```
+
+The full-coverage pass ran it as a before-and-after rather than a single
+reading, which is the version to use when you have changed rules that already
+existed. Run the
+whole corpus over the tree twice - once with the corpus you started from, once
+with yours - and diff the count per rule:
+
+```
+for c in /path/to/old/rules ./rules; do
+  PWRQ_RULES=$c $PWRQ -n -c '[invoke_pwrgrep($d; "")]
+      | group_by(.RuleId) | map({(.[0].RuleId): length}) | add' --arg d <tree>
+done
+```
+
+Spring PetClinic - fifty Java files and a handful of Thymeleaf templates, no
+authentication and no secrets - is a good first tree because it is ordinary.
+Over it this corpus went from 64 findings to 32, and every line of the
+difference was worth reading:
+
+- `eqeq` 54 → 27, and four more rules exactly halved: the ellipsis pairs above,
+  reporting each call twice.
+- `eval-detected` 2 → 0. It had been matching `<script ...>` blocks rather than
+  `eval(`, so it reported every script tag in the templates.
+- `java-missing-auth` 16 → 0, `python-csrf-django` 3 → 0, `generic-api-key`
+  3 → 0, `missing-integrity` 2 → 0.
+
+The last four all passed their own fixtures. What each was missing was a
+statement about which files it is *about*: PetClinic has no method-level
+security to be missing, its templates are Thymeleaf and not Django, its
+"secrets" were `"Duplicate key: unique_owner_pet_name"` in a test, and its
+scripts are same-origin, which subresource integrity is not for. A rule with no
+such statement is not reporting a weakness, it is reporting that the repository
+is not the one you had in mind.
 
 Twelve hundred lines of sqlite's `mptest.c` found two noise sources in this
 pass that no fixture would have. `va_start` initialises a `va_list` and does

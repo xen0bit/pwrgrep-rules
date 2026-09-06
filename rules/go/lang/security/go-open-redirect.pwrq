@@ -1,0 +1,14 @@
+# rules: go-open-redirect
+# languages: go
+# fixture: go/CWE-601.go
+# from: CWE-601 (Open Redirect)
+#
+# http.Redirect with a URL that came from r.URL.Query().Get or FormValue lets
+# the caller choose where the victim is sent.
+
+["r.URL.Query().Get($_)", "$R.URL.Query().Get($_)", "$R.FormValue($_)", "$R.Header.Get($_)", "$R.PostFormValue($_)", "$R.PathValue($_)", "$R.URL.Query().Get($$$_)", "$R.FormValue($$$_)"] as $src
+| ["http.Redirect($W, $R, $URL, $CODE)", "http.Redirect($$$_, $URL, $$$_)"] as $sinks
+| scan_ast("*.go"; $src + $sinks) as $all
+| ( $all | of($sinks) | focus("URL") | reaching($all | of($src); []) )
+| finding("go-open-redirect"; "Open redirect: $URL came from the request and reaches http.Redirect")
+| report

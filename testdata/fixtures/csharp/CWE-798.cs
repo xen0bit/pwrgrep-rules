@@ -1,3 +1,7 @@
+// CWE-798: Hardcoded credential — secret in source is in every checkout.
+// const Password = "hunter2" lives in git history. The rule flags
+// literals assigned to password/secret names; ok is empty, placeholder,
+// or values from env. A property with initializer is a known blind spot.
 using System.Data.SqlClient;
 
 namespace Fixture {

@@ -1,5 +1,6 @@
 # rules: ocamllint-filenameconcat
 # languages: ocaml
+# fixture: ocaml/CWE-22.ml
 # from: ocaml/lang/security/filenameconcat.yaml
 
 . as $root

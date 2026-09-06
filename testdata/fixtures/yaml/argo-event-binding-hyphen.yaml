@@ -1,0 +1,50 @@
+# An Argo WorkflowEventBinding selector, and the hyphen that breaks it.
+#
+# The selector is an expr expression, where `payload.my-field` parses as
+# `payload.my` minus `field` rather than as a lookup of a key named
+# "my-field". The binding does not fail; it evaluates to something else and
+# the workflow never triggers. `payload.my_field` is the fix, which means the
+# event has to be published with underscores too.
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowEventBinding
+metadata:
+  name: bindings
+spec:
+  # ruleid: event-binding-payload-with-hyphen
+  event: payload.my-field == "ok"
+  submit:
+    workflowTemplateRef:
+      name: first
+---
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowEventBinding
+metadata:
+  name: second
+spec:
+  # ruleid: event-binding-payload-with-hyphen
+  event: payload.repository.full-name != ""
+  submit:
+    workflowTemplateRef:
+      name: second
+---
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowEventBinding
+metadata:
+  name: third
+spec:
+  # ok: event-binding-payload-with-hyphen
+  event: payload.my_field == "ok"
+  submit:
+    workflowTemplateRef:
+      name: third
+---
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowEventBinding
+metadata:
+  name: fourth
+spec:
+  # ok: event-binding-payload-with-hyphen
+  event: payload.repository.fullName != ""
+  submit:
+    workflowTemplateRef:
+      name: fourth

@@ -1,0 +1,15 @@
+# rules: azure-storage-https-traffic-only
+# languages: hcl
+# fixture: terraform/azure-storage-https-traffic-only.tf
+# from: CWE-319 (Cleartext Transmission of Sensitive Information)
+#
+# Storage account allows non-HTTPS traffic when enable_https_traffic_only is false.
+
+. as $root
+| ( ($root | scan_ast(["*.tf"]; [
+      "resource \"azurerm_storage_account\" \"$$$_\" {\n$$$_\n  enable_https_traffic_only = false\n$$$_\n}"
+    ])) as $all
+    | ( $all | of(["resource \"azurerm_storage_account\" \"$$$_\" {\n$$$_\n  enable_https_traffic_only = false\n$$$_\n}"])
+        | finding("azure-storage-https-traffic-only";
+            "Storage account allows HTTP traffic — set enable_https_traffic_only to true.") ) )
+| report

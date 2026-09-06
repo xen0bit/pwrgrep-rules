@@ -1,5 +1,6 @@
 # rules: aws-cloudwatch-log-group-no-retention
 # languages: hcl
+# fixture: terraform/aws-cloudwatch-log-group-no-retention.tf
 # from: terraform/aws/security/aws-cloudwatch-log-group-no-retention.yaml
 
 . as $root

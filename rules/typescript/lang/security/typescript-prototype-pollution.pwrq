@@ -1,0 +1,15 @@
+# rules: typescript-prototype-pollution
+# languages: typescript
+# fixture: typescript/CWE-1321.ts
+# from: CWE-1321 (Prototype Pollution)
+
+. as $root
+| ( ($root | scan_ast(["*.ts","*.tsx"]; [
+      "$OBJ[$KEY] = $VALUE",
+      "$OBJ = $OBJ || {};\n$OBJ[$KEY] = $VALUE"
+    ])) as $all
+    | ( $all | of(["$OBJ[$KEY] = $VALUE"])
+          | where_capture("KEY"; "__proto__|constructor\\.prototype|prototype")
+        | finding("typescript-prototype-pollution";
+            "Prototype pollution via $KEY") ) )
+| report

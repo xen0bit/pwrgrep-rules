@@ -1,0 +1,36 @@
+# rules: python-862-rbac
+# languages: python
+# fixture: python/CWE-862.py
+# from: CWE-862 (Missing Authorization)
+#
+# The route that authenticates and then checks nothing else. `@login_required`
+# says who the caller is; it does not say they may do this, so an admin page
+# behind nothing but a login is reachable by every account that exists.
+#
+# The authentication decorator is required rather than forbidden, and that is
+# the whole difference between this rule and python-missing-auth. A route with
+# no guard at all is that rule's finding, not this one: reporting both on one
+# handler said the same thing twice under two ids and left "which of these is
+# actually about roles" for the reader to work out.
+#
+# Flask's own decorators are the vocabulary because they are the ones a
+# handler stacks: `@login_required` and `@auth_required` authenticate, and
+# `@requires_roles`, `@has_role`, `@roles_required` and `@permission_required`
+# authorize. A project that spells its own is not read, which costs findings
+# rather than inventing them.
+
+["@login_required\n@$APP.route($$$_)\ndef $FUNC($$$_):\n  $$$BODY",
+ "@$APP.route($$$_)\n@login_required\ndef $FUNC($$$_):\n  $$$BODY",
+ "@auth_required\n@$APP.route($$$_)\ndef $FUNC($$$_):\n  $$$BODY",
+ "@$APP.route($$$_)\n@auth_required\ndef $FUNC($$$_):\n  $$$BODY"] as $authenticated
+| ["@requires_roles($$$_)\ndef $FUNC($$$_):\n  $$$BODY",
+   "@has_role($$$_)\ndef $FUNC($$$_):\n  $$$BODY",
+   "@roles_required($$$_)\ndef $FUNC($$$_):\n  $$$BODY",
+   "@permission_required($$$_)\ndef $FUNC($$$_):\n  $$$BODY"] as $authorized
+| scan_ast("*.py"; $authenticated + $authorized) as $all
+| ( $all | of($authenticated)
+    | outside($all | of($authorized)) )
+| finding("python-862-rbac";
+    "this authenticates the caller and then checks no role, so every account "
+    + "that can log in can reach it; stack @requires_roles or @has_role")
+| report

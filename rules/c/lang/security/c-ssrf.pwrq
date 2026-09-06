@@ -1,0 +1,14 @@
+# rules: c-ssrf
+# languages: c
+# fixture: c/CWE-918.c
+# from: CWE-918 SSRF
+#
+# curl with non-literal URL can fetch internal resources.
+
+["curl_easy_setopt($CH, CURLOPT_URL, $URL);", "curl_easy_perform($CH);"] as $sinks
+| scan_ast("*.[ch]"; $sinks) as $all
+| ($all | of(["curl_easy_setopt($CH, CURLOPT_URL, $URL);"]) | where_capture_not("URL"; "^L?\"") | finding("c-ssrf";
+        "the destination of this request is a value the caller chose, so it can "
+        + "be pointed at the metadata service or anything else this host can "
+        + "reach; check it against the hosts you meant to allow"))
+| report

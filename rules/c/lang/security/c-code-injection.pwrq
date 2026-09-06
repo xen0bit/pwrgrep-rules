@@ -1,0 +1,14 @@
+# rules: c-code-injection
+# languages: c
+# fixture: c/CWE-94.c
+# from: CWE-94 Code Injection
+#
+# system/popen with non-literal executes injected code.
+
+["system($CODE)", "popen($CODE, $_)"] as $sinks
+| scan_ast("*.[ch]"; $sinks) as $all
+| ($all | of($sinks) | where_capture_not("CODE"; "^L?\"") | finding("c-code-injection";
+        "this evaluates a value the caller chose as code, which is the whole of "
+        + "the language and not the part you meant; look the value up in a "
+        + "map of the things it is allowed to be"))
+| report

@@ -27,6 +27,16 @@ class Box {
         return IvParameterSpec("0000000000000000".toByteArray())
     }
 
+    fun key2(): SecretKeySpec {
+        // ruleid: kotlin-encryption-key-is-a-literal
+        return SecretKeySpec("HardcodedKey12345".toByteArray(), "AES")
+    }
+
+    fun iv2(): IvParameterSpec {
+        // ruleid: kotlin-encryption-key-is-a-literal
+        return IvParameterSpec("1111111111111111".toByteArray())
+    }
+
     fun keyFromKeystore(): SecretKeySpec {
         // ok: kotlin-encryption-key-is-a-literal
         return SecretKeySpec(keystore.load("data"), "AES")
@@ -35,6 +45,11 @@ class Box {
     fun randomIv(): IvParameterSpec {
         // ok: kotlin-encryption-key-is-a-literal
         return IvParameterSpec(ByteArray(16).also { java.security.SecureRandom().nextBytes(it) })
+    }
+
+    fun derivedKey(password: String): SecretKeySpec {
+        // ok: kotlin-encryption-key-is-a-literal
+        return SecretKeySpec(javax.crypto.SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(java.security.spec.PBEKeySpec(password.toCharArray(), ByteArray(16).also { java.security.SecureRandom().nextBytes(it) }, 10000, 256)).encoded, "AES")
     }
 
     private lateinit var keystore: Keystore

@@ -1,0 +1,11 @@
+# rules: java-xxe-2
+# languages: java
+# fixture: java/CWE-611-2.java
+# from: CWE-611 XML External Entity, CWE-776
+
+["$R.getParameter($K)", "$R.getHeader($K)", "$R.getInputStream()", "$R.getQueryString()"] as $outside
+| ["$BUILDER.parse($XML)"] as $sinks
+| scan_ast("*.java"; $outside + $sinks) as $all
+| ( $all | of($sinks) | focus("XML") | reaching($all | of($outside); []) )
+| finding("java-xxe-2"; "XXE: $XML came from the request and reaches XML parsing without disabling external entities")
+| report

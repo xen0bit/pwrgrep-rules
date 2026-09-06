@@ -1,0 +1,12 @@
+# rules: clojure-command-injection
+# languages: clojure
+# fixture: clojure/CWE-78.clj
+# from: CWE-78 (OS Command Injection)
+
+. as $root
+| ( $root | scan_ast(["*.clj"]; ["(sh $ARG)", "(clojure.java.shell/sh $ARG)"]) ) as $all
+| ( $all | of(["(sh $ARG)", "(clojure.java.shell/sh $ARG)"]) | where_capture_not("ARG"; "^\".*\"$") | finding("clojure-command-injection";
+        "this hands a value the caller chose to a shell, so a `;` or a backtick "
+        + "in it starts a second command; pass the program and its arguments "
+        + "separately instead") )
+| report

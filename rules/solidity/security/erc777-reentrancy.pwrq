@@ -1,12 +1,13 @@
 # rules: erc777-reentrancy
 # languages: solidity
+# fixture: solidity/CWE-841-erc777.sol
 # from: solidity/security/erc777-reentrancy.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.sol"]; [
-      "$X.tokensReceived($$$_);"
+| ( ($root | scan_regex(["*.sol"]; [
+      "tokensReceived\\s*\\("
     ])) as $all
-    | ( $all | of(["$X.tokensReceived($$$_);"])
+    | ( $all | of(["tokensReceived\\s*\\("])
         | finding("erc777-reentrancy";
-            "ERC777 tokensReceived() reentrancy") ) )
+            "ERC777 reentrancy via tokensReceived") ) )
 | report

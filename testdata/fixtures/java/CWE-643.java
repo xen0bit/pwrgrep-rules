@@ -55,3 +55,22 @@ class Cwe643 {
         return java.util.regex.Pattern.compile(needle).matcher("haystack").find();
     }
 }
+    NodeList searchByParam(HttpServletRequest request, Document document) throws Exception {
+        String q = request.getParameter("q");
+        XPath xpath = XPathFactory.newInstance().newXPath();
+        // ruleid: java-xpath-built-from-the-request
+        return (NodeList) xpath.evaluate("//search[text()='" + q + "']", document, XPathConstants.NODESET);
+    }
+
+    XPathExpression compileExpr(HttpServletRequest request) throws Exception {
+        String id = request.getParameter("id");
+        XPath xpath = XPathFactory.newInstance().newXPath();
+        // ruleid: java-xpath-built-from-the-request
+        return xpath.compile("//item[@id='" + id + "']");
+    }
+
+    NodeList safeConst(Document document) throws Exception {
+        XPath xpath = XPathFactory.newInstance().newXPath();
+        // ok: java-xpath-built-from-the-request
+        return (NodeList) xpath.evaluate("//item[@type='fixed']", document, XPathConstants.NODESET);
+    }

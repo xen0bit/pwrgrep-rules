@@ -1,0 +1,29 @@
+# rules: apex-missing-auth
+# languages: apex
+# fixture: apex/CWE-306.cls
+# from: CWE-306 Missing Authentication for Critical Function
+#
+# There is one rule per language for this, and it reports under
+# `<language>-missing-auth`. The corpus briefly carried two or three - an
+# `-authn` spelling, an `-auth` spelling and this one - written against
+# CWE-287, CWE-306 and CWE-862 but all asking the same question: is there an
+# authentication guard on this endpoint. They fired on the same lines and a
+# route with no middleware got three findings under three ids. Whether the
+# missing guard is called authentication or authorization is not something the
+# syntax says, so it is one finding; `<language>-862-rbac` is the separate rule
+# for the endpoint that does authenticate and then checks no role.
+#
+# Apex classes without "with sharing" run without sharing rules, and methods
+# that perform DML/SOQL without an auth check allow unauthenticated access.
+# This regex rule flags public classes lacking with sharing that contain DML;
+# safe classes declare "with sharing" or "inherited sharing".
+
+. as $root
+| ( ($root | scan_regex(["*.cls"]; [
+      "public\\s+class\\s+\\w+"
+    ])) as $all
+    | ( $all | of(["public\\s+class\\s+\\w+"])
+          | where_text_not("with\\s+sharing|inherited\\s+sharing")
+        | finding("apex-missing-auth";
+            "Apex class without sharing; declare with sharing or enforce authentication") ) )
+| report

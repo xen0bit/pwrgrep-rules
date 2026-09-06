@@ -1,5 +1,6 @@
 # rules: dangerous-spawn-process
 # languages: python
+# fixture: python/CWE-78-spawn.py
 # from: python/lang/security/dangerous-spawn-process.yaml
 
 . as $root
@@ -81,20 +82,20 @@
       "sys.argv[$$$_]",
       "sys.orig_argv[$$$_]"
     ])) as $all
-    | ( ((($all | of(["$CMD"])
+    | ( ((($all | of(["os.$METHOD($MODE, $CMD, $$$_)"])
           | not_at($all | of(["os.$METHOD($MODE, \"$$$_\", $$$_)"]))
-          | within($all | of(["os.$METHOD($MODE, $CMD, $$$_)"]))
-          | where_capture("METHOD"; "^(?:(spawnl|spawnle|spawnlp|spawnlpe|spawnv|spawnve|spawnvp|spawnvp|spawnvpe|posix_spawn|posix_spawnp|startfile))"))
-          + ($all | of(["$CMD"])
+          | where_capture("METHOD"; "^(?:(spawnl|spawnle|spawnlp|spawnlpe|spawnv|spawnve|spawnvp|spawnvp|spawnvpe|posix_spawn|posix_spawnp|startfile))")
+          | focus("CMD"))
+          + ($all | of(["os.$METHOD($MODE, $BASH, [\"-c\",$CMD,$$$_],$$$_)"])
           | not_at($all | of(["os.$METHOD($MODE, \"$$$_\", [\"$$$_\",\"$$$_\",$$$_], $$$_)"]))
-          | within($all | of(["os.$METHOD($MODE, $BASH, [\"-c\",$CMD,$$$_],$$$_)"]))
           | where_capture("METHOD"; "^(?:(spawnv|spawnve|spawnvp|spawnvp|spawnvpe|posix_spawn|posix_spawnp))")
-          | where_capture("BASH"; "^(?:(.*)(sh|bash|ksh|csh|tcsh|zsh))"))
-          + ($all | of(["$CMD"])
+          | where_capture("BASH"; "^(?:(.*)(sh|bash|ksh|csh|tcsh|zsh))")
+          | focus("CMD"))
+          + ($all | of(["os.$METHOD($MODE, $BASH, \"-c\", $CMD,$$$_)"])
           | not_at($all | of(["os.$METHOD($MODE, \"$$$_\", \"$$$_\", \"$$$_\", $$$_)"]))
-          | within($all | of(["os.$METHOD($MODE, $BASH, \"-c\", $CMD,$$$_)"]))
           | where_capture("METHOD"; "^(?:(spawnl|spawnle|spawnlp|spawnlpe))")
-          | where_capture("BASH"; "^(?:(.*)(sh|bash|ksh|csh|tcsh|zsh))"))))
+          | where_capture("BASH"; "^(?:(.*)(sh|bash|ksh|csh|tcsh|zsh))")
+          | focus("CMD"))))
           | reaching((((($all | of(["flask.request.form.get($$$_)"]))
           + ($all | of(["flask.request.form[$$$_]"]))
           + ($all | of(["flask.request.args.get($$$_)"]))

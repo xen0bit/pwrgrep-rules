@@ -1,0 +1,19 @@
+# rules: csharp-xxe
+# languages: c_sharp
+# fixture: csharp/CWE-611b.cs
+# from: CWE-611 (XML External Entity)
+#
+# XmlReader with DtdProcessing.Parse resolves external entities, enabling XXE.
+
+. as $root
+| ( ($root | scan_ast(["*.cs"]; [
+      "new XmlReaderSettings() { DtdProcessing = DtdProcessing.Parse }",
+      "$S.DtdProcessing = DtdProcessing.Parse;",
+      "$S.DtdProcessing = DtdProcessing.Parse",
+      "new XmlReaderSettings() { DtdProcessing = DtdProcessing.Parse, $$$_ }",
+      "XmlReader.Create($X, $$$_)"
+    ])) as $all
+    | ( $all | of(["new XmlReaderSettings() { DtdProcessing = DtdProcessing.Parse }","new XmlReaderSettings() { DtdProcessing = DtdProcessing.Parse, $$$_ }","$S.DtdProcessing = DtdProcessing.Parse;","$S.DtdProcessing = DtdProcessing.Parse"])
+        | finding("csharp-xxe";
+            "XmlReader with DtdProcessing.Parse enables XXE; use DtdProcessing.Prohibit") ) )
+| report

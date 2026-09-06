@@ -1,5 +1,6 @@
 # rules: use-of-md5
 # languages: clojure
+# fixture: clojure/CWE-327.clj
 # from: clojure/lang/security/use-of-md5.yaml
 
 . as $root

@@ -1,0 +1,15 @@
+# rules: csharp-434-upload
+# languages: c_sharp
+# fixture: csharp/CWE-434.cs
+# from: CWE-434 Unrestricted Upload — HttpPostedFileBase without extension allowlist
+#
+# HttpPostedFileBase.FileName from request reaches File save without an
+# extension allowlist check. The rule tracks FileName reaching File.SaveAs
+# / WriteAllBytes and excludes allowlisted extensions via where_capture_not.
+
+["HttpPostedFileBase $F", "HttpPostedFile $F", "$F.FileName", "Request.Files[$$$_]", "Request.Files.Get($$$_)"] as $src
+| ["File.SaveAs($PATH)", "$F.SaveAs($PATH)", "File.WriteAllBytes($PATH, $$$_)", "File.Create($PATH)", "Path.Combine($PATH, $$$_)"] as $sink
+| scan_ast("*.cs"; $src + $sink) as $all
+| ( $all | of($sink) | focus("PATH") | reaching($all | of($src); []) | where_capture_not("PATH"; "allowlist|whitelist|\\.png|\\.jpg|\\.jpeg|\\.pdf") )
+| finding("csharp-434-upload"; "Unrestricted upload: $PATH from HttpPostedFileBase reaches file save without extension allowlist")
+| report

@@ -1,0 +1,24 @@
+# rules: ruby-code-injection
+# languages: ruby
+# fixture: ruby/CWE-94.rb
+# from: ruby/lang/security/no-eval.yaml (ruby-eval) + CWE-94
+
+. as $root
+| ( ($root | scan_ast(["*.rb"]; [
+      "eval($CODE)",
+      "Kernel.eval($CODE)",
+      "$X.instance_eval($CODE)",
+      "$X.class_eval($CODE)",
+      "instance_eval($CODE)",
+      "class_eval($CODE)",
+      "params",
+      "params[$$$_]",
+      "params.get($$$_)",
+      "cookies",
+      "request.query_string",
+      "request.body"
+    ])) as $all
+  | ($all | of(["eval($CODE)","Kernel.eval($CODE)","$X.instance_eval($CODE)","$X.class_eval($CODE)","instance_eval($CODE)","class_eval($CODE)"]) | focus("CODE") | reaching($all | of(["params","params[$$$_]","params.get($$$_)","cookies","request.query_string","request.body"]); []))
+  | finding("ruby-code-injection"; "Untrusted input reaches code execution; avoid eval with user data")
+  )
+| report

@@ -1,0 +1,29 @@
+# CWE-829: Workflow uses unpinned third-party action (supply-chain).
+# Using a floating tag like v2 can be retagged; pinning to a commit
+# SHA makes supply chain explicit. The rule flags any third-party
+# action not pinned to full SHA; fix by pinning to commit hash.
+name: test
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+# ruleid: third-party-action-not-pinned-to-commit-sha
+      - uses: "actions/checkout@v2"
+# ruleid: third-party-action-not-pinned-to-commit-sha
+      - uses: "actions/setup-node@v3"
+# ok: third-party-action-not-pinned-to-commit-sha
+      - uses: "actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29"
+# ok: third-party-action-not-pinned-to-commit-sha
+      - uses: "actions/setup-node@64ed1c7e4d3373b680b85353c1ea368a830d8f71"
+
+---
+# Extra: uses local action (not third-party) is secure.
+# ok: third-party-action-not-pinned-to-commit-sha
+name: ok_extra
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "./.github/actions/my-action"

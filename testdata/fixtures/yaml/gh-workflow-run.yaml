@@ -1,0 +1,62 @@
+# CWE-918: workflow_run checkout of head SHA is code execution.
+# That event runs on base branch but checking out head SHA again
+# runs untrusted PR code. The rule flags that pattern; fix by using
+# default checkout without the head SHA reference.
+name: bad
+on:
+# ruleid: workflow-run-target-code-checkout
+  workflow_run:
+    workflows: ["test"]
+    types: [completed]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "actions/checkout@v2"
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+---
+name: bad2
+on:
+# ruleid: workflow-run-target-code-checkout
+  workflow_run:
+    workflows: ["test"]
+    types: [completed]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "actions/checkout@v2"
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+---
+name: good1
+# ok: workflow-run-target-code-checkout
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "actions/checkout@v2"
+        with:
+          ref: ${{ github.sha }}
+---
+name: good2
+# ok: workflow-run-target-code-checkout
+on: workflow_run
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "hello"
+
+---
+# Extra: workflow without checkout of untrusted code is secure.
+# ok: workflow-run-target-code-checkout
+name: ok_extra
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "hello world"

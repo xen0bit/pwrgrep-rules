@@ -1,0 +1,42 @@
+# rules: python-deserialization
+# languages: python
+# fixture: python/CWE-502.py
+# from: CWE-502 (Deserialization of Untrusted Data)
+#
+# `pickle.loads`, `yaml.load`/`yaml.unsafe_load` and `marshal.loads` build
+# objects from the bytes given. If those bytes are the caller's, the caller
+# chooses the object and the code that runs.
+#
+# The rule is `reaching`: an untrusted value from the request (query string,
+# form, route variable, or `self.path`) that flows into a deserialization
+# sink. A literal has nothing to flow.
+
+. as $root
+| ( ($root | scan_ast(["*.py"]; [
+      "pickle.loads($DATA, $$$_)",
+      "pickle.load($DATA, $$$_)",
+      "yaml.load($DATA, $$$_)",
+      "yaml.unsafe_load($DATA, $$$_)",
+      "marshal.loads($DATA)", "marshal.load($DATA)",
+      "flask.request.args.get($$$_)", "flask.request.args[$$$_]",
+      "flask.request.form.get($$$_)", "flask.request.form[$$$_]",
+      "flask.request.values.get($$$_)", "flask.request.values[$$$_]",
+      "flask.request.cookies.get($$$_)", "flask.request.data",
+      "request.args.get($$$_)", "request.args[$$$_]",
+      "request.form.get($$$_)", "request.form[$$$_]",
+      "request.values.get($$$_)", "request.data",
+      "self.path", "self.headers.get($$$_)", "self.headers[$$$_]",
+      "@$APP.route($$$_)\ndef $FUNC($$$_, $ROUTEVAR, $$$_):\n  $$$_",
+      "def $FUNC(request, $$$_):\n  $$$_"
+    ])) as $all
+  | ($all | of(["pickle.loads($DATA, $$$_)", "pickle.load($DATA, $$$_)", "yaml.load($DATA, $$$_)", "yaml.unsafe_load($DATA, $$$_)", "marshal.loads($DATA)", "marshal.load($DATA)"])
+      | focus("DATA")
+      | reaching($all | of(["flask.request.args.get($$$_)","flask.request.args[$$$_]","flask.request.form.get($$$_)","flask.request.form[$$$_]","flask.request.values.get($$$_)","flask.request.values[$$$_]","flask.request.cookies.get($$$_)","flask.request.data","request.args.get($$$_)","request.args[$$$_]","request.form.get($$$_)","request.form[$$$_]","request.values.get($$$_)","request.data","self.path","self.headers.get($$$_)","self.headers[$$$_]"])
+          + ($all | within($all | of(["@$APP.route($$$_)\ndef $FUNC($$$_, $ROUTEVAR, $$$_):\n  $$$_"])) | focus("ROUTEVAR"))
+          + ($all | within($all | of(["def $FUNC(request, $$$_):\n  $$$_"])) | of(["request.args.get($$$_)","request.args[$$$_]","request.form.get($$$_)","request.form[$$$_]"]))
+          ; []))
+  | finding("python-deserialization";
+      "untrusted input reaches deserialization; the caller can build "
+      + "arbitrary objects — avoid pickle/yaml/mshal on user data")
+  )
+| report

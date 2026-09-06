@@ -1,0 +1,28 @@
+# rules: go-missing-auth
+# languages: go
+# fixture: go/CWE-287.go
+# from: CWE-306 (Missing Authentication for Critical Function), CWE-287
+#
+# There is one rule per language for this, and it reports under
+# `<language>-missing-auth`. The corpus briefly carried two or three - an
+# `-authn` spelling, an `-auth` spelling and this one - written against
+# CWE-287, CWE-306 and CWE-862 but all asking the same question: is there an
+# authentication guard on this endpoint. They fired on the same lines and a
+# route with no middleware got three findings under three ids. Whether the
+# missing guard is called authentication or authorization is not something the
+# syntax says, so it is one finding; `<language>-862-rbac` is the separate rule
+# for the endpoint that does authenticate and then checks no role.
+#
+# HTTP handlers without authMiddleware allow unauthenticated access.
+# The rule finds func Handler(w http.ResponseWriter, r *http.Request) handlers
+# that are outside an authMiddleware/RequireAuth check; safe handlers contain
+# authMiddleware in their body.
+
+["func $FUNC(w http.ResponseWriter, r *http.Request) { $$$BODY }"] as $handlers
+| ["func $FUNC(w http.ResponseWriter, r *http.Request) { $$$BODY }"] as $authRaw
+| scan_ast("*.go"; $handlers + $authRaw) as $all
+| ( $all | of($handlers)
+      | outside($all | of($authRaw) | where_capture("BODY"; "authMiddleware|RequireAuth|WithAuth|Authenticate"))
+    | finding("go-missing-auth";
+        "Handler $FUNC lacks authentication; wrap with authMiddleware/RequireAuth") )
+| report

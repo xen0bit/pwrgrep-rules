@@ -1,0 +1,11 @@
+# rules: k8s-run-as-root
+# languages: yaml
+# fixture: yaml/k8s-run-as-root.yaml
+# from: yaml/kubernetes/security/run-as-non-root.yaml
+
+. as $root
+| ($root | scan_ast(["*.yaml","*.yml"]; [
+      "runAsUser: 0"
+    ])) as $all
+| ($all | of(["runAsUser: 0"]) | finding("k8s-run-as-root"; "runAsUser 0 is insecure — container runs as root"))
+| report

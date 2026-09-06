@@ -1,0 +1,14 @@
+# rules: java-code-injection
+# languages: java
+# fixture: java/CWE-94.java
+# from: CWE-94 Code Injection
+#
+# ScriptEngine.eval and SpEL parseExpression execute code built from strings.
+# When the string came from the request the caller decides what runs.
+
+["$R.getParameter($K)", "$R.getHeader($K)", "$R.getQueryString()", "$R.getCookies()"] as $outside
+| ["$ENGINE.eval($CODE)", "$PARSER.parseExpression($CODE)"] as $sinks
+| scan_ast("*.java"; $outside + $sinks) as $all
+| ( $all | of($sinks) | focus("CODE") | reaching($all | of($outside); []) )
+| finding("java-code-injection"; "Code injection: $CODE came from the request and reaches code execution")
+| report

@@ -1,0 +1,16 @@
+# rules: apex-434-upload
+# languages: apex
+# fixture: apex/CWE-434.cls
+# from: CWE-434 Unrestricted Upload — ContentVersion VersionData without content type check
+#
+# ContentVersion VersionData from user upload reaches insert without a
+# content type or extension allowlist check. The rule tracks VersionData
+# reaching insert/Database.insert and excludes allowlisted types via
+# where_capture_not.
+
+["ContentVersion $V = $E", "ContentVersion $V = new ContentVersion($$$_)", "$V.VersionData = $DATA", "$V.PathOnClient = $P"] as $src
+| ["insert $V", "insert $V;", "Database.insert($V, $$$_)"] as $sink
+| scan_ast("*.cls"; $src + $sink) as $all
+| ( ($all | of($sink) | focus("V") | where_capture_not("V"; "allowlist|whitelist|ContentType|\\.png|\\.jpg|image\\/png")) + ($all | of($sink) | focus("V") | reaching($all | of($src); []) | where_capture_not("V"; "allowlist|whitelist|ContentType|\\.png|\\.jpg|image\\/png")) )
+| finding("apex-434-upload"; "Unrestricted upload: $V VersionData reaches insert without content type allowlist check")
+| report

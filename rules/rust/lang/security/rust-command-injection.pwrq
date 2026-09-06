@@ -1,0 +1,10 @@
+# rules: rust-command-injection
+# languages: rust
+# fixture: rust/CWE-78.rs
+# from: CWE-78 (OS Command Injection)
+
+["std::env::args()", "std::env::var($$$_)", "std::env::args().next()", "request.query.get($$$_)"] as $src
+| ["std::process::Command::new($CMD)", "Command::new($CMD)"] as $sink
+| scan_ast("*.rs"; $src + $sink) as $all
+| ( $all | of($sink) | focus("CMD") | reaching($all | of($src); []) | finding("rust-command-injection"; "Command injection: $CMD came from untrusted input and reaches Command::new") )
+| report

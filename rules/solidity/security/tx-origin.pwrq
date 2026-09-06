@@ -1,0 +1,13 @@
+# rules: tx-origin
+# languages: solidity
+# fixture: solidity/CWE-477-txorigin.sol
+# from: CWE-477 (Use of tx.origin)
+
+. as $root
+| ( ($root | scan_regex(["*.sol"]; [
+      "tx\\.origin"
+    ])) as $all
+    | ( $all | of(["tx\\.origin"])
+        | finding("tx-origin";
+            "Use of tx.origin for authorization is vulnerable to phishing") ) )
+| report

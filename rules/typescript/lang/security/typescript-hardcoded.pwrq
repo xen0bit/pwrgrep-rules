@@ -1,0 +1,20 @@
+# rules: typescript-hardcoded
+# languages: typescript
+# fixture: typescript/CWE-798b.ts
+# from: CWE-798 (Use of Hard-coded Credentials) — second
+#
+# A `const api_key = "..."` longer than 20 characters written into the
+# source is in every checkout and cannot be rotated. The name and the
+# length make it checkable.
+
+["const $NAME = $VALUE;", "const $NAME = $VALUE", "let $NAME = $VALUE;", "let $NAME = $VALUE", "var $NAME = $VALUE;", "var $NAME = $VALUE"] as $decls
+| "(?i)password|passwd|pwd|secret|api_?key|apikey|token|aws_?secret|aws_?key" as $names
+| "^\"[^\"]{20,}\"$|^'[^']{20,}'$|^`[^`]{20,}`$" as $long
+| scan_ast(["*.ts","*.tsx"]; $decls) as $all
+| ($all | of($decls)
+    | where_capture("NAME"; $names)
+    | where_capture("VALUE"; $long)
+    | finding("typescript-hardcoded";
+        "hardcoded credential $VALUE for $NAME is in every checkout and "
+        + "cannot be rotated — read it from the environment or a vault"))
+| report

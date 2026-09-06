@@ -1,13 +1,13 @@
 # rules: exposing-docker-socket-hostpath
+# languages: yaml
+# fixture: yaml/k8s-docker-socket.yaml
 # from: yaml/kubernetes/security/exposing-docker-socket-hostpath.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml"]; [
-      "hostPath:\\s+[\\s\\S]*?\\s+path:\\s+\\/var\\/run\\/docker\\.sock",
-      "volumes:\\s+[\\s\\S]*?"
+| ( ($root | scan_ast(["*.yaml","*.yml"]; [
+      "path: /var/run/docker.sock"
     ])) as $all
-    | ( $all | of(["hostPath:\\s+[\\s\\S]*?\\s+path:\\s+\\/var\\/run\\/docker\\.sock"])
-          | within($all | of(["volumes:\\s+[\\s\\S]*?"]))
+    | ( $all | of(["path: /var/run/docker.sock"])
         | finding("exposing-docker-socket-hostpath";
             "Exposing host's Docker socket to containers via a volume.") ) )
 | report

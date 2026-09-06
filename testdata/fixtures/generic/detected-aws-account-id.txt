@@ -1,0 +1,18 @@
+# CWE-798: AWS account ID — numeric identifier in source.
+# 12-digit account IDs aid targeted phishing and policy abuse. The rule
+# flags 12-digit numbers labeled as account_id; ok lines are short or
+# not labeled as AWS accounts.
+# ruleid: detected-aws-account-id
+aws_account_id = 287139315271
+# ruleid: detected-aws-account-id
+"aws_account_id": "987654321098"
+# ok: detected-aws-account-id
+aws_account_id = 12345
+# ok: detected-aws-account-id
+account_id = "000000000000"
+# ruleid: detected-aws-account-id
+aws_account_id = 111222333444
+# ruleid: detected-aws-account-id
+"aws_account_id": "555666777888"
+# ok: detected-aws-account-id
+aws_account_id = "example_000000000000"

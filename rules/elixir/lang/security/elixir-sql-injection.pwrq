@@ -1,0 +1,16 @@
+# rules: elixir-sql-injection
+# languages: elixir
+# fixture: elixir/CWE-89.ex
+# from: CWE-89 (SQL Injection)
+
+. as $root
+| ( $root | scan_ast(["*.ex"]; ["Ecto.Adapters.SQL.query($A, $SQL)", "Repo.query($SQL)"]) ) as $all
+| ( ( $all | of(["Ecto.Adapters.SQL.query($A, $SQL)"]) | where_capture_not("SQL"; "^\".*\"$") | finding("elixir-sql-injection";
+        "this query is assembled from a value the caller chose, so a quote in "
+        + "it ends the literal and the rest is SQL; bind the value as a "
+        + "parameter instead") )
+  + ( $all | of(["Repo.query($SQL)"]) | where_capture_not("SQL"; "^\".*\"$") | finding("elixir-sql-injection";
+        "this query is assembled from a value the caller chose, so a quote in "
+        + "it ends the literal and the rest is SQL; bind the value as a "
+        + "parameter instead") ) )
+| report

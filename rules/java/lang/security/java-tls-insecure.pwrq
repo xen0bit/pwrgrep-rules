@@ -1,0 +1,10 @@
+# rules: java-tls-insecure
+# languages: java
+# fixture: java/CWE-295.java
+# from: CWE-295 Improper Certificate Validation
+
+["public void checkClientTrusted($$$_) {}", "public void checkServerTrusted($$$_) {}"] as $empty
+| scan_ast("*.java"; $empty) as $all
+| ($all | of($empty))
+| finding("java-tls-insecure"; "TrustManager accepts any certificate; verification is disabled")
+| report

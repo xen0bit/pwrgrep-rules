@@ -1,0 +1,8 @@
+// ruleid: public-s3-policy-statement
+"Principal": "*",
+// ruleid: public-s3-policy-statement
+"Principal": "*",
+// ok: public-s3-policy-statement
+"Principal": {"AWS": "arn:aws:iam::123456789012:root"},
+// ok: public-s3-policy-statement
+"Principal": {"AWS": "arn:aws:iam::123456789012:user/test"}

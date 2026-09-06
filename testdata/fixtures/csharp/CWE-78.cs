@@ -1,3 +1,7 @@
+// CWE-78: OS command injection — request data in command line.
+// Process.Start("ping", host) with attacker host allows "; rm" etc.
+// The rule flags request data reaching Process.Start; fix by allow-list
+// or avoiding shell.
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 

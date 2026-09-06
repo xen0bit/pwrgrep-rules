@@ -4,15 +4,17 @@
 
 . as $root
 | ( ($root | scan_ast(["*.tf"]; [
+      "$VARIABLE: $$$_",
       "$VARIABLE = $$$_",
       "environment { $$$_ }",
       "resource \"aws_lambda_function\" $FUNCTION { $$$_ }",
       "variables = { $$$_ }"
     ])) as $all
-    | ( $all | of(["$VARIABLE = $$$_"])
-          | within($all | of(["resource \"aws_lambda_function\" $FUNCTION { $$$_ }"]))
-          | within($all | of(["environment { $$$_ }"]))
+    | ( $all | of(["$VARIABLE: $$$_","$VARIABLE = $$$_"])
           | within($all | of(["variables = { $$$_ }"]))
+          | within($all | of(["environment { $$$_ }"]))
+          | within($all | of(["resource \"aws_lambda_function\" $FUNCTION { $$$_ }"]))
+          | where_capture("VARIABLE"; "^(?:_HANDLER|_X_AMZN_TRACE_ID|AWS_DEFAULT_REGION|AWS_REGION|AWS_EXECUTION_ENV|AWS_LAMBDA_FUNCTION_NAME|AWS_LAMBDA_FUNCTION_MEMORY_SIZE|AWS_LAMBDA_FUNCTION_VERSION|AWS_LAMBDA_INITIALIZATION_TYPE|AWS_LAMBDA_LOG_GROUP_NAME|AWS_LAMBDA_LOG_STREAM_NAME|AWS_ACCESS_KEY|AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY|AWS_LAMBDA_RUNTIME_API|LAMBDA_TASK_ROOT|LAMBDA_RUNTIME_DIR)$")
         | finding("reserved-aws-lambda-environment-variable";
             "`terraform apply` will fail because the environment variable \"$VARIABLE\" is a reserved by AWS.") ) )
 | report

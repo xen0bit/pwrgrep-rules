@@ -1,0 +1,13 @@
+# rules: java-weak-hash
+# languages: java
+# fixture: java/CWE-327.java
+# from: CWE-327 Use of a Broken or Risky Cryptographic Algorithm
+
+["MessageDigest.getInstance(\"MD5\")",
+ "MessageDigest.getInstance(\"MD4\")",
+ "MessageDigest.getInstance(\"SHA1\")",
+ "MessageDigest.getInstance(\"SHA-1\")"] as $weak
+| scan_ast("*.java"; $weak) as $all
+| ($all | of($weak))
+| finding("java-weak-hash"; "MD5/SHA1 are broken for collision resistance; use SHA-256 instead")
+| report

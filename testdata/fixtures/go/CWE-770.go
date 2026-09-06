@@ -48,3 +48,18 @@ func readsAResponse(resp *http.Response) ([]byte, error) {
 	// ok: go-unbounded-request-body-read
 	return io.ReadAll(resp.Body)
 }
+func readsReq(w http.ResponseWriter, r *http.Request) {
+    // ruleid: go-unbounded-request-body-read
+    data, _ := io.ReadAll(r.Body)
+    w.Write(data)
+}
+
+func readsReq2(req *http.Request) ([]byte, error) {
+    // ruleid: go-unbounded-request-body-read
+    return io.ReadAll(req.Body)
+}
+
+func cappedInline(w http.ResponseWriter, req *http.Request) ([]byte, error) {
+    // ok: go-unbounded-request-body-read
+    return io.ReadAll(http.MaxBytesReader(w, req.Body, 1024))
+}

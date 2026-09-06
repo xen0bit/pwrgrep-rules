@@ -41,4 +41,25 @@ enum Crypt {
 
     // ok: swift-ecb-cipher
     static let modeNote = "kCCOptionECBMode is what we removed in 2019"
+    static func sealECB2(_ data: Data, key: Data, out: UnsafeMutableRawPointer) {
+        var moved = 0
+        _ = CCCrypt(CCOperation(kCCEncrypt), CCAlgorithm(kCCAlgorithmAES),
+                    // ruleid: swift-ecb-cipher
+                    CCOptions(kCCOptionECBMode | kCCOptionPKCS7Padding),
+                    nil, key.count, nil, nil, data.count, out, data.count, &moved)
+    }
+
+    static func sealBlockMode(_ data: Data) throws {
+        // ruleid: swift-ecb-cipher
+        let aes = try AES(key: "1234567890123456", blockMode: ECB(), padding: .pkcs7)
+        _ = try aes.encrypt([UInt8](data))
+    }
+
+    static func sealCBCSafe(_ data: Data, iv: Data, out: UnsafeMutableRawPointer) {
+        var moved = 0
+        _ = CCCrypt(CCOperation(kCCEncrypt), CCAlgorithm(kCCAlgorithmAES),
+                    // ok: swift-ecb-cipher
+                    CCOptions(0),
+                    nil, 32, nil, nil, data.count, out, data.count, &moved)
+    }
 }

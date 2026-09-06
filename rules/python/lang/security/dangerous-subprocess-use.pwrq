@@ -1,5 +1,6 @@
 # rules: dangerous-subprocess-use
 # languages: python
+# fixture: python/CWE-78-subprocess.py
 # from: python/lang/security/dangerous-subprocess-use.yaml
 
 . as $root

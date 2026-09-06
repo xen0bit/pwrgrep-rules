@@ -1,5 +1,6 @@
 # rules: telnet-request
 # languages: javascript
+# fixture: problem-based-packs/js-telnet-request.js
 # from: problem-based-packs/insecure-transport/js-node/telnet-request.yaml
 
 . as $root

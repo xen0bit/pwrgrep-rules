@@ -1,0 +1,16 @@
+# rules: ocaml-csrf
+# languages: ocaml
+# fixture: ocaml/CWE-352.ml
+# from: CWE-352 Cross-Site Request Forgery
+#
+# Dream POST route without CSRF check.
+
+. as $root
+| ( ($root | scan_regex(["*.ml"]; [
+      "Dream\\.post\\s+[\"\\'][\\s\\S]*?Dream\\.html"
+    ])) as $all
+    | ( $all | of(["Dream\\.post\\s+[\"\\'][\\s\\S]*?Dream\\.html"])
+          | where_text_not("Dream\\.csrf|X-CSRF")
+        | finding("ocaml-csrf";
+            "Dream POST without CSRF check") ) )
+| report

@@ -1,0 +1,18 @@
+# rules: clojure-hardcoded
+# languages: clojure
+# fixture: clojure/CWE-798.clj
+# from: CWE-798 Hardcoded Credentials
+
+. as $root
+| ( ($root | scan_regex(["*.clj"]; [
+      "\\(def\\s+(?P<N>\\S+)\\s+\"(?P<V>[^\"]+)\""
+    ])) as $all
+    | ( $all | of(["\\(def\\s+(?P<N>\\S+)\\s+\"(?P<V>[^\"]+)\""])
+          | where_capture("N"; "(?i)passw|secret|token|api[_-]?key|credential")
+          | where_capture("V"; "[0-9]")
+          | where_capture_not("V"; "(?i)password|changeme|placeholder|example")
+          | finding("clojure-hardcoded";
+        "this is a credential written into the source, so it is in every "
+        + "checkout and every image built from one; read it from the "
+        + "environment, and rotate this one because it has leaked") ) )
+| report

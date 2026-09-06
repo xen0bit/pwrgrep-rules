@@ -1,0 +1,24 @@
+# rules: ruby-deserialization
+# languages: ruby
+# fixture: ruby/CWE-502.rb
+# from: ruby/lang/security/bad-deserialization.yaml (bad-deserialization) + CWE-502
+
+. as $root
+| ( ($root | scan_ast(["*.rb"]; [
+      "YAML.load($DATA)",
+      "YAML.safe_load($DATA)",
+      "Marshal.load($DATA)",
+      "Marshal.restore($DATA)",
+      "Oj.load($DATA)",
+      "Oj.object_load($DATA)",
+      "params",
+      "params[$$$_]",
+      "params.get($$$_)",
+      "cookies",
+      "request.query_string",
+      "request.body"
+    ])) as $all
+  | ($all | of(["YAML.load($DATA)","Marshal.load($DATA)","Marshal.restore($DATA)","Oj.load($DATA)","Oj.object_load($DATA)"]) | focus("DATA") | reaching($all | of(["params","params[$$$_]","params.get($$$_)","cookies","request.query_string","request.body"]); []))
+  | finding("ruby-deserialization"; "Untrusted input reaches unsafe deserialization; use safe_load or JSON")
+  )
+| report

@@ -1,5 +1,6 @@
 # rules: ftp-request
 # languages: java
+# fixture: problem-based-packs/java-ftp-request.java
 # from: problem-based-packs/insecure-transport/java-stdlib/ftp-request.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: enum_map_into
 # languages: elixir
+# fixture: elixir/enum-map-into.ex
 # from: elixir/lang/best-practice/enum-map-into.yaml
 
 . as $root

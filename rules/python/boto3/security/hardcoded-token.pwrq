@@ -10,9 +10,13 @@
     ])) as $all
     | ( (($all | of(["$W($$$_,$TOKEN=\"$VALUE\",$$$_)","$BOTO. $$$_ .$W($$$_,$TOKEN=\"$VALUE\",$$$_)"])
           | where_capture("TOKEN"; "^(?:(aws_session_token|aws_access_key_id|aws_secret_access_key))")
+          | where_capture_not("VALUE"; "(?i)EXAMPLE")
+          | where_capture_not("VALUE"; "(?i)(placeholder|your[_ -]|dummy|test|changeme|todo|fixme|<[^>]*)")
+          | where_capture("VALUE"; "[A-Za-z0-9/+=]{8}")
           | where_capture_entropy("VALUE")))
           | reaching((($all | of(["\"$$$_\""])));
               ([]))
         | finding("hardcoded-token";
             "A hard-coded credential was detected.") ) )
 | report
+

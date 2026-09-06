@@ -1,5 +1,6 @@
 # rules: ocamllint-marshal
 # languages: ocaml
+# fixture: ocaml/CWE-502.ml
 # from: ocaml/lang/security/marshal.yaml
 
 . as $root

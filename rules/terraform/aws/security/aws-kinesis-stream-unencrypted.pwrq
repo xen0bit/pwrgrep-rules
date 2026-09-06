@@ -1,5 +1,6 @@
 # rules: aws-kinesis-stream-unencrypted
 # languages: hcl
+# fixture: terraform/aws-kinesis-stream-unencrypted.tf
 # from: terraform/aws/security/aws-kinesis-stream-unencrypted.yaml
 
 . as $root

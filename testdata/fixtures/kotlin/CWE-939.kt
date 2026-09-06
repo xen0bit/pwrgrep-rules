@@ -27,6 +27,18 @@ class Browser : Activity() {
         view.loadUrl(intent.dataString)
     }
 
+    fun queryParam(intent: Intent) {
+        val u = intent.data?.getQueryParameter("url")
+        // ruleid: kotlin-webview-loads-untrusted-url
+        view.loadUrl(u)
+    }
+
+    fun extras(intent: Intent) {
+        val e = intent.extras?.getString("url")
+        // ruleid: kotlin-webview-loads-untrusted-url
+        view.loadUrl(e)
+    }
+
     fun help() {
         // ok: kotlin-webview-loads-untrusted-url
         view.loadUrl("file:///android_asset/help/index.html")
@@ -35,5 +47,10 @@ class Browser : Activity() {
     fun profile(id: String) {
         // ok: kotlin-webview-loads-untrusted-url
         view.loadUrl("https://example.com/users/" + id)
+    }
+
+    fun safeHardcoded() {
+        // ok: kotlin-webview-loads-untrusted-url
+        view.loadUrl("https://example.com/static")
     }
 }

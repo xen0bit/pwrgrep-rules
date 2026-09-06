@@ -1,0 +1,15 @@
+# rules: kotlin-20-validation
+# languages: kotlin
+# fixture: kotlin/CWE-20.kt
+# from: CWE-20 Improper Input Validation — request query without validation
+#
+# Query parameter from request reaches file or parse use without validation.
+# The rule tracks request.getParameter reaching File/toInt and excludes
+# allowlist/whitelist checks via where_capture_not.
+
+["request.getParameter($K)", "$REQ.getParameter($K)", "call.request.queryParameters[$$$_]", "call.parameters[$$$_]", "$REQ.queryParams.get($$$_)"] as $src
+| ["File($VAL, $$$_)", "$VAL.toInt()", "Integer.parseInt($VAL)", "$VAL.toLong()", "Files.readString($VAL)"] as $sink
+| scan_ast("*.kt"; $src + $sink) as $all
+| ( $all | of($sink) | focus("VAL") | reaching($all | of($src); []) | where_capture_not("VAL"; "allowlist|whitelist|validated|sanitized") )
+| finding("kotlin-20-validation"; "Improper validation: $VAL from request query reaches use without allowlist validation")
+| report

@@ -1,0 +1,14 @@
+# rules: java-20-validation
+# languages: java
+# fixture: java/CWE-20b.java
+# from: CWE-20 (Improper Input Validation) — request.getParameter without regex -> query/exec
+#
+# request.getParameter without regex validation reaches SQL query/exec.
+# The rule tracks getParameter reaching executeQuery/exec and excludes regex allowlist via where_capture_not.
+
+["$R.getParameter($K)", "$R.getParameterValues($K)", "$R.getHeader($K)", "$R.getQueryString()"] as $src
+| ["$S.executeQuery($Q)", "$S.executeUpdate($Q)", "$S.execute($Q)", "$C.prepareStatement($Q)", "Runtime.getRuntime().exec($Q)"] as $sink
+| scan_ast("*.java"; $src + $sink) as $all
+| ( $all | of($sink) | focus("Q") | reaching($all | of($src); []) | where_capture_not("Q"; "allowlist|whitelist|regex|Pattern|matches") )
+| finding("java-20-validation"; "Improper validation: $Q from request.getParameter reaches query/exec without regex allowlist")
+| report

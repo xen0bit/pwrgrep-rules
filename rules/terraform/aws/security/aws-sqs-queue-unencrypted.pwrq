@@ -1,5 +1,6 @@
 # rules: aws-sqs-queue-unencrypted
 # languages: hcl
+# fixture: terraform/aws-sqs-queue-unencrypted.tf
 # from: terraform/aws/security/aws-sqs-queue-unencrypted.yaml
 
 . as $root

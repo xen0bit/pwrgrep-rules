@@ -1,4 +1,5 @@
 # rules: bypass-tls-verification
+# fixture: problem-based-packs/js-bypass-tls-verification.js
 # languages: javascript, typescript
 # from: problem-based-packs/insecure-transport/js-node/bypass-tls-verification.yaml
 

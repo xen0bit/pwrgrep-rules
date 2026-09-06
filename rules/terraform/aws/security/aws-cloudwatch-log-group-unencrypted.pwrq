@@ -1,5 +1,6 @@
 # rules: aws-cloudwatch-log-group-unencrypted
 # languages: hcl
+# fixture: terraform/aws-cloudwatch-log-group-unencrypted.tf
 # from: terraform/aws/security/aws-cloudwatch-log-group-unencrypted.yaml
 
 . as $root

@@ -1,0 +1,12 @@
+# rules: rust-xxe
+# languages: rust
+# fixture: rust/CWE-611.rs
+# from: CWE-611 XXE
+
+["quick_xml::Reader::from_str($XML)", "xml::reader::EventReader::new($XML)", "roxmltree::Document::parse($XML)"] as $sinks
+| scan_ast("*.rs"; $sinks) as $all
+| ($all | of($sinks) | where_capture_not("XML"; "^\".*\"$") | finding("rust-xxe";
+        "this parser resolves external entities, so a DOCTYPE in the document "
+        + "reads local files and makes requests from this host; disable DTDs "
+        + "and external entities on the parser"))
+| report

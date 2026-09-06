@@ -1,7 +1,7 @@
 # pwrgrep-rules
 
-The structural rule corpus for [pwrq](https://github.com/xen0bit/pwrq): 1900
-rules in 25 languages, each one a pwrq query and nothing else.
+The structural rule corpus for [pwrq](https://github.com/xen0bit/pwrq): 2183
+rules in 27 languages, each one a pwrq query and nothing else.
 
 A rule is a file and a header. There is no schema, no plugin API and nothing to
 rebuild — writing one is copying a file:
@@ -119,9 +119,9 @@ shipped, because it takes the whole run down with it.
 
 `--no-smoke` skips it, which is most of the ninety seconds.
 
-Every rule in `rules/c`, `rules/kotlin` and `rules/swift` carries a fixture, as
-does every rule in `rules/php/lang` bar four, and those languages' fixtures are
-named for the weakness rather than for the rule:
+589 of the 2183 rules carry a fixture. Every rule in `rules/c`, `rules/kotlin`
+and `rules/swift` does, as does every rule in `rules/php/lang` bar four, and
+those languages' fixtures are named for the weakness rather than for the rule:
 `testdata/fixtures/c/CWE-134.c` demonstrates every way a C program writes an
 uncontrolled format string, and `c-uncontrolled-format-string` is the rule that
 has to find all of them and nothing else. Going from a number in an advisory to
@@ -129,9 +129,18 @@ the code that causes it is one `ls`. Where a rule reports something with no
 obvious number of its own, the nearest one is used and the rule's header says
 which.
 
-The framework rules - Laravel, Symfony, Doctrine, the WordPress pack - do not
-have fixtures yet, and several of them are known not to fire; GUIDE.md says
-what to check and why a rule with no fixture is not evidence of anything.
+The framework rules - Laravel, Symfony, Doctrine, the WordPress pack - and
+most of `rules/generic` and `rules/terraform` do not have fixtures yet, and
+several of them are known not to fire; GUIDE.md says what to check and why a
+rule with no fixture is not evidence of anything.
+
+An id belongs to one detection. Several rules may report under it - a framework
+rule for Django and one for Flask both report `tainted-sql-string`, and that is
+the corpus saying they are the same finding reached two ways - but two rules
+that would fire on the same line under different ids are two names for one
+thing, and one of them goes. Which one stays is decided by the fixture: a rule
+that is checked on every change outranks one that is not, whichever came
+first.
 
 Fixtures are annotated the way the corpus this was translated from annotates
 them: `ruleid: <id>` on the line before a line that must produce a finding,

@@ -1,5 +1,6 @@
 # rules: aws-efs-filesystem-encrypted-with-cmk
 # languages: hcl
+# fixture: terraform/aws-efs-filesystem-encrypted-with-cmk.tf
 # from: terraform/aws/security/aws-efs-filesystem-encrypted-with-cmk.yaml
 
 . as $root

@@ -1,3 +1,6 @@
+// CWE-327/328: Weak hash — MD5/SHA1 have practical collisions.
+// MD5, SHA1, or HashAlgorithm.Create("MD5") are flagged; they are
+// unsafe for signatures or fingerprints. Fix with SHA256 or stronger.
 using System.Security.Cryptography;
 
 namespace Fixture {

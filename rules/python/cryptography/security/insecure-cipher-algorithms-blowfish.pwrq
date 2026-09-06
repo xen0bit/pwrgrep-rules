@@ -4,11 +4,16 @@
 
 . as $root
 | ( ($root | scan_ast(["*.py"]; [
+      "Cipher($$$_)",
+      "cryptography.hazmat.primitives.ciphers.Cipher($$$_)",
+      "algorithms.$BLOWFISH($KEY)",
       "cryptography.hazmat.primitives.ciphers.algorithms.$BLOWFISH($KEY)"
     ])) as $all
-    | ( $all | of(["cryptography.hazmat.primitives.ciphers.algorithms.$BLOWFISH($KEY)"])
+    | ( $all | of(["cryptography.hazmat.primitives.ciphers.algorithms.$BLOWFISH($KEY)","algorithms.$BLOWFISH($KEY)"])
+          | within($all | of(["Cipher($$$_)","cryptography.hazmat.primitives.ciphers.Cipher($$$_)"]))
           | where_capture("BLOWFISH"; "^(Blowfish)$")
           | focus("BLOWFISH")
         | finding("insecure-cipher-algorithm-blowfish";
             "Blowfish is a block cipher developed by Bruce Schneier.") ) )
 | report
+

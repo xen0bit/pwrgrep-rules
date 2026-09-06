@@ -1,0 +1,36 @@
+# rules: php-missing-auth
+# languages: php
+# fixture: php/CWE-287b.php
+# from: CWE-306 (Missing Authentication for Critical Function), CWE-287
+#
+# The rule reports an endpoint in a file that protects some of its others, and
+# says nothing about a file that protects none. An application with no
+# authentication anywhere has made a decision - the check may live in a filter,
+# a gateway or a proxy, or it may be a sample with no accounts at all - and
+# reporting every endpoint in it tells the reader nothing they did not know.
+# What is a bug is the endpoint that was missed: a guard on three handlers and
+# not on the fourth.
+#
+# There is one rule per language for this, and it reports under
+# `<language>-missing-auth`. The corpus briefly carried two or three - an
+# `-authn` spelling, an `-auth` spelling and this one - written against
+# CWE-287, CWE-306 and CWE-862 but all asking the same question: is there an
+# authentication guard on this endpoint. They fired on the same lines and a
+# route with no middleware got three findings under three ids. Whether the
+# missing guard is called authentication or authorization is not something the
+# syntax says, so it is one finding; `<language>-862-rbac` is the separate rule
+# for the endpoint that does authenticate and then checks no role.
+#
+# PHP endpoints that read $_GET/$_POST without first checking $_SESSION
+# allow unauthenticated access. The rule flags direct use of superglobals
+# where the access is not inside an isset($_SESSION) guard; safe code
+# wraps superglobal access in if (isset($_SESSION['user'])).
+
+["$_GET[\"id\"]", "$_GET[$K]", "$_POST[$K]", "$_REQUEST[$K]", "$_GET[$$$_]", "$_POST[$$$_]"] as $sinks
+| ["if (isset($_SESSION[\"user\"])) { $$$BODY }", "if (isset($_SESSION[$K])) { $$$BODY }", "if ($_SESSION[\"user\"]) { $$$BODY }", "isset($_SESSION[\"user\"])", "isset($_SESSION[$K])"] as $auth
+| scan_ast(["*.php"]; $sinks + $auth) as $all
+| ( $all | of($sinks) | outside($all | of(["if (isset($_SESSION[\"user\"])) { $$$BODY }","if (isset($_SESSION[$K])) { $$$BODY }","if ($_SESSION[\"user\"]) { $$$BODY }"]))
+      | in_files_with($all | of(["if (isset($_SESSION[\"user\"])) { $$$BODY }","if (isset($_SESSION[$K])) { $$$BODY }","if ($_SESSION[\"user\"]) { $$$BODY }"]))
+    | finding("php-missing-auth";
+        "Superglobal $_GET/$_POST used without session check; add isset($_SESSION['user']) guard") )
+| report

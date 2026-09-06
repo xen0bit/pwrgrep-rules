@@ -8,14 +8,14 @@
       "new Regex($$$_, TimeSpan.FromMinutes($$$_))",
       "new Regex($$$_, TimeSpan.FromSeconds($TIME))",
       "new Regex($$$_, TimeSpan.InfiniteMatchTimeout)",
-      "using System.Text.RegularExpressions;\n$$$_"
+      "using System.Text.RegularExpressions;"
     ])) as $all
     | ( ($all | of(["new Regex($$$_, TimeSpan.InfiniteMatchTimeout)"]))
           + ($all | of(["new Regex($$$_, TimeSpan.FromSeconds($TIME))"])
           | where_capture_compare("$TIME > 5"))
           + ($all | of(["new Regex($$$_, TimeSpan.FromMinutes($$$_))"]))
           + ($all | of(["new Regex($$$_, TimeSpan.FromHours($$$_))"]))
-          | in_files_with($all | of(["using System.Text.RegularExpressions;\n$$$_"]))
+          | in_files_with($all | of(["using System.Text.RegularExpressions;"]))
         | finding("regular-expression-dos-infinite-timeout";
             "Specifying the regex timeout leaves the system vulnerable to a regex-based Denial of Service (DoS) attack.") ) )
 | report

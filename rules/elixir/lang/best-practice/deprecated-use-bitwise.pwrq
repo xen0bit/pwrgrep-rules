@@ -1,5 +1,6 @@
 # rules: deprecated_use_bitwise
 # languages: elixir
+# fixture: elixir/deprecated-bitwise.ex
 # from: elixir/lang/best-practice/deprecated-use-bitwise.yaml
 
 . as $root

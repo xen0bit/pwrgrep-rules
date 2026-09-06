@@ -1,0 +1,11 @@
+# rules: elixir-weak-crypto
+# languages: elixir
+# fixture: elixir/CWE-327.ex
+# from: CWE-327 Weak Crypto
+
+[":md5.hash($DATA)", ":sha.hash($DATA)", ":crypto.hash(:md5, $DATA)", ":crypto.hash(:sha, $DATA)", ":crypto.hash(:sha1, $DATA)"] as $sinks
+| scan_ast("*.ex"; $sinks) as $all
+| ($all | of($sinks) | finding("elixir-weak-crypto";
+        "MD5 and SHA-1 are not collision resistant, so two inputs can be found "
+        + "with the same digest; SHA-256 instead"))
+| report

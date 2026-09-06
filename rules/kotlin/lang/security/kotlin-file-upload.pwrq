@@ -1,0 +1,17 @@
+# rules: kotlin-file-upload
+# languages: kotlin
+# fixture: kotlin/CWE-434.kt
+# from: CWE-434 Unrestricted Upload of File with Dangerous Type
+#
+# MultipartFile handling without size or extension check allows malicious upload.
+
+. as $root
+| ( ($root | scan_regex(["*.kt"]; [
+      "fun\\s+\\w+\\s*\\([^)]*MultipartFile[^)]*\\)\\s*\\{[^}]*\\}"
+    ])) as $all
+    | ( $all | of(["fun\\s+\\w+\\s*\\([^)]*MultipartFile[^)]*\\)\\s*\\{[^}]*\\}"])
+          | where_text("transferTo")
+          | where_text_not("getSize|contentType")
+        | finding("kotlin-file-upload";
+            "MultipartFile without size/type check; validate file before saving") ) )
+| report

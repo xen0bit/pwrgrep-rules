@@ -1,5 +1,6 @@
 # rules: using-http-server
 # languages: javascript
+# fixture: problem-based-packs/js-using-http-server.js
 # from: problem-based-packs/insecure-transport/js-node/using-http-server.yaml
 
 . as $root

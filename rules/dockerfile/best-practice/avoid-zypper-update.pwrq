@@ -1,11 +1,13 @@
 # rules: avoid-zypper-update
+# languages: dockerfile
+# fixture: dockerfile/CWE-zypper-update.dockerfile
 # from: dockerfile/best-practice/avoid-zypper-update.yaml
 
 . as $root
-| ( ($root | scan_regex(["Dockerfile*"]; [
-      "zypper\\s+update\\s+[\\s\\S]*?"
+| ( ($root | scan_regex(["Dockerfile*","*.dockerfile"]; [
+      "zypper\\s+update"
     ])) as $all
-    | ( $all | of(["zypper\\s+update\\s+[\\s\\S]*?"])
+    | ( $all | of(["zypper\\s+update"])
         | finding("avoid-zypper-update";
             "Packages in base images should be up-to-date, removing the need for 'zypper update'.") ) )
 | report

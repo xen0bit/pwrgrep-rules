@@ -1,0 +1,13 @@
+# rules: dockerfile-latest-version
+# languages: dockerfile
+# fixture: dockerfile/CWE-latest-version2.dockerfile
+# from: dockerfile/best-practice/avoid-latest-version.yaml
+
+. as $root
+| ( ($root | scan_regex(["Dockerfile*","*.dockerfile"]; [
+      "FROM\\s+[^\\s]+:latest"
+    ])) as $all
+    | ( $all | of(["FROM\\s+[^\\s]+:latest"])
+        | finding("dockerfile-latest-version";
+            "FROM latest is insecure — pin to specific version") ) )
+| report

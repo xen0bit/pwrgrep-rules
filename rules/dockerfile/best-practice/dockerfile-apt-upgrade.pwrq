@@ -1,0 +1,13 @@
+# rules: dockerfile-apt-upgrade
+# languages: dockerfile
+# fixture: dockerfile/CWE-apt-upgrade2.dockerfile
+# from: dockerfile/best-practice/avoid-apt-get-upgrade.yaml
+
+. as $root
+| ( ($root | scan_regex(["Dockerfile*","*.dockerfile"]; [
+      "apt-get\\s+(dist-)?upgrade"
+    ])) as $all
+    | ( $all | of(["apt-get\\s+(dist-)?upgrade"])
+        | finding("dockerfile-apt-upgrade";
+            "apt-get upgrade is insecure — creates non-deterministic layer") ) )
+| report

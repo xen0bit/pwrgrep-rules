@@ -1,0 +1,17 @@
+# CWE-798: AWS access key ID — hardcoded credential.
+# AKIA... is a live AWS key; anyone with it can call as that IAM user.
+# The rule flags 20-char key IDs; ok lines are non-keys or short stubs.
+# ruleid: detected-aws-access-key-id-value
+AKIAIOSFODNN7EAXMPLE
+# ruleid: detected-aws-access-key-id-value
+ASIAIOSFODNN7EAXMPLE
+# ok: detected-aws-access-key-id-value
+not-a-key
+# ok: detected-aws-access-key-id-value
+AKIA123
+# ruleid: detected-aws-access-key-id-value
+AKIAZZZZZZZZZZZZZZZZ
+# ruleid: detected-aws-access-key-id-value
+ASIAAAAAAAAAAAAAAAAA
+# ok: detected-aws-access-key-id-value
+not-a-real-key = "example AKIA test placeholder"

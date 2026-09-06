@@ -1,0 +1,13 @@
+# rules: js-434-upload
+# languages: javascript
+# fixture: problem-based-packs/js-434-upload.js
+# from: CWE-434 (Unrestricted Upload of File with Dangerous Type)
+#
+# Unrestricted file upload via Express/multer.
+
+["req.file.path", "req.files.$PROP", "req.file.filename", "req.files", "req.file.$PROP"] as $sources
+| ["fs.writeFile($PATH, $$$_)", "fs.createWriteStream($PATH, $$$_)", "$RES.sendFile($PATH, $$$_)"] as $sinks
+| scan_ast("*.js"; $sources + $sinks) as $all
+| ( $all | of($sinks) | focus("PATH") | reaching($all | of($sources); []) )
+| finding("js-434-upload"; "Unrestricted upload — file path from request reaches file write without validation")
+| report

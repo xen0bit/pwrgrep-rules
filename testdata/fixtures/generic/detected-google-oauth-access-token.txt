@@ -1,0 +1,16 @@
+# CWE-798: Google OAuth token ya29 prefix.
+# ya29 tokens grant API access; leaked tokens are reusable.
+# ruleid: detected-google-oauth-access-token
+ya29.a0AfH6SMBxAbCdEfGhIjKlMnOpQrStUvWxYz1234567890_ABCDEFGHIJ
+# ruleid: detected-google-oauth-access-token
+token=ya29.c.KpBabcDEF1234567890-abcdefghijklmnopqrstuvwxyz
+# ok: detected-google-oauth-access-token
+not-a-token
+# ok: detected-google-oauth-access-token
+ya28.invalid
+# ruleid: detected-google-oauth-access-token
+ya29.a0AfH6SMCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+# ruleid: detected-google-oauth-access-token
+ya29.c.KpCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+# ok: detected-google-oauth-access-token
+ya28.example_not_real_token_placeholder

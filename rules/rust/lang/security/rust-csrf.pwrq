@@ -1,0 +1,16 @@
+# rules: rust-csrf
+# languages: rust
+# fixture: rust/CWE-352.rs
+# from: CWE-352 Cross-Site Request Forgery
+#
+# Actix POST handlers without CSRF guard can be forged.
+
+. as $root
+| ( ($root | scan_regex(["*.rs"]; [
+      "#\\[post[^\\]]*\\][^}]*\\}"
+    ])) as $all
+    | ( $all | of(["#\\[post[^\\]]*\\][^}]*\\}"])
+          | where_text_not("X-CSRF-Token|CsrfToken")
+        | finding("rust-csrf";
+            "POST handler without CSRF protection; add csrf check") ) )
+| report

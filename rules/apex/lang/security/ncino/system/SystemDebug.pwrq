@@ -1,5 +1,6 @@
 # rules: system-debug
 # languages: apex
+# fixture: apex/CWE-532.cls
 # from: apex/lang/security/ncino/system/SystemDebug.yaml
 
 . as $root

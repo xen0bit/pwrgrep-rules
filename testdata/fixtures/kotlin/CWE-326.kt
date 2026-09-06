@@ -28,6 +28,20 @@ class Keys {
         return gen
     }
 
+    fun small(): KeyPairGenerator {
+        val gen = KeyPairGenerator.getInstance("RSA")
+        // ruleid: use-of-weak-rsa-key
+        gen.initialize(1024)
+        return gen
+    }
+
+    fun tiny(): KeyPairGenerator {
+        val gen = KeyPairGenerator.getInstance("RSA")
+        // ruleid: use-of-weak-rsa-key
+        gen.initialize(512)
+        return gen
+    }
+
     fun modern(): KeyPairGenerator {
         val gen = KeyPairGenerator.getInstance("RSA")
         // ok: use-of-weak-rsa-key
@@ -39,6 +53,13 @@ class Keys {
         val gen = KeyPairGenerator.getInstance("RSA")
         // ok: use-of-weak-rsa-key
         gen.initialize(4096)
+        return gen
+    }
+
+    fun strongest(): KeyPairGenerator {
+        val gen = KeyPairGenerator.getInstance("RSA")
+        // ok: use-of-weak-rsa-key
+        gen.initialize(3072)
         return gen
     }
 }

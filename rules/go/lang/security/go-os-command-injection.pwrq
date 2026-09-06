@@ -1,0 +1,19 @@
+# rules: go-os-command-injection
+# languages: go
+# fixture: go/CWE-78.go
+# from: CWE-78 OS Command Injection
+#
+# `exec.CommandContext` is written in both arities on purpose, and it is the
+# one place where the arity-one spelling is not subsumed by the ellipsis one.
+# In `($$$_, $CMD, $$$_)` against `CommandContext(ctx, cmd)` the leading
+# ellipsis can take nothing and `$CMD` binds the context, with `cmd` swallowed
+# behind it - so the hole holds the wrong argument and the command reaches
+# nothing. An ellipsis in front of a hole needs the exact-arity pattern beside
+# it to pin the hole down.
+
+["r.URL.Query().Get($_)", "$R.URL.Query().Get($_)", "$R.FormValue($_)", "$R.Header.Get($_)", "$R.PostFormValue($_)", "$R.PathValue($_)"] as $outside
+| ["exec.Command($CMD, $$$_)", "exec.CommandContext($$$_, $CMD)", "exec.CommandContext($$$_, $CMD, $$$_)", "syscall.Exec($CMD, $$$_)"] as $sinks
+| scan_ast("*.go"; $outside + $sinks) as $all
+| ( $all | of($sinks) | focus("CMD") | reaching($all | of($outside); []) )
+| finding("go-os-command-injection"; "Command injection: $CMD came from the request and reaches OS execution")
+| report

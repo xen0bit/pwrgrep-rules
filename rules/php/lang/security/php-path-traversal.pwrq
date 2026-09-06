@@ -1,0 +1,14 @@
+# rules: php-path-traversal
+# languages: php
+# fixture: php/CWE-22b.php
+# from: CWE-22 (Path Traversal)
+
+["file_put_contents($PATH, $$$_)",  "fopen($PATH, $$$_)",  "mkdir($PATH, $$$_)",
+ "unlink($PATH)", "rename($PATH, $$$_)", "rename($_, $PATH)",
+ "copy($PATH, $$$_)", "copy($_, $PATH)"] as $sinks
+| ["$_GET[$K]", "$_POST[$K]", "$_REQUEST[$K]", "$_COOKIE[$K]"] as $outside
+| scan_ast("*.php"; $sinks + $outside) as $all
+| ($all | of($sinks) | focus("PATH") | reaching($all | of($outside); []))
+| finding("php-path-traversal";
+    "$PATH comes from the request, so a caller who sends ../ writes outside the intended directory")
+| report

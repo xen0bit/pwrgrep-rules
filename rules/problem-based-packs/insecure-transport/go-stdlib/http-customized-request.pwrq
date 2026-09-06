@@ -1,12 +1,16 @@
 # rules: http-customized-request
 # languages: go
+# fixture: problem-based-packs/go-http-customized-request.go
 # from: problem-based-packs/insecure-transport/go-stdlib/http-customized-request.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.go"]; [
-      "http.NewRequest($$$_, \"=~/[hH][tT][tT][pP]://.*/\", $$$_)"
+      "http.NewRequest($METHOD, $URL, $$$_)"
     ])) as $all
-    | ( $all | of(["http.NewRequest($$$_, \"=~/[hH][tT][tT][pP]://.*/\", $$$_)"])
+    | ( $all | of(["http.NewRequest($METHOD, $URL, $$$_)"])
+          | where_capture("URL"; "http://")
+          | where_capture_not("URL"; "127\\.0\\.0\\.1")
+          | where_capture_not("URL"; "localhost")
         | finding("http-customized-request";
             "Checks for requests sent via http.NewRequest to http:// URLS.") ) )
 | report

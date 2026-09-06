@@ -1,0 +1,37 @@
+# rules: python-input-validation
+# languages: python
+# fixture: python/CWE-20.py
+# from: CWE-20 (Improper Input Validation)
+#
+# A value the caller chose reaching a sink that acts on it - `eval`, `exec`, a
+# cursor's `execute`, `open` - with nothing between the two. Whether that is
+# code injection, SQL injection or path traversal depends on the sink; what
+# this rule is about is the missing validation, which is the same in all three.
+#
+# Both source families are here rather than in rules of their own. The corpus
+# briefly carried three of these - one keyed on `input()`, one on
+# `request.args`, one adding a `where_capture_not` that read the sink's own
+# text for the word "regex" - and they reported the same finding under two ids
+# on any program that reads from both a prompt and a request.
+#
+# A validated value is not distinguishable from an unvalidated one by shape, so
+# there is no `where_capture_not` here: `re.match` before the sink is the fix
+# and this rule does not see it. That is a known false positive and it is the
+# direction that costs noise rather than findings.
+
+["input()", "input($$$_)",
+ "request.args.get($X, $$$_)", "request.args[$X]",
+ "request.form.get($X, $$$_)", "request.form[$X]",
+ "request.values.get($X, $$$_)",
+ "flask.request.args.get($X)", "flask.request.args[$X]"] as $sources
+| ["eval($Q)", "exec($Q, $$$_)",
+   "$C.execute($Q, $$$_)",
+   "open($Q, $$$_)"] as $sinks
+| scan_ast("*.py"; $sources + $sinks) as $all
+| ( $all | of($sinks)
+    | focus("Q")
+    | reaching($all | of($sources); []) )
+| finding("python-input-validation";
+    "a value the caller chose reaches this with nothing between the two; "
+    + "validate it against a regex or an allow-list first")
+| report

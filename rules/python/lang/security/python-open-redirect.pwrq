@@ -1,0 +1,45 @@
+# rules: python-open-redirect
+# languages: python
+# fixture: python/CWE-601.py
+# from: CWE-601 (Open Redirect)
+#
+# A redirect that uses a value the caller chose lets the caller choose where
+# the victim goes. `redirect(request.GET["next"])` or `HttpResponseRedirect(url)`
+# with `url` coming from `request.args`, `request.GET`, `request.POST`, or a
+# route variable is the sink.
+
+. as $root
+| ( ($root | scan_ast(["*.py"]; [
+      "flask.redirect($URL, $$$_)",
+      "redirect($URL, $$$_)",
+      "django.http.HttpResponseRedirect($URL, $$$_)",
+      "django.shortcuts.redirect($URL, $$$_)",
+      "HttpResponseRedirect($URL, $$$_)",
+      "flask.request.args.get($$$_)", "flask.request.args[$$$_]",
+      "flask.request.form.get($$$_)", "flask.request.form[$$$_]",
+      "flask.request.values.get($$$_)", "flask.request.values[$$$_]",
+      "flask.request.cookies.get($$$_)", "flask.request.data",
+      "request.args.get($$$_)", "request.args[$$$_]",
+      "request.form.get($$$_)", "request.form[$$$_]",
+      "request.values.get($$$_)", "request.data",
+      "request.GET.get($$$_)", "request.GET[$$$_]",
+      "request.POST.get($$$_)", "request.POST[$$$_]",
+      "request.query_string", "request.GET", "request.POST",
+      "self.path", "self.headers.get($$$_)", "self.headers[$$$_]",
+      "@$APP.route($$$_)\ndef $FUNC($$$_, $ROUTEVAR, $$$_):\n  $$$_",
+      "def $FUNC(request, $$$_):\n  $$$_",
+      "if is_safe_url($URL):\n  $$$BODY",
+      "if url_has_allowed_host_and_scheme($URL, $$$_):\n  $$$BODY",
+      "if $X.is_safe_url($URL):\n  $$$BODY"
+    ])) as $all
+  | ($all | of(["flask.redirect($URL, $$$_)", "redirect($URL, $$$_)", "django.http.HttpResponseRedirect($URL, $$$_)", "django.shortcuts.redirect($URL, $$$_)", "HttpResponseRedirect($URL, $$$_)"])
+      | outside($all | of(["if is_safe_url($URL):\n  $$$BODY","if url_has_allowed_host_and_scheme($URL, $$$_):\n  $$$BODY","if $X.is_safe_url($URL):\n  $$$BODY"]))
+      | focus("URL")
+      | reaching($all | of(["flask.request.args.get($$$_)","flask.request.args[$$$_]","flask.request.form.get($$$_)","flask.request.form[$$$_]","flask.request.values.get($$$_)","flask.request.values[$$$_]","flask.request.cookies.get($$$_)","flask.request.data","request.args.get($$$_)","request.args[$$$_]","request.form.get($$$_)","request.form[$$$_]","request.values.get($$$_)","request.data","request.GET.get($$$_)","request.GET[$$$_]","request.POST.get($$$_)","request.POST[$$$_]","request.query_string","request.GET","request.POST","self.path","self.headers.get($$$_)","self.headers[$$$_]"])
+          + ($all | within($all | of(["@$APP.route($$$_)\ndef $FUNC($$$_, $ROUTEVAR, $$$_):\n  $$$_"])) | focus("ROUTEVAR"))
+          + ($all | within($all | of(["def $FUNC(request, $$$_):\n  $$$_"])) | of(["request.args.get($$$_)","request.args[$$$_]","request.form.get($$$_)","request.form[$$$_]","request.GET.get($$$_)","request.GET[$$$_]","request.POST.get($$$_)","request.POST[$$$_]"]))
+          ; []))
+  | finding("python-open-redirect";
+      "untrusted input reaches redirect URL $URL; attacker can redirect to malicious site — validate against allowlist")
+  )
+| report

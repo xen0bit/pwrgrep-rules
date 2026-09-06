@@ -1,0 +1,16 @@
+# CWE-798: Facebook OAuth token — 32 hex after token keyword.
+# facebook ... token ... hex is a credential; rule flags it.
+# ruleid: detected-facebook-oauth
+facebook app token = "abcdef1234567890abcdef1234567890"
+# ruleid: detected-facebook-oauth
+facebook_token:"0123456789abcdef0123456789abcdef"
+# ruleid: detected-facebook-oauth
+facebook oauth token = "fedcba0987654321fedcba0987654321"
+# ruleid: detected-facebook-oauth
+facebook_token: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5"
+# ok: detected-facebook-oauth
+facebook token="short"
+# ok: detected-facebook-oauth
+not-a-token
+# ok: detected-facebook-oauth
+facebook_token = "example_placeholder"

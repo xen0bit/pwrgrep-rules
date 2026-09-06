@@ -1,0 +1,13 @@
+# rules: typescript-command-injection
+# languages: typescript
+# fixture: typescript/CWE-78.ts
+# from: CWE-78 (OS Command Injection)
+
+["req.query.get($$$_)", "req.params.get($$$_)", "req.body.get($$$_)", "location.search"] as $src
+| ["child_process.exec($CMD)", "child_process.execSync($CMD)", "child_process.spawn($CMD, $$$_)", "child_process.execFile($CMD, $$$_)"] as $sink
+| scan_ast(["*.ts","*.tsx"]; $src + $sink) as $all
+| ( $all | of($sink) | focus("CMD") | reaching($all | of($src); []) | finding("typescript-command-injection";
+        "this hands a value the caller chose to a shell, so a `;` or a backtick "
+        + "in it starts a second command; pass the program and its arguments "
+        + "separately instead") )
+| report

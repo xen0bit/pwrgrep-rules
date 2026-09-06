@@ -1,0 +1,11 @@
+# rules: compose-no-new-privileges
+# languages: yaml
+# fixture: yaml/compose-no-new-privileges.yaml
+# from: yaml/docker-compose/security/no-new-privileges.yaml
+
+. as $root
+| ($root | scan_regex(["*.yaml","*.yml"]; [
+      "no-new-privileges:false"
+    ])) as $all
+| ($all | of(["no-new-privileges:false"]) | finding("compose-no-new-privileges"; "no-new-privileges false is insecure — service allows privilege escalation"))
+| report

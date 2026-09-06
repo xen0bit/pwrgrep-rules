@@ -40,4 +40,22 @@ final class Router {
         // ok: swift-webview-loads-untrusted-url
         view.load(URLRequest(url: parsed))
     }
+    func openAbsolute(_ url: URL) {
+        let s = url.absoluteString
+        // ruleid: swift-webview-loads-untrusted-url
+        view.load(URLRequest(url: URL(string: s)!))
+    }
+
+    func openQuery(_ url: URL) {
+        let q = URLComponents(url: url, resolvingAgainstBaseURL: false)?.query ?? ""
+        // ruleid: swift-webview-loads-untrusted-url
+        view.load(URLRequest(url: URL(string: q)!))
+    }
+
+    func openSafePinned(_ url: URL) {
+        let target = url.absoluteString
+        guard let parsed = URL(string: target), parsed.host == "app.example.com" else { return }
+        // ok: swift-webview-loads-untrusted-url
+        view.load(URLRequest(url: parsed))
+    }
 }

@@ -1,0 +1,17 @@
+# rules: c-csrf
+# languages: c
+# fixture: c/CWE-352.c
+# from: CWE-352 Cross-Site Request Forgery
+#
+# CGI POST handler without CSRF token check.
+
+. as $root
+| ( ($root | scan_regex(["*.c"]; [
+      "void\\s+\\w+\\s*\\([^)]*\\)\\s*\\{[^}]*\\}"
+    ])) as $all
+    | ( $all | of(["void\\s+\\w+\\s*\\([^)]*\\)\\s*\\{[^}]*\\}"])
+          | where_text("POST")
+          | where_text_not("X-CSRF-Token")
+        | finding("c-csrf";
+            "CGI POST handling without CSRF token check") ) )
+| report

@@ -1,0 +1,19 @@
+# rules: bash-code-injection
+# languages: bash
+# fixture: bash/CWE-94b.sh
+# from: CWE-94 Code Injection
+#
+# bash eval/source with variable executes injected code.
+
+. as $root
+| ( ($root | scan_regex(["*.sh"]; [
+      "\\beval\\s+\\$",
+      "\\beval\\s+\"\\$",
+      "\\bsource\\s+\\$",
+      "\\b\\.\\s+\\$"
+    ])) as $all
+    | ( $all | of(["\\beval\\s+\\$", "\\beval\\s+\"\\$", "\\bsource\\s+\\$", "\\b\\.\\s+\\$"])
+        | finding("bash-code-injection";
+            "eval/source with variable executes untrusted code") )
+  )
+| report

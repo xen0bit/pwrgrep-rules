@@ -1,0 +1,36 @@
+# rules: python-weak-random
+# languages: python
+# fixture: python/CWE-338.py
+# from: CWE-338 (Use of Cryptographically Weak PRNG), CWE-330
+#
+# `random` is a Mersenne Twister seeded from the clock. It is documented as
+# unsuitable for security and it means it: 624 consecutive outputs are enough
+# to recover the state and predict every draw after them. `secrets` is the
+# same amount of code and is the fix.
+#
+# What it is not is a reason to report every draw in the program. A shuffle, a
+# retry jitter, a random colour and a sample of test data are all `random` and
+# all correct, and a rule that fires on them teaches people to switch the rule
+# off - which is worse than never having written it. This is the same shape as
+# swift-insecure-random-for-secret and it reads the same evidence.
+#
+# The name the result is given is that evidence. A programmer who calls it
+# `token`, `nonce` or `otp` has said what it is for, and the syntax says
+# nothing else about which kind of draw this is. A draw passed straight to
+# something rather than bound to a name is not reported, which is a real gap
+# and the quiet direction to miss in.
+
+["$NAME = $DRAW"] as $binds
+| "(?i)token|nonce|salt|^iv$|secret|key$|passw|otp|challenge|session"
+  + "|verifier|csrf|seed|_id$|code$" as $namesASecret
+| "\\brandom\\.(?:random|randint|choice|choices|uniform|randrange|shuffle"
+  + "|sample|randbytes|getrandbits)\\s*\\(" as $guessableDraw
+| scan_ast("*.py"; $binds) as $all
+| ( $all | of($binds)
+    | where_capture("NAME"; $namesASecret)
+    | where_capture("DRAW"; $guessableDraw)
+    | focus("DRAW") )
+| finding("python-weak-random";
+    "this is a Mersenne Twister seeded from the clock, and the name says the "
+    + "value is meant to be unguessable; draw it from `secrets` instead")
+| report

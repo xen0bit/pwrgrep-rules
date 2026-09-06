@@ -1,0 +1,17 @@
+# rules: python-sensitive-log
+# languages: python
+# fixture: python/CWE-532.py
+# from: CWE-532 (Insertion of Sensitive Information into Log File)
+#
+# Logging a variable whose name says it is a secret exposes that secret in
+# log files. The name is what makes this checkable, as with hardcoded
+# credentials.
+
+["logger.debug($MSG)", "logger.info($MSG)", "logger.warning($MSG)", "logger.error($MSG)", "logging.debug($MSG)", "logging.info($MSG)", "logging.warning($MSG)", "logging.error($MSG)"] as $sinks
+| "(?i)password|passwd|pwd|secret|api_?key|token" as $names
+| scan_ast("*.py"; $sinks) as $all
+| ($all | of($sinks) | where_capture("MSG"; $names))
+| finding("python-sensitive-log";
+    "sensitive data is written to the log; it will be in log files and "
+    + "shipped to any log collector — redact it")
+| report

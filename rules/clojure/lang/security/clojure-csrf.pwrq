@@ -1,0 +1,16 @@
+# rules: clojure-csrf
+# languages: clojure
+# fixture: clojure/CWE-352.clj
+# from: CWE-352 Cross-Site Request Forgery
+#
+# POST route without anti-forgery check.
+
+. as $root
+| ( ($root | scan_regex(["*.clj"]; [
+      "\\(POST[\\s\\S]*?\\)"
+    ])) as $all
+    | ( $all | of(["\\(POST[\\s\\S]*?\\)"])
+          | where_text_not("anti-forgery|csrf-token|wrap-anti-forgery")
+        | finding("clojure-csrf";
+            "POST route without anti-forgery token") ) )
+| report

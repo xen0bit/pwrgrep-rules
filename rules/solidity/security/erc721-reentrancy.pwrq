@@ -1,12 +1,13 @@
 # rules: erc721-reentrancy
 # languages: solidity
+# fixture: solidity/CWE-841-erc721.sol
 # from: solidity/security/erc721-reentrancy.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.sol"]; [
-      "_checkOnERC721Received($$$_)"
+| ( ($root | scan_regex(["*.sol"]; [
+      "_checkOnERC721Received\\s*\\("
     ])) as $all
-    | ( $all | of(["_checkOnERC721Received($$$_)"])
+    | ( $all | of(["_checkOnERC721Received\\s*\\("])
         | finding("erc721-reentrancy";
             "ERC721 onERC721Received() reentrancy") ) )
 | report

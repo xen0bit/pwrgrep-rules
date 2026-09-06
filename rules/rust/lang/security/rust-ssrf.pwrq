@@ -1,0 +1,13 @@
+# rules: rust-ssrf
+# languages: rust
+# fixture: rust/CWE-918.rs
+# from: CWE-918 (SSRF)
+
+["std::env::var($$$_)", "std::env::args().next()", "request.query.get($$$_)", "std::env::args()"] as $src
+| ["reqwest::get($URL)", "reqwest::Client::new().get($URL)", "reqwest::blocking::get($URL)"] as $sink
+| scan_ast("*.rs"; $src + $sink) as $all
+| ( $all | of($sink) | focus("URL") | reaching($all | of($src); []) | finding("rust-ssrf";
+        "the destination of this request is a value the caller chose, so it can "
+        + "be pointed at the metadata service or anything else this host can "
+        + "reach; check it against the hosts you meant to allow") )
+| report

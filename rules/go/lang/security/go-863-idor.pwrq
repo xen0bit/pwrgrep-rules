@@ -1,0 +1,19 @@
+# rules: go-863-idor
+# languages: go
+# fixture: go/CWE-863.go
+# from: CWE-863 Incorrect Authorization — IDOR via r.URL.Query().Get("id") to db.Query without ctx check
+#
+# r.URL.Query().Get("id") flows into db.Query (SELECT) without a
+# ctx.Value("user") or auth check allows IDOR. The rule tracks tainted id
+# reaching the query argument and excludes those in files/with auth context;
+# safe code checks ctx.Value("user") before querying.
+
+["$R.URL.Query().Get($K)", "r.URL.Query().Get($K)", "$R.FormValue($K)", "r.URL.Query().Get(\"id\")"] as $sources
+| ["$DB.Query($Q)", "$DB.Exec($Q)", "$DB.QueryRow($Q)", "db.Query($Q)", "db.Exec($Q)"] as $sinks
+| ["ctx.Value(\"user\")", "$C.Value(\"user\")", "ctx.Value($$$_)", "r.Context().Value($$$_)"] as $auth
+| scan_ast(["*.go"]; $sources + $sinks + $auth) as $all
+| ( $all | of($sinks) | focus("Q") | reaching($all | of($sources); [])
+      | outside($all | of($auth))
+    | finding("go-863-idor";
+        "IDOR: $Q from r.URL.Query().Get reaches db.Query without ctx.Value(\"user\") check; verify ownership") )
+| report

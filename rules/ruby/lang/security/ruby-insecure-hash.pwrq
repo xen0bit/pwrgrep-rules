@@ -1,0 +1,24 @@
+# rules: ruby-insecure-hash
+# languages: ruby
+# fixture: ruby/CWE-327.rb
+# from: ruby/lang/security/weak-hashes-md5.yaml (weak-hashes-md5) + CWE-327
+
+. as $root
+| ( ($root | scan_ast(["*.rb"]; [
+      "Digest::MD5.hexdigest($X)",
+      "Digest::MD5.new",
+      "Digest::MD5.digest($X)",
+      "Digest::MD5.base64digest($X)",
+      "Digest::SHA1.hexdigest($X)",
+      "Digest::SHA1.new",
+      "Digest::SHA1.digest($X)",
+      "Digest::SHA1.base64digest($X)",
+      "OpenSSL::Digest::MD5.hexdigest($X)",
+      "OpenSSL::Digest::MD5.new",
+      "OpenSSL::Digest::SHA1.hexdigest($X)",
+      "OpenSSL::Digest::SHA1.new"
+    ])) as $all
+  | ($all | of(["Digest::MD5.hexdigest($X)","Digest::MD5.new","Digest::MD5.digest($X)","Digest::MD5.base64digest($X)","Digest::SHA1.hexdigest($X)","Digest::SHA1.new","Digest::SHA1.digest($X)","Digest::SHA1.base64digest($X)","OpenSSL::Digest::MD5.hexdigest($X)","OpenSSL::Digest::MD5.new","OpenSSL::Digest::SHA1.hexdigest($X)","OpenSSL::Digest::SHA1.new"]))
+  | finding("ruby-insecure-hash"; "MD5/SHA1 are broken; use SHA-256 or SHA-512")
+  )
+| report

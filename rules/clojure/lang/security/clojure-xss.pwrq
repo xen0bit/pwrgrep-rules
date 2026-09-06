@@ -1,0 +1,22 @@
+# rules: clojure-xss
+# languages: clojure
+# fixture: clojure/CWE-79.clj
+# from: CWE-79 XSS
+#
+# hiccup/selmer rendering of non-literal reaches output.
+
+. as $root
+| ( ($root | scan_regex(["*.clj"]; [
+      "hiccup\\.core/html\\s+(?P<HTML>[^\\s\\)]+)",
+      "selmer\\.parser/render\\s+\"[^\"]+\"\\s+(?P<HTML2>[^\\s\\)]+)"
+    ])) as $all
+    | ( ($all | of(["hiccup\\.core/html\\s+(?P<HTML>[^\\s\\)]+)"]) | where_capture_not("HTML"; "^\".*\"$") | finding("clojure-xss";
+        "this is written into the page as markup, so a `<script>` in the value "
+        + "runs in the reader's session; escape it, or set text rather than "
+        + "HTML"))
+      + ($all | of(["selmer\\.parser/render\\s+\"[^\"]+\"\\s+(?P<HTML2>[^\\s\\)]+)"]) | where_capture_not("HTML2"; "^\".*\"$") | finding("clojure-xss";
+        "this is written into the page as markup, so a `<script>` in the value "
+        + "runs in the reader's session; escape it, or set text rather than "
+        + "HTML")) )
+  )
+| report

@@ -1,19 +1,21 @@
 # rules: http-request
 # languages: javascript
+# fixture: problem-based-packs/js-http-request.js
 # from: problem-based-packs/insecure-transport/js-node/http-request.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.js"]; [
       "$HTTP = require('http');\n$$$_",
-      "$HTTP.get(\"=~/http://.*/\", $$$_)",
-      "$HTTP.request(\"=~/http://.*/\",$$$_);",
+      "$HTTP.get($URL, $$$_)",
+      "$HTTP.request($URL,$$$_);",
       "$HTTP.request($$$_, {$$$_,hostname: \"$$$_\"}, $$$_);",
       "$HTTP.request($$$_, {$$$_,protocol: \"https\"}, $$$_);",
-      "$VAR = new URL(\"=~/http://.*/\");\n$$$_\n$HTTP.request($VAR, $$$_);",
+      "$VAR = new URL($URL);\n$$$_\n$HTTP.request($VAR, $$$_);",
       "$VAR = {$$$_,hostname: \"$$$_\"};\n$$$_\n$HTTP.request($$$_, $VAR, $$$_);",
       "$VAR = {$$$_,protocol: \"https\"};\n$$$_\n$HTTP.request($$$_, $VAR, $$$_);"
     ])) as $all
-    | ( $all | of(["$HTTP.request(\"=~/http://.*/\",$$$_);","$HTTP.get(\"=~/http://.*/\", $$$_)","$VAR = new URL(\"=~/http://.*/\");\n$$$_\n$HTTP.request($VAR, $$$_);","$VAR = {$$$_,hostname: \"$$$_\"};\n$$$_\n$HTTP.request($$$_, $VAR, $$$_);","$HTTP.request($$$_, {$$$_,hostname: \"$$$_\"}, $$$_);"])
+    | ( $all | of(["$HTTP.request($URL,$$$_);","$HTTP.get($URL, $$$_)","$VAR = new URL($URL);\n$$$_\n$HTTP.request($VAR, $$$_);","$VAR = {$$$_,hostname: \"$$$_\"};\n$$$_\n$HTTP.request($$$_, $VAR, $$$_);","$HTTP.request($$$_, {$$$_,hostname: \"$$$_\"}, $$$_);"])
+          | where_capture("URL"; "http://")
           | in_files_with($all | of(["$HTTP = require('http');\n$$$_"]))
           | not_at($all | of(["$VAR = {$$$_,protocol: \"https\"};\n$$$_\n$HTTP.request($$$_, $VAR, $$$_);"]))
           | not_at($all | of(["$HTTP.request($$$_, {$$$_,protocol: \"https\"}, $$$_);"]))

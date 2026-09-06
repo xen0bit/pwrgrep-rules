@@ -1,0 +1,11 @@
+# rules: gh-curl-eval
+# languages: yaml
+# fixture: yaml/gh-curl-eval.yaml
+# from: yaml/github-actions/security/curl-eval.yaml
+
+. as $root
+| ($root | scan_regex(["*.yaml","*.yml"]; [
+      "run:[ ]*curl[^\\n]*\\|[ ]*(bash|sh)"
+    ])) as $all
+| ($all | of(["run:[ ]*curl[^\\n]*\\|[ ]*(bash|sh)"]) | finding("gh-curl-eval"; "curl pipe to shell is insecure — data is being eval'd"))
+| report

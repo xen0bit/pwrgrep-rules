@@ -1,0 +1,17 @@
+# CWE-798: JWT token — three base64 parts with header.payload.signature.
+# A committed JWT is a bearer credential. The rule flags three-part
+# tokens; ok is "not.a.jwt" or truncated strings.
+# ruleid: detected-jwt-token
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+# ruleid: detected-jwt-token
+token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ
+# ok: detected-jwt-token
+not.a.jwt
+# ok: detected-jwt-token
+eyJhbGc
+# ruleid: detected-jwt-token
+eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0In0.dummySignature1234567890AbCdEfGhIjKlMnOp
+# ruleid: detected-jwt-token
+token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoidGVzdCJ9.AnotherDummySignatureAbCdEfGhIjKlMnOpQrSt
+# ok: detected-jwt-token
+not.a.jwt.placeholder.example

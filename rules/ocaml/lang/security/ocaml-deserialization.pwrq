@@ -1,0 +1,12 @@
+# rules: ocaml-deserialization
+# languages: ocaml
+# fixture: ocaml/CWE-502b.ml
+# from: CWE-502 Deserialization
+
+["Marshal.from_string $DATA $OFFSET", "Marshal.from_bytes $DATA $OFFSET", "input_value $CH"] as $sinks
+| scan_ast(["*.ml"]; $sinks) as $all
+| ($all | of($sinks) | where_capture_not("DATA"; "^\".*\"$") | finding("ocaml-deserialization";
+        "this rebuilds an object graph from bytes somebody else wrote, which "
+        + "runs whatever the graph names before you can look at it; read a "
+        + "data format instead"))
+| report

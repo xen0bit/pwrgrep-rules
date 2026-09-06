@@ -1,0 +1,44 @@
+# rules: csharp-missing-auth
+# languages: c_sharp
+# fixture: csharp/CWE-287.cs
+# from: CWE-306 (Missing Authentication for Critical Function), CWE-287
+#
+# The rule reports an endpoint in a file that protects some of its others, and
+# says nothing about a file that protects none. An application with no
+# authentication anywhere has made a decision - the check may live in a filter,
+# a gateway or a proxy, or it may be a sample with no accounts at all - and
+# reporting every endpoint in it tells the reader nothing they did not know.
+# What is a bug is the endpoint that was missed: a guard on three handlers and
+# not on the fourth.
+#
+# There is one rule per language for this, and it reports under
+# `<language>-missing-auth`. The corpus briefly carried two or three - an
+# `-authn` spelling, an `-auth` spelling and this one - written against
+# CWE-287, CWE-306 and CWE-862 but all asking the same question: is there an
+# authentication guard on this endpoint. They fired on the same lines and a
+# route with no middleware got three findings under three ids. Whether the
+# missing guard is called authentication or authorization is not something the
+# syntax says, so it is one finding; `<language>-862-rbac` is the separate rule
+# for the endpoint that does authenticate and then checks no role.
+#
+# ASP.NET actions without [Authorize] allow anonymous access. The rule flags
+# public controller actions that lack the attribute; safe actions include
+# [Authorize] on the method.
+
+. as $root
+| ( ($root | scan_ast(["*.cs"]; [
+      "public $R $M($$$_) { $$$BODY }",
+      "public IActionResult $M($$$_) { $$$BODY }",
+      "public ActionResult $M($$$_) { $$$BODY }",
+      "[Authorize]\npublic $R $M($$$_) { $$$BODY }",
+      "[Authorize] public $R $M($$$_) { $$$BODY }",
+      "[Authorize($$$_)]\npublic $R $M($$$_) { $$$BODY }",
+      "[Authorize($$$_)] public $R $M($$$_) { $$$BODY }",
+      "[Authorize]"
+    ])) as $all
+    | ( $all | of(["public $R $M($$$_) { $$$BODY }","public IActionResult $M($$$_) { $$$BODY }","public ActionResult $M($$$_) { $$$BODY }"])
+          | outside($all | of(["[Authorize]\npublic $R $M($$$_) { $$$BODY }","[Authorize] public $R $M($$$_) { $$$BODY }","[Authorize($$$_)]\npublic $R $M($$$_) { $$$BODY }","[Authorize($$$_)] public $R $M($$$_) { $$$BODY }"]))
+          | in_files_with($all | of(["[Authorize]\npublic $R $M($$$_) { $$$BODY }","[Authorize] public $R $M($$$_) { $$$BODY }","[Authorize($$$_)]\npublic $R $M($$$_) { $$$BODY }","[Authorize($$$_)] public $R $M($$$_) { $$$BODY }"]))
+        | finding("csharp-missing-auth";
+            "Public action $M lacks [Authorize]; add it to require authentication") ) )
+| report

@@ -1,0 +1,22 @@
+# rules: ruby-csrf
+# languages: ruby
+# fixture: ruby/CWE-352.rb
+# from: CWE-352 Cross-Site Request Forgery
+#
+# Rails verifies CSRF tokens via verify_authenticity_token. Skipping that
+# check with skip_before_action :verify_authenticity_token leaves the action
+# vulnerable to forged POSTs. The rule flags any use of skip_before_action
+# that disables the verification; safe code uses protect_from_forgery or
+# does not skip.
+
+. as $root
+| ( ($root | scan_ast(["*.rb"]; [
+      "skip_before_action :verify_authenticity_token",
+      "skip_before_action :verify_authenticity_token, $$$_",
+      "skip_before_filter :verify_authenticity_token",
+      "skip_before_filter :verify_authenticity_token, $$$_"
+    ])) as $all
+    | ( $all | of(["skip_before_action :verify_authenticity_token","skip_before_action :verify_authenticity_token, $$$_","skip_before_filter :verify_authenticity_token","skip_before_filter :verify_authenticity_token, $$$_"])
+        | finding("ruby-csrf";
+            "CSRF protection skipped via skip_before_action :verify_authenticity_token; remove the skip") ) )
+| report

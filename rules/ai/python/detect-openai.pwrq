@@ -1,5 +1,6 @@
 # rules: detect-openai
 # languages: python
+# fixture: ai/python-openai.py
 # from: ai/python/detect-openai.yaml
 
 . as $root

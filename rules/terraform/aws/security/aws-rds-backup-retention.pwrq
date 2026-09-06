@@ -1,0 +1,16 @@
+# rules: aws-rds-backup-retention
+# languages: hcl
+# fixture: terraform/aws-rds-backup-retention.tf
+# from: CWE-404 (Improper Resource Shutdown or Release)
+#
+# RDS backup retention disabled (backup_retention_period = 0) means no backups.
+
+. as $root
+| ( ($root | scan_ast(["*.tf"]; [
+      "resource \"aws_db_instance\" $NAME {\n  $$$_\n  backup_retention_period = 0\n  $$$_\n}",
+      "resource \"aws_rds_cluster\" $NAME {\n  $$$_\n  backup_retention_period = 0\n  $$$_\n}"
+    ])) as $all
+    | ( $all | of(["resource \"aws_db_instance\" $NAME {\n  $$$_\n  backup_retention_period = 0\n  $$$_\n}","resource \"aws_rds_cluster\" $NAME {\n  $$$_\n  backup_retention_period = 0\n  $$$_\n}"])
+        | finding("aws-rds-backup-retention";
+            "RDS backup retention is disabled (backup_retention_period=0) — enable backups.") ) )
+| report

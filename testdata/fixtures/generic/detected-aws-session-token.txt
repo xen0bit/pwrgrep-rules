@@ -1,0 +1,16 @@
+# CWE-798: AWS session token — long base64 session credential.
+# AWS_SESSION_TOKEN with high-entropy value is a real credential; example is excluded.
+# ruleid: detected-aws-session-token
+AWS_SESSION_TOKEN=AbCdEfGhIjKlMnOpQrStUvWxYz1234567890ABCD1234+/==
+# ruleid: detected-aws-session-token
+AWS_SESSION_TOKEN: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEFUCDlEKEY123456
+# ruleid: detected-aws-session-token
+AWS_SESSION_TOKEN=Zm9vYmFyMTIzNDU2Nzg5MEFCQ0RFRkdISUpLTE1OPQ==xyz==
+# ruleid: detected-aws-session-token
+token = "AWS_SESSION_TOKEN=QWxhZGRpbjpvcGVuIHNlc2FtZQ==long123"
+# ok: detected-aws-session-token
+AWS_SESSION_TOKEN = example_token_1234567890abcdef_example
+# ok: detected-aws-session-token
+not-a-token
+# ok: detected-aws-session-token
+AWS_SESSION_TOKEN = example_placeholder_for_docs

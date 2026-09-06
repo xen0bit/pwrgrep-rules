@@ -52,3 +52,30 @@ final class BridgedView: NSObject, WKScriptMessageHandler {
         print(message.body)
     }
 }
+    func makeRemoteExtra() -> WKWebView {
+        let config = WKWebViewConfiguration()
+        // ruleid: swift-webview-javascript-bridge
+        config.userContentController.add(self, name: "extraBridge")
+        let view = WKWebView(frame: .zero, configuration: config)
+        view.load(URLRequest(url: URL(string: "https://evil.example.com")!))
+        return view
+    }
+
+    func makeRemoteAnother() -> WKWebView {
+        let config = WKWebViewConfiguration()
+        // ruleid: swift-webview-javascript-bridge
+        config.userContentController.add(self, name: "secondBridge")
+        let view = WKWebView(frame: .zero, configuration: config)
+        view.load(URLRequest(url: URL(string: "https://ads.example.net")!))
+        return view
+    }
+
+    func makeBundledExtra() -> WKWebView {
+        let config = WKWebViewConfiguration()
+        // ok: swift-webview-javascript-bridge
+        config.userContentController.add(self, name: "safeExtra")
+        let view = WKWebView(frame: .zero, configuration: config)
+        let url = Bundle.main.url(forResource: "index", withExtension: "html")!
+        view.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
+        return view
+    }

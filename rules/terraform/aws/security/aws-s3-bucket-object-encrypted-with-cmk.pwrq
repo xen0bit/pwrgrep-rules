@@ -1,5 +1,6 @@
 # rules: aws-s3-bucket-object-encrypted-with-cmk
 # languages: hcl
+# fixture: terraform/aws-s3-bucket-object-encrypted-with-cmk.tf
 # from: terraform/aws/security/aws-s3-bucket-object-encrypted-with-cmk.yaml
 
 . as $root

@@ -1,3 +1,7 @@
+// CWE-79: HTML built from request — unencoded output is XSS.
+// new HtmlString("<h1>"+name) or Content($"...{bio}") with request
+// data bypasses encoding. The rule flags that; fix by HtmlEncode or
+// using a templating engine that encodes by default.
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Html;
 

@@ -1,5 +1,6 @@
 # rules: aws-ebs-unencrypted
 # languages: hcl
+# fixture: terraform/aws-ebs-unencrypted.tf
 # from: terraform/aws/security/aws-ebs-unencrypted.yaml
 
 . as $root

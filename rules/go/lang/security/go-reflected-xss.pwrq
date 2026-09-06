@@ -1,0 +1,11 @@
+# rules: go-reflected-xss
+# languages: go
+# fixture: go/CWE-79.go
+# from: CWE-79 Cross-site Scripting
+
+["r.URL.Query().Get($_)", "$R.URL.Query().Get($_)", "$R.FormValue($_)", "$R.Header.Get($_)", "$R.PostFormValue($_)"] as $outside
+| ["template.HTML($X)", "$W.Write($X)", "$W.WriteString($X)"] as $sinks
+| scan_ast("*.go"; $outside + $sinks) as $all
+| ( $all | of($sinks) | focus("X") | reaching($all | of($outside); []) )
+| finding("go-reflected-xss"; "Reflected XSS: $X came from the request and is not escaped")
+| report

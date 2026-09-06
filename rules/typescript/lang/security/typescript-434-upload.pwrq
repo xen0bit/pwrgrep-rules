@@ -1,0 +1,15 @@
+# rules: typescript-434-upload
+# languages: typescript
+# fixture: typescript/CWE-434.ts
+# from: CWE-434 (Unrestricted Upload of File with Dangerous Type)
+#
+# multer file without extension allowlist reaches file move/write.
+# Sources are req.file / req.files and sinks are fs.rename/writeFile/file.mv.
+# The rule tracks reaching and excludes allowlisted extensions via where_capture_not.
+
+["req.file", "req.file.originalname", "req.file.path", "req.files", "req.files[$$$_]"] as $src
+| ["fs.rename($_, $PATH, $$$_)", "fs.renameSync($_, $PATH)", "fs.writeFile($PATH, $$$_)", "fs.createWriteStream($PATH)", "$FILE.mv($PATH, $$$_)"] as $sink
+| scan_ast(["*.ts","*.tsx"]; $src + $sink) as $all
+| ( $all | of($sink) | focus("PATH") | reaching($all | of($src); []) | where_capture_not("PATH"; "allowlist|whitelist|\\.png|\\.jpg|\\.jpeg") )
+| finding("typescript-434-upload"; "Unrestricted upload: $PATH from multer file reaches file write without extension allowlist check")
+| report

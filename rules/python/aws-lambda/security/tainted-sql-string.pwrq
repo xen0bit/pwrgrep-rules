@@ -5,15 +5,16 @@
 . as $root
 | ( ($root | scan_ast(["*.py"]; [
       "\"$SQLSTR\" % $$$_",
+      "\"$$$_\" % $SQLSTR",
       "\"$SQLSTR\" + $$$_",
       "\"$SQLSTR\".format($$$_)",
       "def $HANDLER(event, context):\n  $$$_",
       "event",
+      "f\"$SQLSTR{$$$_}\"",
       "f\"$SQLSTR{$$$_}$$$_\"",
       "print($$$_)"
     ])) as $all
-    | ( (($all | of(["\"$SQLSTR\" + $$$_","\"$SQLSTR\" % $$$_","\"$SQLSTR\".format($$$_)","f\"$SQLSTR{$$$_}$$$_\""])
-          | where_capture("SQLSTR"; "^(?:\\s*(?i)(select|delete|insert|create|update|alter|drop)\\b.*=)")
+    | ( (($all | where_capture("SQLSTR"; "^(?:\\s*(?i)(select|delete|insert|create|update|alter|drop)\\b.*)") | of(["\"$SQLSTR\" + $$$_","\"$SQLSTR\" % $$$_","\"$$$_\" % $SQLSTR","\"$SQLSTR\".format($$$_)","f\"$SQLSTR{$$$_}\"","f\"$SQLSTR{$$$_}$$$_\""])
           | outside($all | of(["print($$$_)"]))))
           | reaching((($all | of(["event"])
           | within($all | of(["def $HANDLER(event, context):\n  $$$_"]))));
@@ -21,3 +22,4 @@
         | finding("tainted-sql-string";
             "Detected user input used to manually construct a SQL string.") ) )
 | report
+

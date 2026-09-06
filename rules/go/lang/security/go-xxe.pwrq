@@ -1,0 +1,11 @@
+# rules: go-xxe
+# languages: go
+# fixture: go/CWE-611.go
+# from: CWE-611 XML External Entity
+
+["r.URL.Query().Get($$$_)", "$R.URL.Query().Get($$$_)", "$R.FormValue($$$_)", "$R.PostFormValue($$$_)"] as $src
+| ["xml.Unmarshal($DATA, $$$_)", "xml.NewDecoder($DATA).Decode($$$_)"] as $sink
+| scan_ast("*.go"; $src + $sink) as $all
+| ($all | of($sink) | focus("DATA") | reaching($all | of($src); []))
+| finding("go-xxe"; "untrusted input reaches XML parser; external entities may be resolved")
+| report

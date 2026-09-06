@@ -3,13 +3,14 @@
 
 . as $root
 | ( ($root | scan_regex(["*.tf"]; [
-      "resource\\s+\"aws_autoscaling_group\"\\s+(?P<ANYTHING>\\S+)\\s+\\{\\s+[\\s\\S]*?\\s+\\}",
-      "resource\\s+\"aws_autoscaling_group\"\\s+(?P<ANYTHING>\\S+)\\s+\\{\\s+[\\s\\S]*?\\s+tag\\s+\\{\\s+[\\s\\S]*?\\s+\\}\\s+[\\s\\S]*?\\s+\\}",
-      "resource\\s+\"aws_autoscaling_group\"\\s+(?P<ANYTHING>\\S+)\\s+\\{\\s+[\\s\\S]*?\\s+tags\\s+=\\s+concat\\(\\s+[\\s\\S]*?\\s+\\)\\s+[\\s\\S]*?\\s+\\}"
+      "resource\\s+\"aws_autoscaling_group\"\\s+(?P<ANYTHING>\\S+)\\s+\\{[\\s\\S]*?\\}",
+      "resource\\s+\"aws_autoscaling_group\"\\s+(?P<ANYTHING>\\S+)\\s+\\{[\\s\\S]*?tag\\s+\\{[\\s\\S]*?\\}[\\s\\S]*?\\}",
+      "resource\\s+\"aws_autoscaling_group\"\\s+(?P<ANYTHING>\\S+)\\s+\\{[\\s\\S]*?tags\\s+=\\s+concat\\([\\s\\S]*?\\)[\\s\\S]*?\\}"
     ])) as $all
-    | ( $all | of(["resource\\s+\"aws_autoscaling_group\"\\s+(?P<ANYTHING>\\S+)\\s+\\{\\s+[\\s\\S]*?\\s+\\}"])
-          | outside($all | of(["resource\\s+\"aws_autoscaling_group\"\\s+(?P<ANYTHING>\\S+)\\s+\\{\\s+[\\s\\S]*?\\s+tag\\s+\\{\\s+[\\s\\S]*?\\s+\\}\\s+[\\s\\S]*?\\s+\\}"]))
-          | outside($all | of(["resource\\s+\"aws_autoscaling_group\"\\s+(?P<ANYTHING>\\S+)\\s+\\{\\s+[\\s\\S]*?\\s+tags\\s+=\\s+concat\\(\\s+[\\s\\S]*?\\s+\\)\\s+[\\s\\S]*?\\s+\\}"]))
+    | ( $all | of(["resource\\s+\"aws_autoscaling_group\"\\s+(?P<ANYTHING>\\S+)\\s+\\{[\\s\\S]*?\\}"])
+          | outside($all | of(["resource\\s+\"aws_autoscaling_group\"\\s+(?P<ANYTHING>\\S+)\\s+\\{[\\s\\S]*?tag\\s+\\{[\\s\\S]*?\\}[\\s\\S]*?\\}"]))
+          | outside($all | of(["resource\\s+\"aws_autoscaling_group\"\\s+(?P<ANYTHING>\\S+)\\s+\\{[\\s\\S]*?tags\\s+=\\s+concat\\([\\s\\S]*?\\)[\\s\\S]*?\\}"]))
         | finding("missing-aws-autoscaling-tags";
             "The AWS Autoscaling Group is not tagged.") ) )
 | report
+

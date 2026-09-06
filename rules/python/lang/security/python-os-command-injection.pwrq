@@ -1,0 +1,48 @@
+# rules: python-os-command-injection
+# languages: python
+# fixture: python/CWE-78.py
+# from: CWE-77 (Command Injection), CWE-78 (OS Command Injection), CWE-88
+#
+# `os.system` and `subprocess` with `shell=True` hand the whole command line
+# to `/bin/sh`, so a `;` or a backtick in the value the caller chose starts a
+# second command. Passing the program and its arguments separately —
+# `subprocess.run(["ls", arg])` with `shell=False` — never involves a shell.
+#
+# The rule is `reaching`: an untrusted value from the request (query string,
+# form, route variable, or `self.path` in a BaseHTTP handler) that flows into
+# a shell sink. A literal command line has nothing to flow, so `ok:` cases are
+# those with a constant.
+
+. as $root
+| ( ($root | scan_ast(["*.py"]; [
+      "os.system($CMD)", "os.popen($CMD, $$$_)",
+      "subprocess.call($CMD, $$$_)", "subprocess.run($CMD, $$$_)",
+      "subprocess.Popen($CMD, $$$_)", "subprocess.check_call($CMD, $$$_)",
+      "subprocess.check_output($CMD, $$$_)", "subprocess.getoutput($CMD)",
+      "input()",
+      "input($$$_)",
+      "flask.request.args.get($$$_)", "flask.request.args[$$$_]",
+      "flask.request.form.get($$$_)", "flask.request.form[$$$_]",
+      "flask.request.values.get($$$_)", "flask.request.values[$$$_]",
+      "flask.request.cookies.get($$$_)", "flask.request.data",
+      "request.args.get($$$_)", "request.args[$$$_]",
+      "request.form.get($$$_)", "request.form[$$$_]",
+      "request.values.get($$$_)", "request.data",
+      "self.path", "self.headers.get($$$_)", "self.headers[$$$_]",
+      "@$APP.route($$$_)\ndef $FUNC($$$_, $ROUTEVAR, $$$_):\n  $$$_",
+      "def $FUNC(request, $$$_):\n  $$$_"
+    ])) as $all
+  | ($all | of(["os.system($CMD)", "os.popen($CMD, $$$_)",
+                "subprocess.call($CMD, $$$_)", "subprocess.run($CMD, $$$_)",
+                "subprocess.Popen($CMD, $$$_)", "subprocess.check_call($CMD, $$$_)",
+                "subprocess.check_output($CMD, $$$_)", "subprocess.getoutput($CMD)"])
+      | focus("CMD")
+      | reaching($all | of(["input()","input($$$_)","flask.request.args.get($$$_)","flask.request.args[$$$_]","flask.request.form.get($$$_)","flask.request.form[$$$_]","flask.request.values.get($$$_)","flask.request.values[$$$_]","flask.request.cookies.get($$$_)","flask.request.data","request.args.get($$$_)","request.args[$$$_]","request.form.get($$$_)","request.form[$$$_]","request.values.get($$$_)","request.data","self.path","self.headers.get($$$_)","self.headers[$$$_]"])
+          + ($all | within($all | of(["@$APP.route($$$_)\ndef $FUNC($$$_, $ROUTEVAR, $$$_):\n  $$$_"])) | focus("ROUTEVAR"))
+          + ($all | within($all | of(["def $FUNC(request, $$$_):\n  $$$_"])) | of(["request.args.get($$$_)","request.args[$$$_]","request.form.get($$$_)","request.form[$$$_]"]))
+          ; []))
+  | finding("python-os-command-injection";
+      "untrusted input reaches a shell sink; a `;` or backtick in it starts a "
+      + "second command — pass the program and arguments separately instead")
+  )
+| report

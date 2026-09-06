@@ -1,0 +1,21 @@
+# rules: java-os-command-injection
+# languages: java
+# fixture: java/CWE-78.java
+# from: CWE-78 OS Command Injection
+#
+# Runtime.exec and ProcessBuilder execute whatever string they are given. When
+# that string was built from a request parameter the caller decides what runs.
+#
+# Each sink is written once, in its `$$$_` form. The arity-one spelling as well
+# - `exec($CMD)` beside `exec($CMD, $$$_)` - is not more coverage: an ellipsis
+# matches no arguments as happily as it matches three, so both patterns match
+# the one-argument call and the line is reported twice under one id.
+
+["$R.getParameter($K)", "$R.getHeader($K)", "$R.getQueryString()", "$R.getCookies()", "$R.getParameterValues($K)", "$R.getParameterMap()", "$M.get($K)", "$A[0]", "$C.getValue()", "$C.getName()", "$U.decode($$$_)", "URLDecoder.decode($$$_)", "java.net.URLDecoder.decode($$$_)"] as $outside
+| ["Runtime.getRuntime().exec($CMD, $$$_)",
+   "new ProcessBuilder($CMD, $$$_)",
+   "$PB.command($CMD, $$$_)"] as $sinks
+| scan_ast("*.java"; $outside + $sinks) as $all
+| ( $all | of($sinks) | focus("CMD") | reaching($all | of($outside); []) )
+| finding("java-os-command-injection"; "Command injection: $CMD came from the request and reaches OS execution")
+| report

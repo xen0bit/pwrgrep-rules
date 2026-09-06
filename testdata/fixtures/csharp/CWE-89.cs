@@ -1,3 +1,7 @@
+// CWE-89: SQL injection — request data concatenated into SQL.
+// "SELECT ... '"+name+"'" lets an attacker close the string and add
+// "OR 1=1". The rule flags SqlCommand or FromSqlRaw with request data;
+// fix with parameters (@city).
 using System.Data.SqlClient;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

@@ -1,0 +1,11 @@
+# rules: java-reflected-xss
+# languages: java
+# fixture: java/CWE-79.java
+# from: CWE-79 Cross-site Scripting
+
+["$R.getParameter($K)", "$R.getHeader($K)", "$R.getQueryString()", "$R.getCookies()", "$R.getParameterValues($K)"] as $outside
+| ["$RESP.getWriter().write($X)", "$RESP.getWriter().print($X)", "$RESP.getWriter().println($X)"] as $sinks
+| scan_ast("*.java"; $outside + $sinks) as $all
+| ( $all | of($sinks) | focus("X") | reaching($all | of($outside); []) )
+| finding("java-reflected-xss"; "Reflected XSS: $X came from the request and is written to the response without encoding")
+| report

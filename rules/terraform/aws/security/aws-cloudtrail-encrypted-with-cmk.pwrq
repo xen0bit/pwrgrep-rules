@@ -1,5 +1,6 @@
 # rules: aws-cloudtrail-encrypted-with-cmk
 # languages: hcl
+# fixture: terraform/aws-cloudtrail-encrypted-with-cmk.tf
 # from: terraform/aws/security/aws-cloudtrail-encrypted-with-cmk.yaml
 
 . as $root

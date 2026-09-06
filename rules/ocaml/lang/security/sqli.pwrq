@@ -1,0 +1,12 @@
+# rules: ocamllint-sqli
+# languages: ocaml
+# fixture: ocaml/CWE-89.ml
+# from: CWE-89 (SQL Injection)
+
+. as $root
+| ( $root | scan_ast(["*.ml"]; ["Db.query $SQL", "Mysql.query $SQL"]) ) as $all
+| ( $all | of(["Db.query $SQL", "Mysql.query $SQL"]) | where_capture_not("SQL"; "^\".*\"$") | finding("ocamllint-sqli";
+        "this query is assembled from a value the caller chose, so a quote in "
+        + "it ends the literal and the rest is SQL; bind the value as a "
+        + "parameter instead") )
+| report

@@ -1,0 +1,14 @@
+# rules: tainted-sql-string
+# languages: go
+# fixture: go/CWE-89-lambda.go
+# from: go/aws-lambda/security/tainted-sql-string.yaml
+
+["$DB.Query($Q)", "$DB.QueryContext($CTX, $Q)", "$DB.Exec($Q)", "$DB.ExecContext($CTX, $Q)"] as $sinks
+| ["func handler($EVENT string, $$$_) { $$$BODY }", "func handler($EVENT string, $DB *sql.DB) { $$$BODY }"] as $srcs
+| scan_ast("*.go"; $sinks + $srcs) as $all
+| ( $all | of($sinks) | focus("Q") | reaching($all | of($srcs) | focus("EVENT"); []) )
+| finding("tainted-sql-string";
+        "this query is assembled from a value the caller chose, so a quote in "
+        + "it ends the literal and the rest is SQL; bind the value as a "
+        + "parameter instead")
+| report

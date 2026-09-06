@@ -1,0 +1,19 @@
+# rules: ruby-open-redirect
+# languages: ruby
+# fixture: ruby/CWE-601.rb
+# from: ruby/rails/security/audit/avoid-tainted-http-request.yaml (avoid-tainted-http-request) + CWE-601
+
+. as $root
+| ( ($root | scan_ast(["*.rb"]; [
+      "redirect_to($URL)",
+      "params",
+      "params[$$$_]",
+      "params.get($$$_)",
+      "cookies",
+      "request.query_string",
+      "request.body"
+    ])) as $all
+  | ($all | of(["redirect_to($URL)"]) | focus("URL") | reaching($all | of(["params","params[$$$_]","params.get($$$_)","cookies","request.query_string","request.body"]); []))
+  | finding("ruby-open-redirect"; "Untrusted input in redirect; validate URL or use allowlist")
+  )
+| report

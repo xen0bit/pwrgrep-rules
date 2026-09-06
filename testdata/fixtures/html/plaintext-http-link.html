@@ -1,0 +1,14 @@
+<!-- ruleid: plaintext-http-link -->
+<a href="http://example.com">bad1</a>
+<!-- ruleid: plaintext-http-link -->
+<a href="http://example2.com">bad2</a>
+<!-- ok: plaintext-http-link -->
+<a href="https://example.com">good1</a>
+<!-- ok: plaintext-http-link -->
+<a href="https://example2.com">good2</a>
+<!-- ruleid: plaintext-http-link -->
+<a href="http://insecure.example.com/page">bad3</a>
+<!-- ruleid: plaintext-http-link -->
+<a href="http://another.example.org">bad4</a>
+<!-- ok: plaintext-http-link -->
+<a href="https://secure.example.com">good3</a>

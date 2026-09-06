@@ -1,0 +1,11 @@
+# rules: rust-sqli
+# languages: rust
+# fixture: rust/CWE-89.rs
+# from: CWE-89 SQL Injection via sqlx
+
+["std::env::var($$$_)", "std::env::args().next()", "request.query.get($$$_)"] as $src
+| ["sqlx::query($SQL)", "sqlx::query_as($SQL, $$$_)"] as $sink
+| scan_ast("*.rs"; $src + $sink) as $all
+| ($all | of($sink) | focus("SQL") | reaching($all | of($src); []))
+| finding("rust-sqli"; "SQL injection: $SQL came from untrusted input and reaches SQL query")
+| report

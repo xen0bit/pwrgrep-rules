@@ -1,5 +1,6 @@
 # rules: telnet-request
 # languages: go
+# fixture: problem-based-packs/go-telnet-request.go
 # from: problem-based-packs/insecure-transport/go-stdlib/telnet-request.yaml
 
 . as $root

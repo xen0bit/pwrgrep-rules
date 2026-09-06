@@ -1,0 +1,16 @@
+# rules: elixir-path-traversal
+# languages: elixir
+# fixture: elixir/CWE-22b.ex
+# from: CWE-22 Path Traversal
+#
+# File.read with Path.join of user input allows ../ traversal.
+
+["$PARAMS[$$$_]", "$CONN.params[$$$_]", "$CONN.query_params[$$$_]"] as $src
+| ["File.read($PATH)", "File.read!($PATH)", "File.stream!($PATH)", "File.open($PATH)"] as $sinks
+| scan_ast("*.ex"; $src + $sinks) as $all
+| ( $all | of($sinks) | focus("PATH") | reaching($all | of($src); []) )
+| finding("elixir-path-traversal";
+        "this opens a path built from a value the caller chose, and a `../` in "
+        + "it walks out of the directory; resolve the path and check it is "
+        + "still under the root before opening it")
+| report

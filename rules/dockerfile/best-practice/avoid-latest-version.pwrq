@@ -1,11 +1,13 @@
 # rules: avoid-latest-version
+# languages: dockerfile
+# fixture: dockerfile/CWE-latest-version.dockerfile
 # from: dockerfile/best-practice/avoid-latest-version.yaml
 
 . as $root
-| ( ($root | scan_regex(["Dockerfile*"]; [
-      "FROM\\s+(?P<FROM>\\S+):latest"
+| ( ($root | scan_regex(["Dockerfile*","*.dockerfile"]; [
+      "FROM\\s+[^\\s]+:latest"
     ])) as $all
-    | ( $all | of(["FROM\\s+(?P<FROM>\\S+):latest"])
+    | ( $all | of(["FROM\\s+[^\\s]+:latest"])
         | finding("avoid-latest-version";
             "Images should be tagged with an explicit version to produce deterministic container images.") ) )
 | report

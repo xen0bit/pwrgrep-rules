@@ -1,15 +1,11 @@
 # rules: privileged-service
 # languages: yaml
+# fixture: yaml/compose-privileged-service.yaml
 # from: yaml/docker-compose/security/privileged-service.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.yaml"]; [
-      "version: $$$_\n$$$_\nservices:\n  $$$_\n  $SERVICE:\n    $$$_\n    privileged: $TRUE"
+| ($root | scan_ast(["*.yaml","*.yml"]; [
+      "privileged: true"
     ])) as $all
-    | ( $all
-          | within($all | of(["version: $$$_\n$$$_\nservices:\n  $$$_\n  $SERVICE:\n    $$$_\n    privileged: $TRUE"]))
-          | focus("TRUE")
-          | where_capture("TRUE"; "^(?:(true))")
-        | finding("privileged-service";
-            "Service '$SERVICE' is running in privileged mode.") ) )
+| ($all | of(["privileged: true"]) | finding("privileged-service"; "Service '$SERVICE' is running in privileged mode."))
 | report

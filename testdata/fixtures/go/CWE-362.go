@@ -62,3 +62,28 @@ func countsInsideTheGoroutine(done *atomic.Int64, work func()) {
 		done.Add(1)
 	}()
 }
+func waitsWithStruct(wg *sync.WaitGroup) {
+    go func() {
+        // ruleid: go-waitgroup-add-inside-goroutine
+        wg.Add(1)
+        defer wg.Done()
+    }()
+}
+
+func waitsWithGroup(group sync.WaitGroup) {
+    go func() {
+        // ruleid: go-waitgroup-add-inside-goroutine
+        group.Add(1)
+        defer group.Done()
+    }()
+}
+
+func safeWithLiteral() {
+    var wg sync.WaitGroup
+    // ok: go-waitgroup-add-inside-goroutine
+    wg.Add(1)
+    go func() {
+        defer wg.Done()
+    }()
+    wg.Wait()
+}

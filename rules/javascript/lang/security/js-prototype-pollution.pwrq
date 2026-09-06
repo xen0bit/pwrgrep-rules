@@ -1,0 +1,27 @@
+# rules: js-prototype-pollution
+# languages: javascript, typescript
+# fixture: javascript/CWE-1321.js
+# from: CWE-1321 (Prototype Pollution)
+
+. as $root
+| ( ($root | scan_ast(["*.js","*.ts"]; [
+            "Object.assign($DST, $SRC, $$$_)",
+      "$OBJ[$SRC] = $VAL",
+      "req.query",
+      "req.params",
+      "req.body",
+      "req.headers",
+      "location.search",
+      "location.hash",
+      "new URLSearchParams(location.search).get($$$_)",
+      "$PROP = new URLSearchParams(location.search).get($$$_)\n$$$_"
+    ])) as $all
+  | ($all | of(["Object.assign($DST, $SRC, $$$_)","$OBJ[$SRC] = $VAL"])
+      | focus("SRC")
+      | reaching(($all | of(["req.query","req.params","req.body","req.headers","location.search","location.hash","new URLSearchParams(location.search).get($$$_)"])
+          + ($all | within($all | of(["$PROP = new URLSearchParams(location.search).get($$$_)\n$$$_"])) | focus("PROP"))
+        ); []))
+  | finding("js-prototype-pollution";
+      "untrusted input reaches Object.assign or prototype assignment and can pollute prototype")
+  )
+| report

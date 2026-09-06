@@ -1,0 +1,14 @@
+# rules: rust-xss
+# languages: rust
+# fixture: rust/CWE-79.rs
+# from: CWE-79 Cross-site Scripting via unescaped write
+
+["std::env::var($$$_)", "std::env::args().next()", "request.query.get($$$_)"] as $src
+| ["w.write($HTML)", "w.write_all($HTML)"] as $sink
+| scan_ast("*.rs"; $src + $sink) as $all
+| ($all | of($sink) | focus("HTML") | reaching($all | of($src); []))
+| finding("rust-xss";
+        "this is written into the page as markup, so a `<script>` in the value "
+        + "runs in the reader's session; escape it, or set text rather than "
+        + "HTML")
+| report

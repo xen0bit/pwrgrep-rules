@@ -1,12 +1,13 @@
 # rules: eval-detected
+# languages: html
+# fixture: html/eval-detected.html
 # from: html/security/audit/eval-detected.yaml
 
 . as $root
 | ( ($root | scan_regex(["*.html"]; [
-      "<script\\s+[\\s\\S]*?>(?P<A>[\\s\\S]*?)<\\/script>"
+      "eval\\s*\\("
     ])) as $all
-    | ( $all
-          | within($all | of(["<script\\s+[\\s\\S]*?>(?P<A>[\\s\\S]*?)<\\/script>"]))
+    | ( $all | of(["eval\\s*\\("])
         | finding("eval-detected";
             "Detected the use of eval(...).") ) )
 | report

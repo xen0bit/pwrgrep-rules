@@ -1,5 +1,6 @@
 # rules: aws-backup-vault-unencrypted
 # languages: hcl
+# fixture: terraform/aws-backup-vault-unencrypted.tf
 # from: terraform/aws/security/aws-backup-vault-unencrypted.yaml
 
 . as $root

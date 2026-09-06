@@ -1,0 +1,12 @@
+# rules: apex-soql-injection
+# languages: apex
+# fixture: apex/CWE-89.cls
+# from: CWE-89 (SQL Injection)
+
+. as $root
+| ( $root | scan_ast(["*.cls"]; ["Database.query($QUERY)"]) ) as $all
+| ( $all | of(["Database.query($QUERY)"]) | where_capture_not("QUERY"; "^['\"].*['\"]$") | finding("apex-soql-injection";
+        "this SOQL query is assembled from a value the caller chose, so a quote "
+        + "in it ends the literal and the rest is SOQL; use a bind variable "
+        + "or String.escapeSingleQuotes") )
+| report

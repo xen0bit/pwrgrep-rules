@@ -1,0 +1,12 @@
+# rules: kotlin-sqli
+# languages: kotlin
+# fixture: kotlin/CWE-89b.kt
+# from: CWE-89 SQL Injection
+
+["$CONN.prepareStatement($SQL)", "$CONN.createStatement().executeQuery($SQL)", "$CONN.createStatement().execute($SQL)"] as $sinks
+| scan_ast("*.kt"; $sinks) as $all
+| ($all | of($sinks) | where_capture_not("SQL"; "^\"") | finding("kotlin-sqli";
+        "this query is assembled from a value the caller chose, so a quote in "
+        + "it ends the literal and the rest is SQL; bind the value as a "
+        + "parameter instead"))
+| report

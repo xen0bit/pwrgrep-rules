@@ -1,0 +1,21 @@
+# rules: php-csrf
+# languages:
+# fixture: php/CWE-352.php
+# from: CWE-352 Cross-Site Request Forgery
+#
+# PHP forms that POST without a CSRF hidden field are vulnerable. The token
+# is typically a hidden input named csrf_token or _token. The rule flags
+# POST forms that lack such a field; safe forms include it.
+
+. as $root
+| ( ($root | scan_regex(["*.php"]; [
+      "<form[^>]*method=\"(?P<METHOD>[^\"]+)\"[^>]*>[\\s\\S]*?<\\/form>",
+      "<form[^>]*method='(?P<METHOD>[^']+)'[^>]*>[\\s\\S]*?<\\/form>",
+      "<form[^>]*method=(?P<METHOD>[^\\s>]+)[^>]*>[\\s\\S]*?<\\/form>"
+    ])) as $all
+    | ( $all | of(["<form[^>]*method=\"(?P<METHOD>[^\"]+)\"[^>]*>[\\s\\S]*?<\\/form>","<form[^>]*method='(?P<METHOD>[^']+)'[^>]*>[\\s\\S]*?<\\/form>","<form[^>]*method=(?P<METHOD>[^\\s>]+)[^>]*>[\\s\\S]*?<\\/form>"])
+          | where_capture("METHOD"; "(?i)^(post|put|delete|patch)$")
+          | where_text_not("csrf_token|_token|CSRF")
+        | finding("php-csrf";
+            "POST form lacks CSRF token; add a hidden input with csrf_token") ) )
+| report

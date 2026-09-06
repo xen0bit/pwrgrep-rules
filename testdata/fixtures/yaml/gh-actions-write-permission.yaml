@@ -1,0 +1,75 @@
+# CWE-732: GitHub Actions write-all permission.
+name: CI
+on: [push]
+# ruleid: gh-actions-write-permission
+permissions: write-all
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo hi
+---
+name: Good
+on: push
+# ok: gh-actions-write-permission
+permissions: read-all
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo ok
+---
+name: Good2
+on: pull_request
+# ok: gh-actions-write-permission
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo good
+---
+name: Bad2
+on: workflow_dispatch
+# ruleid: gh-actions-write-permission
+permissions: write-all
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo bad
+---
+name: ExtraBad3
+on: push
+# ruleid: gh-actions-write-permission
+permissions: write-all
+jobs:
+  extra:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo extra bad
+---
+name: ExtraBad4
+on:
+  pull_request:
+    types: [opened]
+# ruleid: gh-actions-write-permission
+permissions: write-all
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo bad4
+---
+name: ExtraGood3
+on: push
+# ok: gh-actions-write-permission
+permissions:
+  contents: read
+  issues: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo good

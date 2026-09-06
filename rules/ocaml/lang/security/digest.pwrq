@@ -1,5 +1,6 @@
 # rules: ocamllint-digest
 # languages: ocaml
+# fixture: ocaml/CWE-327.ml
 # from: ocaml/lang/security/digest.yaml
 
 . as $root

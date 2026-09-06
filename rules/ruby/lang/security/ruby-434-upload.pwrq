@@ -1,0 +1,14 @@
+# rules: ruby-434-upload
+# languages: ruby
+# fixture: ruby/CWE-434.rb
+# from: CWE-434 (Unrestricted Upload of File with Dangerous Type)
+#
+# params[:file] -> File.open without allowlist check.
+# The rule tracks params file reaching File.open and excludes allowlist via where_capture_not.
+
+["params[:file]", "params[\"file\"]", "params[:file].original_filename", "params[:file][:filename]"] as $src
+| ["File.open($PATH, $$$_)", "File.write($PATH, $$$_)", "File.binwrite($PATH, $$$_)", "IO.write($PATH, $$$_)"] as $sink
+| scan_ast("*.rb"; $src + $sink) as $all
+| ( $all | of($sink) | focus("PATH") | reaching($all | of($src); []) | where_capture_not("PATH"; "allowlist|whitelist|\\.png|\\.jpg") )
+| finding("ruby-434-upload"; "Unrestricted upload: $PATH from params[:file] reaches File.open without allowlist check")
+| report

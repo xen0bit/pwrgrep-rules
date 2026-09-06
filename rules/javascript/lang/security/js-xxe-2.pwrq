@@ -1,0 +1,11 @@
+# rules: js-xxe-2
+# languages: javascript
+# fixture: javascript/CWE-611-2.js
+# from: CWE-611 XML External Entity via libxmljs/xml2js
+
+["req.query", "req.params", "req.body", "req.headers"] as $srcs
+| ["libxmljs.parseXml($DATA)", "xml2js.parseString($DATA, $$$_)"] as $sinks
+| scan_ast(["*.js"]; $srcs + $sinks) as $all
+| ($all | of($sinks) | focus("DATA") | reaching($all | of($srcs); []))
+| finding("js-xxe-2"; "untrusted XML reaches XML parser; external entities may be resolved")
+| report

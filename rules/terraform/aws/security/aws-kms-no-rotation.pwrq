@@ -1,5 +1,6 @@
 # rules: aws-kms-no-rotation
 # languages: hcl
+# fixture: terraform/aws-kms-no-rotation.tf
 # from: terraform/aws/security/aws-kms-no-rotation.yaml
 
 . as $root

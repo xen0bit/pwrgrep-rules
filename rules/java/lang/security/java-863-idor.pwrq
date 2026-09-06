@@ -1,0 +1,19 @@
+# rules: java-863-idor
+# languages: java
+# fixture: java/CWE-863.java
+# from: CWE-863 Incorrect Authorization — IDOR via findById with request parameter without auth check
+#
+# Direct object reference via request.getParameter("id") flowing into
+# findById without a SecurityContext/authorization check allows IDOR.
+# The rule tracks tainted id reaching findById and excludes those inside
+# an authorization check; safe code checks SecurityContext or hasRole.
+
+["$R.getParameter($K)", "$R.getParameter(\"id\")", "$R.getHeader($K)"] as $sources
+| ["$Repo.findById($ID)", "findById($ID)", "$DB.findById($ID)"] as $sinks
+| ["SecurityContextHolder.getContext().getAuthentication()", "SecurityContext", "hasRole($$$_)", "isAuthenticated()", "getCurrentUser()"] as $auth
+| scan_ast("*.java"; $sources + $sinks + $auth) as $all
+| ( $all | of($sinks) | focus("ID") | reaching($all | of($sources); [])
+      | outside($all | of($auth))
+    | finding("java-863-idor";
+        "IDOR: $ID from request reaches findById without authorization check; verify SecurityContext/hasRole before access") )
+| report

@@ -1,0 +1,17 @@
+# CWE-798: Artifactory token — high-entropy secret in source.
+# Tokens like AKC... are checked into git and exposed. The rule flags
+# them; fix by removing the secret or using a placeholder.
+# ruleid: detected-artifactory-token
+api_key = AKCqwertyuiop1234567890
+# ruleid: detected-artifactory-token
+token: AKCabcdef12345XYZ67890
+# ok: detected-artifactory-token
+api_key = "changeme"
+# ok: detected-artifactory-token
+# This is a placeholder AKC
+# ruleid: detected-artifactory-token
+secret = AKC9x8y7z6w5v4u3t2s1r0q9p8o7n6m5
+# ruleid: detected-artifactory-token
+key: AKC1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6
+# ok: detected-artifactory-token
+token = AKCaaaaaaaaaaaaaaaaaaaa

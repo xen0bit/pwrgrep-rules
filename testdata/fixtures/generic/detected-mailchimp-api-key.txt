@@ -1,0 +1,16 @@
+# CWE-798: Mailchimp API key — 32hex-usNN hard-coded.
+# Mailchimp keys can send email on behalf of the account.
+# ruleid: detected-mailchimp-api-key
+key = abcdef1234567890abcdef1234567890-us12
+# ruleid: detected-mailchimp-api-key
+mailchimp = 1234567890abcdef1234567890abcdef-us5
+# ok: detected-mailchimp-api-key
+key = abcdef1234567890-us12
+# ok: detected-mailchimp-api-key
+not-a-key = hello-us99-world
+# ruleid: detected-mailchimp-api-key
+mailchimp_key = eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-us15
+# ruleid: detected-mailchimp-api-key
+key = ffffffffffffffffffffffffffffffff-us20
+# ok: detected-mailchimp-api-key
+mailchimp_key = "example_placeholder_us12"

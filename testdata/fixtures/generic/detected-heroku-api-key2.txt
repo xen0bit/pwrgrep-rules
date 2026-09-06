@@ -1,0 +1,15 @@
+# CWE-798: Heroku API key.
+# ruleid: detected-heroku-api-key2
+heroku_1234567890abcdef1234567890ABCDEF12345678
+# ruleid: detected-heroku-api-key2
+heroku_AbCdEfGhIjKlMnOpQrStUvWxYz1234567890ABCD
+# ok: detected-heroku-api-key2
+heroku_example
+# ok: detected-heroku-api-key2
+heroku_changeme
+# ruleid: detected-heroku-api-key2
+heroku_QwErTyUiOpAsDfGhJkLzXcVbNm1234567890ABCD
+# ruleid: detected-heroku-api-key2
+heroku_ZxCvBnMqWeRtYuIoPaSdFgHjKl1234567890ABCD12
+# ok: detected-heroku-api-key2
+heroku_aaaaaaaaaaaaaaaaaaaa

@@ -1,0 +1,23 @@
+# rules: tainted-sql-string
+# languages: javascript, typescript
+# fixture: javascript/CWE-89-lambda.js
+# from: javascript/aws-lambda/security/tainted-sql-string.yaml
+#
+# The handler's parameter is the source, and it is pointed at directly rather
+# than found by matching a bare `$EVENT` anywhere in the file. A pattern that
+# is nothing but a hole matches every node there is, so every query in a file
+# that happened to contain a handler was reported - including the parameterised
+# ones this rule exists to leave alone.
+
+["$DB.query($QUERY, $$$_)", "$CONNECTION.query($QUERY, $$$_)", "$POOL.query($QUERY, $$$_)", "$CLIENT.query($QUERY, $$$_)"] as $sinks
+| ["exports.handler = function ($EVENT, $$$_) { $$$BODY }",
+   "exports.handler = async function ($EVENT, $$$_) { $$$BODY }",
+   "exports.$NAME = function ($EVENT, $$$_) { $$$BODY }",
+   "function $FUNC ($EVENT, $$$_) { $$$BODY }",
+   "$FUNC = function ($EVENT, $$$_) { $$$BODY }"] as $srcs
+| scan_ast("*.js"; $sinks + $srcs) as $all
+| ( $all | of($sinks) | focus("QUERY")
+    | reaching($all | of($srcs) | focus("EVENT"); [])
+  )
+| finding("tainted-sql-string"; "Detected user input used to manually construct a SQL string; use parameterized query.")
+| report

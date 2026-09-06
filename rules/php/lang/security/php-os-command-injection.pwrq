@@ -1,0 +1,17 @@
+# rules: php-os-command-injection
+# languages: php
+# fixture: php/CWE-78b.php
+# from: CWE-78 (OS Command Injection)
+
+["shell_exec($CMD, $$$_)",
+ "exec($CMD, $$$_)",
+ "system($CMD, $$$_)",
+ "passthru($CMD, $$$_)",
+ "popen($CMD, $$$_)", "proc_open($CMD, $$$_)",
+ "pcntl_exec($CMD, $$$_)"] as $sinks
+| ["$_GET[$K]", "$_POST[$K]", "$_REQUEST[$K]", "$_COOKIE[$K]"] as $outside
+| scan_ast("*.php"; $sinks + $outside) as $all
+| ($all | of($sinks) | focus("CMD") | reaching($all | of($outside); []))
+| finding("php-os-command-injection";
+    "untrusted input from the request reaches a shell sink; a `;` or `|` in the value starts a second command")
+| report

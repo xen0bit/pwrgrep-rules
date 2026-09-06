@@ -52,4 +52,24 @@ class Transport {
     }
 
     private lateinit var delegate: X509TrustManager
+    fun manager2(): X509TrustManager = object : X509TrustManager {
+        // ruleid: kotlin-trusts-any-certificate
+        override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) { }
+        override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
+        override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+    }
+
+    fun client2() = object : WebViewClient() {
+        // ruleid: kotlin-trusts-any-certificate
+        override fun onReceivedSslError(view: android.webkit.WebView, handler: SslErrorHandler, error: android.net.http.SslError) {
+            handler.proceed()
+        }
+    }
+
+    fun careful2() = object : WebViewClient() {
+        // ok: kotlin-trusts-any-certificate
+        override fun onReceivedSslError(view: android.webkit.WebView, handler: SslErrorHandler, error: android.net.http.SslError) {
+            handler.cancel()
+        }
+    }
 }

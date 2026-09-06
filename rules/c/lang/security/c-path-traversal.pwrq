@@ -1,0 +1,12 @@
+# rules: c-path-traversal
+# languages: c
+# fixture: c/CWE-22b.c
+# from: CWE-22 Path Traversal
+#
+# fopen/open with non-literal allows "../" traversal.
+
+["fopen($PATH, $_)", "fopen($PATH, $_, $_)", "open($PATH, $_)", "open($PATH, $_, $_)", "unlink($PATH)"] as $sinks
+| scan_ast("*.[ch]"; $sinks) as $all
+| ($all | of($sinks) | where_capture_not("PATH"; "^L?\"") | finding("c-path-traversal";
+    "path $PATH is not a literal, so \"..\" can escape the intended directory"))
+| report

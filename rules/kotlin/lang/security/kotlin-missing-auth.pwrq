@@ -1,0 +1,54 @@
+# rules: kotlin-missing-auth
+# languages: kotlin
+# fixture: kotlin/CWE-306b.kt
+# from: CWE-306 Missing Authentication for Critical Function
+#
+# The rule reports an endpoint in a file that protects some of its others, and
+# says nothing about a file that protects none. An application with no
+# authentication anywhere has made a decision - the check may live in a filter,
+# a gateway or a proxy, or it may be a sample with no accounts at all - and
+# reporting every endpoint in it tells the reader nothing they did not know.
+# What is a bug is the endpoint that was missed: a guard on three handlers and
+# not on the fourth.
+#
+# The marker for "this file protects something" is a regex, because a Kotlin
+# annotation is a modifier on the declaration it precedes: an annotated
+# function is a different modifier list and does not match the sink pattern to
+# begin with, which is what the exclusion below is really doing.
+#
+# There is one rule per language for this, and it reports under
+# `<language>-missing-auth`. The corpus briefly carried two or three - an
+# `-authn` spelling, an `-auth` spelling and this one - written against
+# CWE-287, CWE-306 and CWE-862 but all asking the same question: is there an
+# authentication guard on this endpoint. They fired on the same lines and a
+# route with no middleware got three findings under three ids. Whether the
+# missing guard is called authentication or authorization is not something the
+# syntax says, so it is one finding; `<language>-862-rbac` is the separate rule
+# for the endpoint that does authenticate and then checks no role.
+#
+# Kotlin Spring handlers with @GetMapping/@PostMapping etc without
+# @PreAuthorize/@Secured/@RequiresPermission allow unauthenticated access.
+
+. as $root
+| ($root | scan_regex("*.kt";
+    ["@(?:PreAuthorize|Secured|RequiresPermission|RolesAllowed)\\s*\\("])) as $protectedSomewhere
+| ( ($root | scan_ast(["*.kt"]; [
+      "@GetMapping($$$_) fun $F($$$_) { $BODY }",
+      "@PostMapping($$$_) fun $F($$$_) { $BODY }",
+      "@PutMapping($$$_) fun $F($$$_) { $BODY }",
+      "@DeleteMapping($$$_) fun $F($$$_) { $BODY }",
+      "@PatchMapping($$$_) fun $F($$$_) { $BODY }",
+      "@RequestMapping($$$_) fun $F($$$_) { $BODY }",
+      "@PreAuthorize($$$_) fun $F($$$_) { $BODY }",
+      "@Secured($$$_) fun $F($$$_) { $BODY }",
+      "@RequiresPermission($$$_) fun $F($$$_) { $BODY }",
+      "@RolesAllowed($$$_) fun $F($$$_) { $BODY }"
+    ])) as $all
+    | ( $all | of(["@GetMapping($$$_) fun $F($$$_) { $BODY }","@PostMapping($$$_) fun $F($$$_) { $BODY }","@PutMapping($$$_) fun $F($$$_) { $BODY }","@DeleteMapping($$$_) fun $F($$$_) { $BODY }","@PatchMapping($$$_) fun $F($$$_) { $BODY }","@RequestMapping($$$_) fun $F($$$_) { $BODY }"])
+          | outside($all | of(["@PreAuthorize($$$_) fun $F($$$_) { $BODY }","@Secured($$$_) fun $F($$$_) { $BODY }","@RequiresPermission($$$_) fun $F($$$_) { $BODY }","@RolesAllowed($$$_) fun $F($$$_) { $BODY }"]))
+          | in_files_with($protectedSomewhere)
+        | finding("kotlin-missing-auth";
+            "this endpoint has no authentication annotation and its neighbours "
+            + "in this file do; add @PreAuthorize or @RequiresPermission, or say "
+            + "why it is deliberately open") ) )
+| report

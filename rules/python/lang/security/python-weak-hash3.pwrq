@@ -1,0 +1,15 @@
+# rules: python-weak-hash3
+# languages: python
+# fixture: python/CWE-327-weak-hash3.py
+# from: CWE-327 Use of a Broken or Risky Cryptographic Algorithm
+#
+# hashlib.new("md5") is the same break as hashlib.md5() with a different
+# spelling and so needs its own pattern. The string literal is the selector.
+
+["hashlib.new($ALGO, $$$_)"] as $calls
+| scan_ast("*.py"; $calls) as $all
+| ($all | of($calls) | where_capture("ALGO"; "(?i)md5|sha1"))
+| finding("python-weak-hash3";
+    "this is not collision resistant; use hashlib.sha256 or hashlib.new(\"sha256\") "
+    + "instead of md5/sha1")
+| report

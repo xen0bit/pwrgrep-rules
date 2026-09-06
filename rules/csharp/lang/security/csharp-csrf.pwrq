@@ -1,0 +1,19 @@
+# rules: csharp-csrf
+# languages:
+# fixture: csharp/CWE-352.cs
+# from: CWE-352 Cross-Site Request Forgery
+#
+# ASP.NET POST actions should have [ValidateAntiForgeryToken] to prevent
+# CSRF. The rule scans for lines that define a POST handler and flags those
+# that lack the token on the same line; safe handlers include both attributes
+# together like [HttpPost, ValidateAntiForgeryToken].
+
+. as $root
+| ( ($root | scan_regex(["*.cs"]; [
+      "[^\\n]*\\[HttpPost[^\\n]*"
+    ])) as $all
+    | ( $all | of(["[^\\n]*\\[HttpPost[^\\n]*"])
+          | where_text_not("ValidateAntiForgeryToken")
+        | finding("csharp-csrf";
+            "POST action lacks [ValidateAntiForgeryToken]; add it to enable CSRF validation") ) )
+| report

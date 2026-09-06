@@ -57,3 +57,27 @@ class Cwe390 {
         }
     }
 }
+    void readWithSwallow(java.io.InputStream in) {
+        try {
+            in.read();
+            // ruleid: java-exception-swallowed
+        } catch (IOException e) {
+        }
+    }
+
+    void parseWithSwallow(String s) {
+        try {
+            Integer.valueOf(s);
+            // ruleid: java-exception-swallowed
+        } catch (NumberFormatException ex) {
+        }
+    }
+
+    void withComment(java.io.File f) {
+        try {
+            Files.delete(f.toPath());
+            // ok: java-exception-swallowed
+        } catch (IOException e) {
+            // tolerated: file may not exist
+        }
+    }

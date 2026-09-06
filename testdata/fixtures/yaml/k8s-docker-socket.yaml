@@ -1,0 +1,110 @@
+# CWE-732: Pod mounts Docker socket via hostPath — node escape.
+# A hostPath with the Docker socket gives the pod control of the node
+# daemon. The rule flags any hostPath with that path; fix by not
+# mounting it or using a restricted proxy.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad1
+spec:
+  volumes:
+    - name: dockersock
+      hostPath:
+# ruleid: exposing-docker-socket-hostpath
+        path: /var/run/docker.sock
+  containers:
+    - name: app
+      image: nginx
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad2
+spec:
+  volumes:
+    - name: dockersock
+      hostPath:
+# ruleid: exposing-docker-socket-hostpath
+        path: /var/run/docker.sock
+  containers:
+    - name: app
+      image: nginx
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good1
+spec:
+  volumes:
+    - name: data
+      hostPath:
+# ok: exposing-docker-socket-hostpath
+        path: /data
+  containers:
+    - name: app
+      image: nginx
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good2
+spec:
+  containers:
+    - name: app
+      image: nginx
+
+---
+# Extra: pod with no hostPath volume at all (omission secure).
+# ok: exposing-docker-socket-hostpath
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ok-extra
+spec:
+  containers:
+    - name: app
+      image: nginx
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad3
+spec:
+  volumes:
+    - name: sock
+      hostPath:
+# ruleid: exposing-docker-socket-hostpath
+        path: /var/run/docker.sock
+  containers:
+    - name: sidecar
+      image: nginx
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bad4
+spec:
+  template:
+    spec:
+      volumes:
+        - name: dockersock
+          hostPath:
+# ruleid: exposing-docker-socket-hostpath
+            path: /var/run/docker.sock
+      containers:
+        - name: app
+          image: nginx
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good3
+spec:
+  volumes:
+    - name: data
+      hostPath:
+# ok: exposing-docker-socket-hostpath
+        path: /var/data
+  containers:
+    - name: app
+      image: nginx

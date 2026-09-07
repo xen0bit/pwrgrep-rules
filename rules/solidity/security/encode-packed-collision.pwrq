@@ -1,49 +1,17 @@
 # rules: encode-packed-collision
 # languages: solidity
+# fixture: solidity/encode-packed-collision.sol
+#
+# Fragments never match in the solidity grammar, so no form fired. Rewritten
+# as an audit over keccak256(abi.encodePacked(...)) uses; the reviewer checks
+# whether two dynamic arguments collide.
 # from: solidity/security/encode-packed-collision.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.sol"]; [
-      "$X = abi.encodePacked($$$_, $A, $B, $$$_);\n$$$_\nkeccak256($X);",
-      "function $F($$$_, address[] $A, $$$_, address[] $B, $$$_) external {\n  $$$_\n}",
-      "function $F($$$_, address[] $A, $$$_, address[] $B, $$$_) public {\n  $$$_\n}",
-      "function $F($$$_, bytes $A, $$$_, bytes $B, $$$_) external {\n  $$$_\n}",
-      "function $F($$$_, bytes $A, $$$_, bytes $B, $$$_) public {\n  $$$_\n}",
-      "function $F($$$_, bytes $A, $$$_, string $B, $$$_) external {\n  $$$_\n}",
-      "function $F($$$_, bytes $A, $$$_, string $B, $$$_) public {\n  $$$_\n}",
-      "function $F($$$_, string $A, $$$_, bytes $B, $$$_) external {\n  $$$_\n}",
-      "function $F($$$_, string $A, $$$_, bytes $B, $$$_) public {\n  $$$_\n}",
-      "function $F($$$_, string $A, $$$_, string $B, $$$_) external {\n  $$$_\n}",
-      "function $F($$$_, string $A, $$$_, string $B, $$$_) public {\n  $$$_\n}",
-      "function $F($$$_, uint256[] $A, $$$_, uint256[] $B, $$$_) external {\n  $$$_\n}",
-      "function $F($$$_, uint256[] $A, $$$_, uint256[] $B, $$$_) public {\n  $$$_\n}",
-      "keccak256(abi.encodePacked($$$_, $A, $B, $$$_))"
+| ( ($root | scan_regex(["*.sol"]; [
+      "keccak256\\s*\\(\\s*abi\\.encodePacked\\s*\\("
     ])) as $all
-    | ( ($all
-          | within($all | of(["function $F($$$_, bytes $A, $$$_, bytes $B, $$$_) public {\n  $$$_\n}"])))
-          + ($all
-          | within($all | of(["function $F($$$_, string $A, $$$_, string $B, $$$_) public {\n  $$$_\n}"])))
-          + ($all
-          | within($all | of(["function $F($$$_, bytes $A, $$$_, string $B, $$$_) public {\n  $$$_\n}"])))
-          + ($all
-          | within($all | of(["function $F($$$_, string $A, $$$_, bytes $B, $$$_) public {\n  $$$_\n}"])))
-          + ($all
-          | within($all | of(["function $F($$$_, address[] $A, $$$_, address[] $B, $$$_) public {\n  $$$_\n}"])))
-          + ($all
-          | within($all | of(["function $F($$$_, uint256[] $A, $$$_, uint256[] $B, $$$_) public {\n  $$$_\n}"])))
-          + ($all
-          | within($all | of(["function $F($$$_, bytes $A, $$$_, bytes $B, $$$_) external {\n  $$$_\n}"])))
-          + ($all
-          | within($all | of(["function $F($$$_, string $A, $$$_, string $B, $$$_) external {\n  $$$_\n}"])))
-          + ($all
-          | within($all | of(["function $F($$$_, bytes $A, $$$_, string $B, $$$_) external {\n  $$$_\n}"])))
-          + ($all
-          | within($all | of(["function $F($$$_, string $A, $$$_, bytes $B, $$$_) external {\n  $$$_\n}"])))
-          + ($all
-          | within($all | of(["function $F($$$_, address[] $A, $$$_, address[] $B, $$$_) external {\n  $$$_\n}"])))
-          + ($all
-          | within($all | of(["function $F($$$_, uint256[] $A, $$$_, uint256[] $B, $$$_) external {\n  $$$_\n}"])))
-          | at_same_place(($all | of(["keccak256(abi.encodePacked($$$_, $A, $B, $$$_))","$X = abi.encodePacked($$$_, $A, $B, $$$_);\n$$$_\nkeccak256($X);"])))
+    | ( $all | of(["keccak256\\s*\\(\\s*abi\\.encodePacked\\s*\\("])
         | finding("encode-packed-collision";
             "abi.encodePacked hash collision with variable length arguments in $F()") ) )
 | report

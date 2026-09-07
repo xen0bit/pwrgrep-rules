@@ -1,46 +1,49 @@
 # rules: express-sandbox-code-injection
-# languages: typescript
+# languages: javascript, typescript
+# fixture: javascript/express-sandbox-injection.js
 # from: javascript/express/security/express-sandbox-injection.yaml
+#
+# Repair: `function $$$_ (...)` matched only named declarations, route callbacks had to be named, and `at_same_place` needed exact span coincidence; wrappers now cover anon and named shapes, the `sandbox` gates are file-level, and the sinks are one `$CODE` hole each. Globs cover *.js as well as *.ts.
 
 . as $root
-| ( ($root | scan_ast(["*.ts"]; [
+| ( ($root | scan_ast(["*.js","*.ts"]; [
       "$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})",
       "$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})",
+      "$APP.$METHOD($$$_, function ($REQ, $RES) {$$$_})",
+      "$APP.$METHOD($$$_, function ($REQ, $RES, $NEXT) {$$$_})",
+      "$REQ.query",
       "$REQ.body",
+      "$REQ.params",
       "$REQ.cookies",
       "$REQ.headers",
-      "$REQ.params",
-      "$REQ.query",
-      "$S = new $SANDBOX($$$_);\n$$$_",
-      "$S.run($$$_)",
-      "$SANDBOX = require('sandbox');\n$$$_",
+      "$SBX.run($CODE)",
+      "new $BOX($OPTS).run($CODE)",
+      "new $BOX().run($CODE)",
+      "$SBX = new $BOX($$$_);\n$$$_",
+      "const $SBX = new $BOX($$$_)",
+      "$SBXLIB = require('$IMPORT')\n$$$_",
+      "const $SBXLIB = require('$IMPORT')",
+      "let $SBXLIB = require('$IMPORT')",
+      "var $SBXLIB = require('$IMPORT')",
       "({ $REQ }: Request,$RES: Response) => {$$$_}",
       "({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) =>\n{$$$_}",
       "body",
       "cookies",
-      "function $$$_ ($REQ, $RES) {$$$_}",
-      "function $$$_ ($REQ, $RES, $NEXT) {$$$_}",
       "headers",
-      "new $SANDBOX($OPTS).run($$$_)",
-      "new $SANDBOX().run($$$_)",
       "params",
-      "query"
+      "query",
+      "function ($REQ, $RES) {$$$_}",
+      "function $FUNC($REQ, $RES) {$$$_}",
+      "function ($REQ, $RES, $NEXT) {$$$_}",
+      "function $FUNC($REQ, $RES, $NEXT) {$$$_}"
     ])) as $all
-    | ( ((($all | of(["$S.run($$$_)"])
-          | in_files_with($all | of(["$S = new $SANDBOX($$$_);\n$$$_"])))
-          + ($all | of(["new $SANDBOX($OPTS).run($$$_)"]))
-          + ($all | of(["new $SANDBOX().run($$$_)"]))
-          | in_files_with($all | of(["$SANDBOX = require('sandbox');\n$$$_"]))))
-          | reaching(((($all
-          | within($all | of(["function $$$_ ($REQ, $RES) {$$$_}"])))
-          + ($all
-          | within($all | of(["function $$$_ ($REQ, $RES, $NEXT) {$$$_}"])))
-          + (($all
-          | within($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})"])))
-          + ($all
-          | within($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})"])))
-          | where_capture("METHOD"; "^(get|post|put|head|delete|options)$"))
-          | at_same_place(($all | of(["$REQ.query","$REQ.body","$REQ.params","$REQ.cookies","$REQ.headers"]))))
+    | ( (($all | of(["$SBX.run($CODE)", "new $BOX($OPTS).run($CODE)", "new $BOX().run($CODE)"])
+          | focus("CODE"))
+          | in_files_with(($all | of(["$SBX = new $BOX($$$_);\n$$$_", "const $SBX = new $BOX($$$_)", "$SBXLIB = require('$IMPORT')\n$$$_", "const $SBXLIB = require('$IMPORT')"])) + ($all | of(["let $SBXLIB = require('$IMPORT')", "var $SBXLIB = require('$IMPORT')"])))
+          )
+          | reaching(((($all | of(["$REQ.query", "$REQ.body", "$REQ.params", "$REQ.cookies", "$REQ.headers"]))
+          | within((($all | of(["function ($REQ, $RES) {$$$_}", "function $FUNC($REQ, $RES) {$$$_}", "function ($REQ, $RES, $NEXT) {$$$_}", "function $FUNC($REQ, $RES, $NEXT) {$$$_}"])))
+          + ((($all | of(["$REQ.query", "$REQ.body", "$REQ.params", "$REQ.cookies", "$REQ.headers"])) | within((($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})", "$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})"])) + ($all | of(["$APP.$METHOD($$$_, function ($REQ, $RES) {$$$_})", "$APP.$METHOD($$$_, function ($REQ, $RES, $NEXT) {$$$_})"])))) | where_capture("METHOD"; "^(get|post|put|head|delete|options)$")))))
               + (($all
           | within($all | of(["({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) =>\n{$$$_}"])))
           + ($all

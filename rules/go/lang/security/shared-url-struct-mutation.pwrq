@@ -1,4 +1,5 @@
 # rules: shared-url-struct-mutation
+# fixture: go/shared-url-struct-mutation.go
 # from: go/lang/security/shared-url-struct-mutation.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: gcp-artifact-registry-private-repo-iam-member
 # languages: hcl
+# fixture: terraform/gcp-artifact-registry-private-repo-iam-member.tf
 # from: terraform/gcp/security/gcp-artifact-registry-private-repo-iam-member.yaml
 
 . as $root

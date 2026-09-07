@@ -1,6 +1,11 @@
 # rules: math-random-used
 # languages: go
+# fixture: go/math-random-used.go
 # from: go/lang/security/audit/crypto/math_random.yaml
+#
+# The translation kept the imports with `at_same_place` against the `rand`
+# uses, which never share a span, so the rule never fired. The finding is the
+# import in a file that uses it, hence `in_files_with`.
 
 . as $root
 | ( ($root | scan_ast(["*.go"]; [
@@ -10,7 +15,7 @@
       "import $RAND \"$MATH\""
     ])) as $all
     | ( $all | of(["import $RAND \"$MATH\"","import \"$MATH\""])
-          | at_same_place((($all
+          | in_files_with((($all
           | within($all | of(["$$$_\nrand.$FUNC($$$_)"])))
           + ($all
           | within($all | of(["$$$_\n$RAND.$FUNC($$$_)"])))))

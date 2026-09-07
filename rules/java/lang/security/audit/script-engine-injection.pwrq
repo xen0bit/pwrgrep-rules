@@ -1,4 +1,5 @@
 # rules: script-engine-injection
+# fixture: java/script-engine-injection.java
 # from: java/lang/security/audit/script-engine-injection.yaml
 
 . as $root

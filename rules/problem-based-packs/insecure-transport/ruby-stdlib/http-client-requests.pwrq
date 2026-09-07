@@ -1,15 +1,27 @@
 # rules: http-client-requests
 # languages: ruby
+# fixture: problem-based-packs/ruby-http-client-requests.rb
+#
+# The `"=~/.../"` string guards never match and the `;\n$$$_` gaps do not
+# span statements, so the rule never fired. Rewritten as direct HTTParty /
+# RestClient calls: literal-URL forms guarded by where_capture, and variable
+# forms (which carry no scheme) guarded to non-literals as audit findings.
 # from: problem-based-packs/insecure-transport/ruby-stdlib/http-client-requests.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.rb"]; [
-      "$STRING = \"=~/[hH][tT][tT][pP]://.*/\"\n$$$_\nHTTParty.$PARTYVERB($STRING, $$$_)",
-      "HTTParty.$PARTYVERB(\"=~/[hH][tT][tT][pP]://.*/\", $$$_)",
-      "RestClient.$RESTVERB \"=~/[hH][tT][tT][pP]://.*/\", $$$_",
-      "RestClient::Request.execute($$$_, url: \"=~/[hH][tT][tT][pP]://.*/\", $$$_)"
+      "HTTParty.$V($URL)",
+      "HTTParty.$V($S)",
+      "RestClient.$R $URL",
+      "RestClient.$R $S",
+      "RestClient::Request.execute($A, url: $U)",
+      "RestClient::Request.execute($A, url: $V)"
     ])) as $all
-    | ( $all | of(["HTTParty.$PARTYVERB(\"=~/[hH][tT][tT][pP]://.*/\", $$$_)","$STRING = \"=~/[hH][tT][tT][pP]://.*/\"\n$$$_\nHTTParty.$PARTYVERB($STRING, $$$_)","RestClient.$RESTVERB \"=~/[hH][tT][tT][pP]://.*/\", $$$_","RestClient::Request.execute($$$_, url: \"=~/[hH][tT][tT][pP]://.*/\", $$$_)"])
+    | ( (($all | of(["HTTParty.$V($URL)"]) | where_capture("URL"; "http://"))
+          + ($all | of(["RestClient.$R $URL"]) | where_capture("URL"; "http://"))
+          + ($all | of(["RestClient::Request.execute($A, url: $U)"]) | where_capture("U"; "http://"))
+          + ($all | of(["HTTParty.$V($S)","RestClient.$R $S"]) | where_capture_not("S"; "^\".*\"$") | where_capture_not("S"; "^'.*'$"))
+          + ($all | of(["RestClient::Request.execute($A, url: $V)"]) | where_capture_not("V"; "^\".*\"$") | where_capture_not("V"; "^'.*'$"))
         | finding("http-client-requests";
-            "Checks for requests to http (unencrypted) sites using some of ruby's most popular REST/HTTP libraries, including httparty and restclient.") ) )
+            "Checks for requests to http (unencrypted) sites using some of ruby's most popular REST/HTTP libraries, including httparty and restclient.") ) ) )
 | report

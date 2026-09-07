@@ -1,5 +1,6 @@
 # rules: dangerous-spawn-process
 # languages: python
+# fixture: python/dangerous-spawn-process.py
 # from: python/aws-lambda/security/dangerous-spawn-process.yaml
 
 . as $root

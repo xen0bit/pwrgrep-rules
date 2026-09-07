@@ -1,5 +1,6 @@
 # rules: azure-containergroup-deployed-into-virtualnetwork
 # languages: hcl
+# fixture: terraform/azure-containergroup-deployed-into-virtualnetwork.tf
 # from: terraform/azure/security/azure-containergroup-deployed-into-virtualnetwork.yaml
 
 . as $root

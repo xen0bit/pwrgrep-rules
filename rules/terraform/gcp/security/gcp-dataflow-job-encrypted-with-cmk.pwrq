@@ -1,5 +1,6 @@
 # rules: gcp-dataflow-job-encrypted-with-cmk
 # languages: hcl
+# fixture: terraform/gcp-dataflow-job-encrypted-with-cmk.tf
 # from: terraform/gcp/security/gcp-dataflow-job-encrypted-with-cmk.yaml
 
 . as $root

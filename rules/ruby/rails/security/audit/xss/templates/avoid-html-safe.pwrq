@@ -1,4 +1,5 @@
 # rules: avoid-html-safe
+# fixture: ruby/avoid-html-safe.erb
 # from: ruby/rails/security/audit/xss/templates/avoid-html-safe.yaml
 
 . as $root

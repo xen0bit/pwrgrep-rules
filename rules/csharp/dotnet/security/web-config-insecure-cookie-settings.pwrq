@@ -1,4 +1,5 @@
 # rules: web-config-insecure-cookie-settings
+# fixture: csharp/web-config-insecure-cookie-settings.config
 # from: csharp/dotnet/security/web-config-insecure-cookie-settings.yaml
 
 . as $root

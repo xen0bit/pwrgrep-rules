@@ -1,4 +1,5 @@
 # rules: missing-user-entrypoint
+# fixture: dockerfile/missing-user-entrypoint.dockerfile
 # from: dockerfile/security/missing-user-entrypoint.yaml
 
 . as $root

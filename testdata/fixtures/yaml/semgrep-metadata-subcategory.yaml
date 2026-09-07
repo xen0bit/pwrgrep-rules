@@ -1,0 +1,37 @@
+rules:
+  - id: sub-miss
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ruleid: metadata-subcategory
+    metadata:
+      category: security
+      confidence: HIGH
+    pattern: foo($X)
+  - id: sub-miss2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ruleid: metadata-subcategory
+    metadata:
+      category: security
+      impact: LOW
+    pattern: foo2($X)
+  - id: sub-have
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ok: metadata-subcategory
+    metadata:
+      category: security
+      subcategory:
+        - vuln
+    pattern: bar($X)
+  - id: sub-other-cat
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ok: metadata-subcategory
+    metadata:
+      category: correctness
+    pattern: bar2($X)

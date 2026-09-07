@@ -1,12 +1,17 @@
 # rules: wp-ajax-no-auth-and-auth-hooks-audit
 # languages: php
+# fixture: php/wp-ajax-no-auth-and-auth-hooks-audit.php
+#
+# Anonymous holes in call patterns are read as inline HTML text instead
+# of code, so the rule never fired. Rewritten with named holes (the eval-use
+# shape); see GUIDE.md.
 # from: php/wordpress-plugins/security/audit/wp-ajax-no-auth-and-auth-hooks-audit.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.php"]; [
-      "add_action($HOOK,$$$_)"
+      "add_action($HOOK,$CB,$$$_)"
     ])) as $all
-    | ( $all | of(["add_action($HOOK,$$$_)"])
+    | ( $all | of(["add_action($HOOK,$CB,$$$_)"])
           | where_capture("HOOK"; "^(?:'wp_ajax_.*')")
         | finding("wp-ajax-no-auth-and-auth-hooks-audit";
             "These hooks allow the developer to handle the custom AJAX endpoints.\"wp_ajax_$action\" hook get fires for any authenticated user and \"wp_ajax_nopriv_$action\" hook get fires for non-authenticated users.") ) )

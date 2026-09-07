@@ -1,5 +1,6 @@
 # rules: permissive-cors
 # languages: java
+# fixture: java/permissive-cors.java
 # from: java/lang/security/audit/permissive-cors.yaml
 
 . as $root

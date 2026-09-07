@@ -1,5 +1,6 @@
 # rules: object-deserialization
 # languages: java
+# fixture: java/object-deserialization.java
 # from: java/lang/security/audit/object-deserialization.yaml
 
 . as $root

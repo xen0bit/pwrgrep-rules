@@ -1,5 +1,6 @@
 # rules: gcp-sql-database-require-ssl
 # languages: hcl
+# fixture: terraform/gcp-sql-database-require-ssl.tf
 # from: terraform/gcp/security/gcp-sql-database-require-ssl.yaml
 
 . as $root

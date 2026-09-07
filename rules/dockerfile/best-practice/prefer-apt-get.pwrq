@@ -1,14 +1,20 @@
 # rules: prefer-apt-get
 # languages: dockerfile
+# fixture: dockerfile/prefer-apt-get.dockerfile
+#
+# RUN-shell AST holes never fire (the shell line is one opaque literal in the
+# dockerfile grammar), so the original `RUN apt $$$` minus `RUN apt-get $$$`
+# is rewritten as a single-line regex; the trailing boundary keeps apt-get
+# lines from matching, with a where_text_not guard for mixed lines. Globs
+# widened to cover *.dockerfile fixtures too.
 # from: dockerfile/best-practice/prefer-apt-get.yaml
 
 . as $root
-| ( ($root | scan_ast(["Dockerfile*"]; [
-      "RUN apt $$$_",
-      "RUN apt-get $$$_"
+| ( ($root | scan_regex(["Dockerfile*","*.dockerfile"]; [
+      "RUN\\s+apt(\\s|$)"
     ])) as $all
-    | ( $all | of(["RUN apt $$$_"])
-          | not_at($all | of(["RUN apt-get $$$_"]))
+    | ( $all | of(["RUN\\s+apt(\\s|$)"])
+          | where_text_not("apt-get")
         | finding("prefer-apt-get";
             "'apt-get' is preferred as an unattended tool for stability.") ) )
 | report

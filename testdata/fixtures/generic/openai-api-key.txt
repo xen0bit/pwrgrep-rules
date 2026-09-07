@@ -1,0 +1,10 @@
+# Gitleaks openai-api-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: openai-api-key
+sk-abcdefghijklmnopqrstT3BlbkFJuvwxyABCDEFGHIJKLMNO
+# ruleid: openai-api-key
+sk-lmnopqrstuvwxyABCDEFT3BlbkFJGHIJKLMNOPQRSTUVWXY0
+# ok: openai-api-key
+api_key = "example"
+# ok: openai-api-key
+token = "placeholder"

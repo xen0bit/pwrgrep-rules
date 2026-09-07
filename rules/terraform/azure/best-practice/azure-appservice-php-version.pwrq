@@ -1,5 +1,6 @@
 # rules: azure-appservice-php-version
 # languages: hcl
+# fixture: terraform/azure-appservice-php-version.tf
 # from: terraform/azure/best-practice/azure-appservice-php-version.yaml
 
 . as $root

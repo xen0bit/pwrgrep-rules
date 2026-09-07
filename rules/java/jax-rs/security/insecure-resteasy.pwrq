@@ -1,5 +1,6 @@
 # rules: insecure-resteasy-deserialization, default-resteasy-provider-abuse
 # languages: java
+# fixture: java/insecure-resteasy-deserialization.java
 # from: java/jax-rs/security/insecure-resteasy.yaml
 
 . as $root

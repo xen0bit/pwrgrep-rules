@@ -1,5 +1,6 @@
 # rules: useless-inner-function
 # languages: python
+# fixture: python/useless-innerfunction.py
 # from: python/lang/maintainability/useless-innerfunction.yaml
 
 . as $root

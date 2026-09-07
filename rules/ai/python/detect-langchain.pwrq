@@ -1,5 +1,6 @@
 # rules: detect-langchain
 # languages: python
+# fixture: ai/python/detect-langchain.py
 # from: ai/python/detect-langchain.yaml
 
 . as $root

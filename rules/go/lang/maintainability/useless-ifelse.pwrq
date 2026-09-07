@@ -1,16 +1,30 @@
 # rules: useless-if-conditional, useless-if-body
 # languages: go
+# fixture: go/useless-if-conditional.go
 # from: go/lang/maintainability/useless-ifelse.yaml
+#
+# Both patterns were written C-style: `if ($X)` never matches Go's
+# unparenthesised condition, and the anonymous `{ $$$_ }` bodies match
+# nothing. The conditions are unparenthesised and the bodies named.
+# The fixture covers the first id only; the `else` bodies there differ, so
+# the second id stays quiet.
+# Go's `if init; cond` form is subtracted. The pattern has no initializer in
+# it, so it compares the conditions and nothing else, and
+# `if a, ok := x.(T); ok { } else if b, ok := y.(T); ok { }` is two different
+# tests that both spell their condition `ok`. Over pwrq's own source the
+# unguarded rule reported thirty of those and no real one.
 
 . as $root
 | ( ($root | scan_ast(["*.go"]; [
-      "if ($X) {\n    $$$_\n} else if ($X) {\n    $$$_\n}",
-      "if ($X) {\n    $S\n} else {\n    $S\n}"
+      "if $X { $$$A } else if $X { $$$B }",
+      "if $X { $S } else { $S }"
     ])) as $all
-    | ( $all | of(["if ($X) {\n    $$$_\n} else if ($X) {\n    $$$_\n}"])
+    | ( $all | of(["if $X { $$$A } else if $X { $$$B }"])
+          | where_text_not("(?m)^[^\\n{]*\\bif [^\\n{]*;")
         | finding("useless-if-conditional";
             "Detected an if block that checks for the same condition on both branches (`$X`).") )
-      + ( $all | of(["if ($X) {\n    $S\n} else {\n    $S\n}"])
+      + ( $all | of(["if $X { $S } else { $S }"])
+          | where_text_not("(?m)^[^\\n{]*\\bif [^\\n{]*;")
         | finding("useless-if-body";
             "Detected identical statements in the if body and the else body of an if-statement.") ) )
 | report

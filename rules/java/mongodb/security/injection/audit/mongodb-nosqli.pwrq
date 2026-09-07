@@ -1,4 +1,5 @@
 # rules: mongodb-nosqli
+# fixture: java/mongodb-nosqli.java
 # from: java/mongodb/security/injection/audit/mongodb-nosqli.yaml
 
 . as $root

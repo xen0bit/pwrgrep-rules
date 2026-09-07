@@ -1,0 +1,10 @@
+# Gitleaks discord-client-id: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: discord-client-id
+discord=012345678901234567
+# ruleid: discord-client-id
+discord=123456789012345678
+# ok: discord-client-id
+discord = "example"
+# ok: discord-client-id
+discord = "placeholder"

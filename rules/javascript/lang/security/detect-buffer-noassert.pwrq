@@ -1,5 +1,6 @@
 # rules: detect-buffer-noassert
 # languages: javascript, typescript
+# fixture: javascript/detect-buffer-noassert.js
 # from: javascript/lang/security/detect-buffer-noassert.yaml
 
 . as $root

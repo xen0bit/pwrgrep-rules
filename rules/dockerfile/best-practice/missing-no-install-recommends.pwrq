@@ -1,14 +1,19 @@
 # rules: missing-no-install-recommends
 # languages: dockerfile
+# fixture: dockerfile/missing-no-install-recommends.dockerfile
+#
+# RUN-shell AST holes never fire (the shell line is one opaque literal in the
+# dockerfile grammar), so the original `RUN apt-get install $$$` minus
+# --no-install-recommends is rewritten as a single-line regex with a
+# where_text_not guard. Globs widened to cover *.dockerfile fixtures too.
 # from: dockerfile/best-practice/missing-no-install-recommends.yaml
 
 . as $root
-| ( ($root | scan_ast(["Dockerfile*"]; [
-      "RUN apt-get install $$$_",
-      "RUN apt-get install $$$_ --no-install-recommends $$$_"
+| ( ($root | scan_regex(["Dockerfile*","*.dockerfile"]; [
+      "RUN[^\\n]*apt-get\\s+install[^\\n]*"
     ])) as $all
-    | ( $all | of(["RUN apt-get install $$$_"])
-          | not_at($all | of(["RUN apt-get install $$$_ --no-install-recommends $$$_"]))
+    | ( $all | of(["RUN[^\\n]*apt-get\\s+install[^\\n]*"])
+          | where_text_not("no-install-recommends")
         | finding("missing-no-install-recommends";
             "This 'apt-get install' is missing '--no-install-recommends'.") ) )
 | report

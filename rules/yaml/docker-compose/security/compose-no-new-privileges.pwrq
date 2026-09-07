@@ -1,7 +1,10 @@
 # rules: compose-no-new-privileges
 # languages: yaml
-# fixture: yaml/compose-no-new-privileges.yaml
+# fixture: yaml/compose-explicit-false.yaml
 # from: yaml/docker-compose/security/no-new-privileges.yaml
+#
+# The twin no-new-privileges fires on a *missing* flag; this one fires on an
+# explicit false, so they need different fixtures.
 
 . as $root
 | ($root | scan_regex(["*.yaml","*.yml"]; [

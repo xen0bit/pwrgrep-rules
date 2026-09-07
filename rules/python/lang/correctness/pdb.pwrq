@@ -1,5 +1,6 @@
 # rules: pdb-remove
 # languages: python
+# fixture: python/pdb-remove.py
 # from: python/lang/correctness/pdb.yaml
 
 . as $root

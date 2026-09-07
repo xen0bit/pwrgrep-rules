@@ -1,0 +1,10 @@
+# Gitleaks pypi-upload-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: pypi-upload-token
+pypi-AgEIcHlwaS5vcmcABCDEFGHIJKLMNOPQRSTUVWXYabcdefghijklmnopqrstuvwxy
+# ruleid: pypi-upload-token
+pypi-AgEIcHlwaS5vcmcLMNOPQRSTUVWXYabcdefghijklmnopqrstuvwxy0123456789-
+# ok: pypi-upload-token
+api_key = "example"
+# ok: pypi-upload-token
+token = "placeholder"

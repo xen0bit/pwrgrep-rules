@@ -1,5 +1,6 @@
 # rules: detect-insecure-websocket
 # from: javascript/lang/security/detect-insecure-websocket.yaml
+# fixture: javascript/detect-insecure-websocket.js
 
 . as $root
 | ( ($root | scan_regex(["*"]; [

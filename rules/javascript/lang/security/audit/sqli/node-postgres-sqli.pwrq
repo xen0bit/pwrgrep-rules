@@ -1,35 +1,29 @@
 # rules: node-postgres-sqli
 # languages: javascript, typescript
+# fixture: javascript/node-postgres-sqli.js
 # from: javascript/lang/security/audit/sqli/node-postgres-sqli.yaml
+#
+# Repair: `within(require...)` confined matches to the require span, `at_same_place` needed exact coincidence, and the `function $$$` wrappers never matched. Sinks are selected first with file-level gates and sources cover anon/named declarations and arrows.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "$DB = new $CLIENT($$$_)\n$$$_",
+      "$DB = new $CLIENT($$$_)",
       "$DB.query($QUERY,$$$_)",
-      "$F. $$$_ .$SOURCE($$$_)",
-      "$NEWPOOL = new $CLIENT($$$_)\n$$$_\n$NEWPOOL.connect(($$$_, $DB, $$$_) => {\n    $$$_\n})",
-      "const { $CLIENT } = require('pg')\n $$$_",
-      "function $$$_ ($$$_,$FUNC,$$$_) {\n  $$$_\n}",
-      "let { $CLIENT } = require('pg')\n $$$_",
-      "var { $CLIENT } = require('pg')\n $$$_"
+      "($$$_, $FUNC, $$$_) => {$$$_}",
+      "($FUNC) => {$$$_}",
+      "const { $CLIENT } = require('pg')",
+      "function $F($$$_, $FUNC, $$$_) {$$$_}",
+      "function ($$$_, $FUNC, $$$_) {$$$_}",
+      "let { $CLIENT } = require('pg')",
+      "var { $CLIENT } = require('pg')"
     ])) as $all
-    | ( ((($all
-          | within($all | of(["const { $CLIENT } = require('pg')\n $$$_"])))
-          + ($all
-          | within($all | of(["var { $CLIENT } = require('pg')\n $$$_"])))
-          + ($all
-          | within($all | of(["let { $CLIENT } = require('pg')\n $$$_"])))
-          | at_same_place((($all
-          | in_files_with($all | of(["$DB = new $CLIENT($$$_)\n$$$_"])))
-          + ($all
-          | within($all | of(["$NEWPOOL = new $CLIENT($$$_)\n$$$_\n$NEWPOOL.connect(($$$_, $DB, $$$_) => {\n    $$$_\n})"])))))
-          | at_same_place(($all | of(["$DB.query($QUERY,$$$_)"])))
-          | focus("QUERY")))
-          | reaching((($all
-          | within($all | of(["function $$$_ ($$$_,$FUNC,$$$_) {\n  $$$_\n}"]))
-          | focus("FUNC")
-          | outside($all | of(["$F. $$$_ .$SOURCE($$$_)"]))));
+    | ( (($all | of(["$DB.query($QUERY,$$$_)"])
+          | focus("QUERY"))
+          | in_files_with(($all | of(["const { $CLIENT } = require('pg')", "let { $CLIENT } = require('pg')", "var { $CLIENT } = require('pg')"])) + ($all | of(["$DB = new $CLIENT($$$_)"])))
+          | reaching(((($all | of(["function ($$$_, $FUNC, $$$_) {$$$_}", "function $F($$$_, $FUNC, $$$_) {$$$_}"]))
+          + ($all | of(["($FUNC) => {$$$_}", "($$$_, $FUNC, $$$_) => {$$$_}"]))
+          | focus("FUNC")));
               ([]))
         | finding("node-postgres-sqli";
-            "Detected string concatenation with a non-literal variable in a node-postgres JS SQL statement.") ) )
+            "Detected string concatenation with a non-literal variable in a node-postgres JS SQL statement.") ) ))
 | report

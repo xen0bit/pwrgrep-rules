@@ -1,15 +1,16 @@
 # rules: insecure-http-request
+# fixture: apex/insecure-http-request.cls
 # from: apex/lang/security/ncino/endpoints/InsecureHttpRequest.yaml
 
 . as $root
 | ( ($root | scan_regex(["*.cls"]; [
-      "\\/\\/\\.\\*",
-      "\\[\\*\\]\\.\\*",
-      "http\\[:\\]\\[\\/\\]\\[\\/\\]"
+      "//.*",
+      "/\\*[\\s\\S]*?\\*/",
+      "http://\\S*"
     ])) as $all
-    | ( $all | of(["http\\[:\\]\\[\\/\\]\\[\\/\\]"])
-          | not_at($all | of(["\\/\\/\\.\\*"]))
-          | not_at($all | of(["\\[\\*\\]\\.\\*"]))
+    | ( $all | of(["http://\\S*"])
+          | outside($all | of(["//.*"]))
+          | outside($all | of(["/\\*[\\s\\S]*?\\*/"]))
         | finding("insecure-http-request";
             "The software transmits sensitive or security-critical data in cleartext in a communication channel that can be sniffed by unauthorized actors.") ) )
 | report

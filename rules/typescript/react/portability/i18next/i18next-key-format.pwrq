@@ -1,5 +1,6 @@
 # rules: i18next-key-format
 # languages: javascript, typescript
+# fixture: typescript/i18next-key-format.ts
 # from: typescript/react/portability/i18next/i18next-key-format.yaml
 
 . as $root

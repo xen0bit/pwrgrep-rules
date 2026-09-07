@@ -1,5 +1,6 @@
 # rules: azure-appservice-used-azure-files
 # languages: hcl
+# fixture: terraform/azure-appservice-used-azure-files.tf
 # from: terraform/azure/best-practice/azure-appservice-used-azure-files.yaml
 
 . as $root

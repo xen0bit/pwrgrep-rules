@@ -1,4 +1,5 @@
 # rules: missing-athena-workgroup-encryption
+# fixture: terraform/missing-athena-workgroup-encryption.tf
 # from: terraform/aws/security/missing-athena-workgroup-encryption.yaml
 
 . as $root

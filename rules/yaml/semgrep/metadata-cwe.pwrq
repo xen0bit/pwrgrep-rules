@@ -1,9 +1,9 @@
 # rules: metadata-cwe
 # languages: yaml
+# fixture: yaml/semgrep-metadata-cwe.yaml
 # from: yaml/semgrep/metadata-cwe.yaml
-
 . as $root
-| ( ($root | scan_ast(["*.yaml"]; [
+| ( ($root | scan_ast(["*.yaml","*.yml"]; [
       "cwe: $$$_",
       "metadata: $$$_",
       "rules: $$$_"

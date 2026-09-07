@@ -1,0 +1,10 @@
+# Gitleaks grafana-cloud-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: grafana-cloud-api-token
+glc_ABCDEFGHIJKLMNOPQRSTUVWXYabcdefg
+# ruleid: grafana-cloud-api-token
+glc_LMNOPQRSTUVWXYabcdefghijklmnopqr
+# ok: grafana-cloud-api-token
+api_key = "example"
+# ok: grafana-cloud-api-token
+token = "placeholder"

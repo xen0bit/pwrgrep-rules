@@ -1,5 +1,6 @@
 # rules: cookie-missing-httponly
 # languages: go
+# fixture: go/cookie-missing-httponly.go
 # from: go/lang/security/audit/net/cookie-missing-httponly.yaml
 
 . as $root

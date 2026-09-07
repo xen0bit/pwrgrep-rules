@@ -1,0 +1,10 @@
+# Gitleaks shopify-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: shopify-access-token
+shpat_abcdefABCDEF0123456789abcdefABCD
+# ruleid: shopify-access-token
+shpat_F0123456789abcdefABCDEF012345678
+# ok: shopify-access-token
+api_key = "example"
+# ok: shopify-access-token
+token = "placeholder"

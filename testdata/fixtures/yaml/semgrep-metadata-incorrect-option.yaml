@@ -1,0 +1,33 @@
+rules:
+  - id: opt-bad
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    pattern: foo($X)
+    options:
+      # ruleid: metadata-incorrect-option
+      bogus_option: true
+  - id: opt-bad2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    pattern: foo2($X)
+    options:
+      # ruleid: metadata-incorrect-option
+      another_bogus: 1
+  - id: opt-good
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    pattern: bar($X)
+    options:
+      # ok: metadata-incorrect-option
+      interfile: true
+  - id: opt-good2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    pattern: bar2($X)
+    options:
+      # ok: metadata-incorrect-option
+      generic_engine: true

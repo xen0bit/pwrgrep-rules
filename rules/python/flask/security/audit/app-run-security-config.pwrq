@@ -1,5 +1,6 @@
 # rules: avoid_using_app_run_directly
 # languages: python
+# fixture: python/app-run-security-config.py
 # from: python/flask/security/audit/app-run-security-config.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: use-jsonify
 # languages: python
+# fixture: python/use-jsonify.py
 # from: python/flask/best-practice/use-jsonify.yaml
 
 . as $root

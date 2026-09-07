@@ -1,5 +1,6 @@
 # rules: gcp-gke-nodepool-integrity-monitoring
 # languages: hcl
+# fixture: terraform/gcp-gke-nodepool-integrity-monitoring.tf
 # from: terraform/gcp/security/gcp-gke-nodepool-integrity-monitoring.yaml
 
 . as $root

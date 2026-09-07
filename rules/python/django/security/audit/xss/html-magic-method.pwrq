@@ -1,5 +1,6 @@
 # rules: html-magic-method
 # languages: python
+# fixture: python/html-magic-method.py
 # from: python/django/security/audit/xss/html-magic-method.yaml
 
 . as $root

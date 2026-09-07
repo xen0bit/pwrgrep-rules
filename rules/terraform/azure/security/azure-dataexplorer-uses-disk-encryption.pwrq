@@ -1,5 +1,6 @@
 # rules: azure-dataexplorer-uses-disk-encryption
 # languages: hcl
+# fixture: terraform/azure-dataexplorer-uses-disk-encryption.tf
 # from: terraform/azure/security/azure-dataexplorer-uses-disk-encryption.yaml
 
 . as $root

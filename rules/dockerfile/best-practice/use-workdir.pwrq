@@ -1,17 +1,18 @@
 # rules: use-workdir
+# languages: dockerfile
+# fixture: dockerfile/use-workdir.dockerfile
+#
+# The ported query filtered a (?P<CMD>\S+) capture through where_capture_ast
+# with a bare `cd` source snippet, which never matched, so the rule never
+# fired. Rewritten as a single-line regex for a leading `cd` in the RUN
+# shell. Globs widened to cover *.dockerfile fixtures too.
 # from: dockerfile/best-practice/use-workdir.yaml
 
 . as $root
-| ( ($root | scan_regex(["Dockerfile*"]; [
-      "RUN\\s+(?P<CMD>\\S+)\\s+[\\s\\S]*?\\s+&&\\s+[\\s\\S]*?",
-      "RUN\\s+\\$\\s+CMD\\s+[\\s\\S]*?"
+| ( ($root | scan_regex(["Dockerfile*","*.dockerfile"]; [
+      "RUN\\s+cd(\\s|;|$)"
     ])) as $all
-    | ( ($all
-          | within($all | of(["RUN\\s+\\$\\s+CMD\\s+[\\s\\S]*?"])))
-          + ($all
-          | within($all | of(["RUN\\s+(?P<CMD>\\S+)\\s+[\\s\\S]*?\\s+&&\\s+[\\s\\S]*?"])))
-          | where_capture_ast("CMD"; "cd")
-          | focus("CMD")
+    | ( $all | of(["RUN\\s+cd(\\s|;|$)"])
         | finding("use-workdir";
             "As recommended by Docker's documentation, it is best to use 'WORKDIR' instead of 'RUN cd ...' for improved clarity and reliability.") ) )
 | report

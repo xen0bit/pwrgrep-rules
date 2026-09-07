@@ -1,5 +1,6 @@
 # rules: spring-unvalidated-redirect
 # languages: java
+# fixture: java/spring-unvalidated-redirect.java
 # from: java/spring/security/audit/spring-unvalidated-redirect.yaml
 
 . as $root

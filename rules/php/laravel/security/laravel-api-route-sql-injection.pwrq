@@ -23,13 +23,20 @@
 # follow. Requiring the literal is what stands in for it, and it is why this
 # half of the rule is scoped to route closures: demanding a literal query
 # everywhere would report every built query in the program.
+#
+# A PHP superglobal cannot be written into a pattern: `$_GET` is a `$` and
+# a name, which is how a hole is spelled, so `$_GET[$K]` reads as "any
+# variable subscripted by anything". The four spellings were one pattern
+# four times over, and the source set was every array access in the file.
+# The name is pinned by guard on the capture instead, whose text carries
+# the `$`.
 
 ["Route::get($ROUTE, function ($ARG) { $$$BODY });",
  "Route::post($ROUTE, function ($ARG) { $$$BODY });",
  "Route::put($ROUTE, function ($ARG) { $$$BODY });",
  "Route::patch($ROUTE, function ($ARG) { $$$BODY });",
  "Route::delete($ROUTE, function ($ARG) { $$$BODY });"] as $routes
-| ["$_GET[$K]", "$_POST[$K]", "$_REQUEST[$K]", "$_COOKIE[$K]"] as $superglobals
+| ["$SG[$K]"] as $superglobals
 | ["DB::raw($QUERY)", "DB::select($QUERY, $$$_)",
    "DB::statement($QUERY, $$$_)",
    "DB::unprepared($QUERY)"] as $sinks
@@ -40,7 +47,7 @@
       | focus("QUERY") )
   + ( $all | of($sinks)
       | focus("QUERY")
-      | reaching($all | of($superglobals); []) ) )
+      | reaching(($all | of($superglobals) | where_capture("SG"; "^\\$_(?:GET|POST|REQUEST|COOKIE)$")); []) ) )
 | finding("laravel-api-route-sql-injection";
     "this is one of the four builder calls that does not parameterise, and the "
     + "query is built rather than written; pass the value as a binding instead")

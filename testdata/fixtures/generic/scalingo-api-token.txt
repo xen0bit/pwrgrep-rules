@@ -1,0 +1,10 @@
+# Gitleaks scalingo-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: scalingo-api-token
+tk-us-abcdefghijklmnopqrstuvwxyABCDEFGHIJKLMNOPQRSTUVW
+# ruleid: scalingo-api-token
+tk-us-lmnopqrstuvwxyABCDEFGHIJKLMNOPQRSTUVWXY012345678
+# ok: scalingo-api-token
+api_key = "example"
+# ok: scalingo-api-token
+token = "placeholder"

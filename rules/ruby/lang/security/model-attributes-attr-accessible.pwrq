@@ -1,4 +1,12 @@
 # rules: model-attributes-attr-accessible
+# fixture: ruby/model-attributes-attr-accessible.rb
+#
+# RE2 has no backreference, so the class named in the declaration and the
+# receiver of the later call cannot be required to be the same name: what
+# the pattern really says is "a subclass, and somewhere after it a call".
+# The superclass is pinned to the two a Rails model actually has, without
+# which the rule reports every class in a Ruby library - eighty-six of them
+# in Shopify's Liquid, which has no models and no mass assignment.
 # from: ruby/lang/security/model-attributes-attr-accessible.yaml
 
 . as $root
@@ -8,6 +16,7 @@
     ])) as $all
     | ( $all | of(["class\\s+(?P<CLASS>\\S+)\\s+<\\s+(?P<TYPE>\\S+)\\s+[\\s\\S]*?\\s+end\\s+[\\s\\S]*?\\s+(?P<CLASS>\\S+)\\.(?P<FUNC>\\S+)\\([\\s\\S]*?\\)"])
           | not_at($all | of(["class\\s+(?P<CLASS>\\S+)\\s+<\\s+(?P<TYPE>\\S+)\\s+[\\s\\S]*?\\s+attr_accessible\\s+:(?P<XXX>\\S+)\\s+[\\s\\S]*?\\s+end\\s+[\\s\\S]*?\\s+(?P<CLASS>\\S+)\\.(?P<FUNC>\\S+)\\([\\s\\S]*?\\)"]))
+          | where_capture("TYPE"; "^(?:ActiveRecord::Base|ApplicationRecord)$")
           | focus("CLASS")
         | finding("model-attributes-attr-accessible";
             "Checks for models that do not use attr_accessible.") ) )

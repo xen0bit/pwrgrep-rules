@@ -1,0 +1,10 @@
+# A zypper install without -y or --no-confirm blocks on confirmation.
+# Ok lines come first: the -y/--no-confirm exclusions span forward otherwise.
+# ok: missing-zypper-no-confirm-switch
+RUN zypper install -y nginx
+# ok: missing-zypper-no-confirm-switch
+RUN zypper install --no-confirm curl
+# ruleid: missing-zypper-no-confirm-switch
+RUN zypper install nginx
+# ruleid: missing-zypper-no-confirm-switch
+RUN zypper install curl wget

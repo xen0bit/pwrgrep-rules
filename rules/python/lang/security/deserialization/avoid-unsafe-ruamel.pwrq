@@ -1,5 +1,6 @@
 # rules: avoid-unsafe-ruamel
 # languages: python
+# fixture: python/avoid-unsafe-ruamel.py
 # from: python/lang/security/deserialization/avoid-unsafe-ruamel.yaml
 
 . as $root

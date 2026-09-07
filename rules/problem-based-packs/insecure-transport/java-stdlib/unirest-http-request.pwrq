@@ -1,13 +1,19 @@
 # rules: unirest-http-request
 # languages: java
+# fixture: problem-based-packs/java-unirest-http-request.java
+#
+# The `"=~/.../"` string guards never match and untyped `$X = new ...`
+# declarations never match typed Java, so the rule never fired. Rewritten with
+# typed declarations and the URL in a named hole guarded by where_capture.
 # from: problem-based-packs/insecure-transport/java-stdlib/unirest-http-request.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.java"]; [
-      "Unirest.get(\"=~/[hH][tT][tT][pP]://.*/\")",
-      "Unirest.post(\"=~/[hH][tT][tT][pP]://.*/\")"
+      "Unirest.get($URL)",
+      "Unirest.post($URL)"
     ])) as $all
-    | ( $all | of(["Unirest.get(\"=~/[hH][tT][tT][pP]://.*/\")","Unirest.post(\"=~/[hH][tT][tT][pP]://.*/\")"])
+    | ( $all | of(["Unirest.get($URL)","Unirest.post($URL)"])
+          | where_capture("URL"; "http://")
         | finding("unirest-http-request";
             "Checks for requests sent via Unirest to http:// URLS.") ) )
 | report

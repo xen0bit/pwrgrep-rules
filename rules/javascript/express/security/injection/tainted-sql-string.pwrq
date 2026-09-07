@@ -1,42 +1,48 @@
 # rules: tainted-sql-string
-# languages: typescript
+# languages: javascript, typescript
+# fixture: javascript/tainted-sql-string-express.js
 # from: javascript/express/security/injection/tainted-sql-string.yaml
+#
+# Repair: `function $$$_ (...)` matched only named declarations and `at_same_place` needed exact span coincidence, so the SQL-string shapes never connected to a source; wrappers now cover anon and named shapes and the gate uses `reaching` over the concat/template/format shapes. Globs cover *.js as well as *.ts.
 
 . as $root
-| ( ($root | scan_ast(["*.ts"]; [
-      "\"$SQLSTR\" + $EXPR",
-      "\"$SQLSTR\".concat($EXPR)",
+| ( ($root | scan_ast(["*.js","*.ts"]; [
+      "$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})",
+      "$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})",
+      "$APP.$METHOD($$$_, function ($REQ, $RES) {$$$_})",
+      "$APP.$METHOD($$$_, function ($REQ, $RES, $NEXT) {$$$_})",
+      "$REQ.query",
       "$REQ.body",
+      "$REQ.params",
       "$REQ.cookies",
       "$REQ.headers",
-      "$REQ.params",
-      "$REQ.query",
-      "($$$_,{ $REQ }: $EXPRESS.Request,$$$_) => {$$$_}",
-      "($$$_,{ $REQ }: Request,$$$_) => {$$$_}",
-      "`$SQLSTR${$EXPR}$$$_`",
+      "\"$SQL\" + $EXPR",
+      "\"$SQL\".concat($EXPR)",
+      "`$SQL${$EXPR}$$$_`",
+      "util.format($SQL, $EXPR)",
+      "({ $REQ }: Request,$RES: Response) => {$$$_}",
+      "({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) =>\n{$$$_}",
       "body",
       "cookies",
-      "function $$$_ ($$$_,$REQ, $$$_) {$$$_}",
       "headers",
       "params",
       "query",
-      "util.format($SQLSTR, $EXPR)"
+      "function ($REQ, $RES) {$$$_}",
+      "function $FUNC($REQ, $RES) {$$$_}",
+      "function ($REQ, $RES, $NEXT) {$$$_}",
+      "function $FUNC($REQ, $RES, $NEXT) {$$$_}"
     ])) as $all
-    | ( (((($all
-          | within($all | of(["\"$SQLSTR\" + $EXPR"])))
-          + ($all
-          | within($all | of(["\"$SQLSTR\".concat($EXPR)"])))
-          + ($all | of(["util.format($SQLSTR, $EXPR)"]))
-          + ($all | of(["`$SQLSTR${$EXPR}$$$_`"]))
-          | where_capture("SQLSTR"; "^(?:.*\\b(?i)(select|delete|insert|create|update\\s+.+\\sset|alter|drop)\\b.*)"))
-          | focus("EXPR")))
-          | reaching(((($all
-          | within($all | of(["function $$$_ ($$$_,$REQ, $$$_) {$$$_}"])))
-          | at_same_place(($all | of(["$REQ.query","$REQ.body","$REQ.params","$REQ.cookies","$REQ.headers"]))))
+    | ( (($all | of(["\"$SQL\" + $EXPR", "\"$SQL\".concat($EXPR)", "`$SQL${$EXPR}$$$_`", "util.format($SQL, $EXPR)"])
+          | where_capture("SQL"; "^(?i)(?:.*\\b(select|delete|insert|create|update\\s+.+\\sset|alter|drop)\\b.*)")
+          | focus("EXPR"))
+          )
+          | reaching(((($all | of(["$REQ.query", "$REQ.body", "$REQ.params", "$REQ.cookies", "$REQ.headers"]))
+          | within((($all | of(["function ($REQ, $RES) {$$$_}", "function $FUNC($REQ, $RES) {$$$_}", "function ($REQ, $RES, $NEXT) {$$$_}", "function $FUNC($REQ, $RES, $NEXT) {$$$_}"])))
+          + ((($all | of(["$REQ.query", "$REQ.body", "$REQ.params", "$REQ.cookies", "$REQ.headers"])) | within((($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})", "$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})"])) + ($all | of(["$APP.$METHOD($$$_, function ($REQ, $RES) {$$$_})", "$APP.$METHOD($$$_, function ($REQ, $RES, $NEXT) {$$$_})"])))) | where_capture("METHOD"; "^(get|post|put|head|delete|options)$")))))
               + (($all
-          | within($all | of(["($$$_,{ $REQ }: Request,$$$_) => {$$$_}"])))
+          | within($all | of(["({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) =>\n{$$$_}"])))
           + ($all
-          | within($all | of(["($$$_,{ $REQ }: $EXPRESS.Request,$$$_) => {$$$_}"])))
+          | within($all | of(["({ $REQ }: Request,$RES: Response) => {$$$_}"])))
           | at_same_place(($all | of(["params","query","cookies","headers","body"])))
           | focus("REQ")));
               ([]))

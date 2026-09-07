@@ -1,5 +1,6 @@
 # rules: dangerous-globals-use
 # languages: python
+# fixture: python/dangerous-globals-use.py
 # from: python/lang/security/dangerous-globals-use.yaml
 
 . as $root

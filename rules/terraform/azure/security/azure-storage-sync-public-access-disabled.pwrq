@@ -1,5 +1,6 @@
 # rules: azure-storage-sync-public-access-disabled
 # languages: hcl
+# fixture: terraform/azure-storage-sync-public-access-disabled.tf
 # from: terraform/azure/security/azure-storage-sync-public-access-disabled.yaml
 
 . as $root

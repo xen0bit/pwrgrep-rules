@@ -1,0 +1,21 @@
+job1:
+  rules:
+    # ruleid: changes-with-when-never
+    - changes:
+        - "*.py"
+      when: never
+job2:
+  rules:
+    # ruleid: changes-with-when-never
+    - changes:
+        - "*.py"
+      when: never
+job3:
+  rules:
+    # ok: changes-with-when-never
+    - changes:
+        - "*.py"
+      when: always
+job4:
+  # ok: changes-with-when-never
+  script: echo hi

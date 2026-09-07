@@ -1,0 +1,9 @@
+# Visualforce pages below API version 55 miss the required cspHeader.
+# ruleid: visualforce-page-api-version
+<apiVersion>54.0</apiVersion>
+# ruleid: visualforce-page-api-version
+<apiVersion>32.0</apiVersion>
+# ok: visualforce-page-api-version
+<apiVersion>55.0</apiVersion>
+# ok: visualforce-page-api-version
+<apiVersion>60.0</apiVersion>

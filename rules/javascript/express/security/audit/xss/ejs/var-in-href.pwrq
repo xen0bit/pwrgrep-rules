@@ -1,5 +1,6 @@
 # rules: var-in-href
 # from: javascript/express/security/audit/xss/ejs/var-in-href.yaml
+# fixture: javascript/var-in-href-ejs.js
 
 . as $root
 | ( ($root | scan_regex(["*.ejs","*.html"]; [

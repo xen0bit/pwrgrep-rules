@@ -1,9 +1,10 @@
 # rules: metadata-incorrect-option
 # languages: yaml
+# fixture: yaml/semgrep-metadata-incorrect-option.yaml
 # from: yaml/semgrep/metadata-incorrect-option.yaml
-
+# fixture: yaml/semgrep-metadata-incorrect-option.yaml
 . as $root
-| ( ($root | scan_ast(["*.yaml"]; [
+| ( ($root | scan_ast(["*.yaml","*.yml"]; [
       "$KEY: $VALUE",
       "options:\n  $A",
       "rules: $$$_"

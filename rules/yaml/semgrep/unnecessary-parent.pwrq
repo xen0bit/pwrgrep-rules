@@ -1,22 +1,19 @@
 # rules: unnecessary-parent-operator
 # languages: yaml
+# fixture: yaml/semgrep-unnecessary-parent.yaml
+#
+# Two-item wrappers never match a lone child and multi-child shapes match
+# the two-item forms too, so the rule covers exactly single-child wrappers,
+# with the rules-list scope at file level:
 # from: yaml/semgrep/unnecessary-parent.yaml
-
 . as $root
-| ( ($root | scan_ast(["*.yaml"]; [
-      "pattern-either:\n- $$$_\n- pattern-either:\n  - $$$_",
-      "pattern-either:\n- $THING1\n- $$$_",
-      "pattern-either:\n- $THING1\n- $THING2\n- $$$_",
-      "patterns:\n- $THING1\n- $$$_",
-      "patterns:\n- $THING1\n- $THING2\n- $$$_",
-      "rules: [$$$_, $RULE, $$$_]"
+| ( ($root | scan_ast(["*.yaml","*.yml"]; [
+      "pattern-either:\n- $THING1",
+      "patterns:\n- pattern: $P",
+      "rules: [$$$_, $RULE, $$$]"
     ])) as $all
-    | ( ($all | of(["pattern-either:\n- $THING1\n- $$$_"])
-          | not_at($all | of(["pattern-either:\n- $THING1\n- $THING2\n- $$$_"])))
-          + ($all | of(["patterns:\n- $THING1\n- $$$_"])
-          | not_at($all | of(["patterns:\n- $THING1\n- $THING2\n- $$$_"])))
-          + ($all | of(["pattern-either:\n- $$$_\n- pattern-either:\n  - $$$_"]))
-          | within($all | of(["rules: [$$$_, $RULE, $$$_]"]))
+    | ( $all | of(["pattern-either:\n- $THING1","patterns:\n- pattern: $P"])
+          | in_files_with($all | of(["rules: [$$$_, $RULE, $$$]"]))
         | finding("unnecessary-parent-operator";
             "Unnecessary parent operator.") ) )
 | report

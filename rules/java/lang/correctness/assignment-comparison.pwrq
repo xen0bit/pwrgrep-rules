@@ -1,5 +1,6 @@
 # rules: assignment-comparison
 # languages: java
+# fixture: java/assignment-comparison.java
 # from: java/lang/correctness/assignment-comparison.yaml
 
 . as $root

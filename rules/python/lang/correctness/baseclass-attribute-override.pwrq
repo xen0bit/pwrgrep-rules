@@ -1,18 +1,33 @@
 # rules: baseclass-attribute-override
 # languages: python
+# fixture: python/baseclass-attribute-override.py
+#
+# The translated rule asked where_same("F1"; "F2") of matches that bind
+# neither hole, over class patterns whose base-list ellipses and bare
+# `$$$` bodies never match, so it was empty three ways over. Classes now
+# use named body holes, the diamond is the exact two-base spelling (an
+# ellipsis among bases has no reading), and the two name joins the
+# translation assumed — $A to its class, $B to its class, and the shared
+# method name — are plain jq over captures: the defs within each named
+# base are collected and the finding kept when the method-name sets meet.
 # from: python/lang/correctness/baseclass-attribute-override.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.py"]; [
-      "class $A($$$_):\n  $$$_\n  def $F1($$$_):\n    $$$_\n  $$$_\n$$$_",
-      "class $B($$$_):\n  $$$_\n  def $F2($$$_):\n    $$$_\n  $$$_\n$$$_",
-      "class $C($$$_, $A, $$$_, $B, $$$_):\n  $$$_"
+      "class $C($A, $B):\n  $$$_BODY",
+      "class $P($$$_):\n  $$$_BP",
+      "def $F($$$_):\n  $$$_BF"
     ])) as $all
-    | ( $all | of(["class $C($$$_, $A, $$$_, $B, $$$_):\n  $$$_"])
-          | in_files_with($all | of(["class $A($$$_):\n  $$$_\n  def $F1($$$_):\n    $$$_\n  $$$_\n$$$_"]))
-          | in_files_with($all | of(["class $B($$$_):\n  $$$_\n  def $F2($$$_):\n    $$$_\n  $$$_\n$$$_"]))
-          | where_same("F1"; "F2")
-          | focus("C")
-        | finding("baseclass-attribute-override";
-            "Class $C inherits from both `$A` and `$B` which both have a method named `$F`; one of these methods will be overwritten.") ) )
+    | (($all | of(["class $P($$$_):\n  $$$_BP"])) as $clss
+      | (($all | of(["def $F($$$_):\n  $$$_BF"])) as $fdefs
+        | ($all | of(["class $C($A, $B):\n  $$$_BODY"])
+          | map(. as $c
+            | ($clss | map(select(.Captures.P == $c.Captures.A))) as $cas
+            | ($clss | map(select(.Captures.P == $c.Captures.B))) as $cbs
+            | ($cas | map(. as $ca | ($fdefs | within([$ca]) | map(.Captures.F))) | add) as $fa
+            | ($cbs | map(. as $cb | ($fdefs | within([$cb]) | map(.Captures.F))) | add) as $fb
+            | select((($fa // []) | map(select(. as $f | ($fb // []) | index($f))) | length) > 0))
+          | focus("C"))) )
+    | finding("baseclass-attribute-override";
+        "Class $C inherits from both `$A` and `$B` which define the same method; one of these methods will be overwritten.") )
 | report

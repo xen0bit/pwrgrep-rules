@@ -1,0 +1,9 @@
+# Any baseURL line is reported; only non-baseURL lines are clean.
+# ruleid: invalid-base-url
+baseURL = "example.com/docs/"
+# ruleid: invalid-base-url
+baseURL = "ftp://files.example.com/"
+# ok: invalid-base-url
+title = "Example docs"
+# ok: invalid-base-url
+canonifyURLs = true

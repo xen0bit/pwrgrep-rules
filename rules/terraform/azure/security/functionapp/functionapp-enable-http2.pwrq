@@ -1,5 +1,6 @@
 # rules: functionapp-enable-http2
 # languages: hcl
+# fixture: terraform/functionapp-enable-http2.tf
 # from: terraform/azure/security/functionapp/functionapp-enable-http2.yaml
 
 . as $root

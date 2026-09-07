@@ -1,5 +1,6 @@
 # rules: open-redirect
 # languages: python
+# fixture: python/django-open-redirect.py
 # from: python/django/security/injection/open-redirect.yaml
 
 . as $root

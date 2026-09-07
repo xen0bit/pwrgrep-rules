@@ -1,0 +1,23 @@
+rules:
+  # ruleid: missing-message-field
+  - id: no-msg
+    languages: [python]
+    severity: WARNING
+    pattern: foo($X)
+  # ruleid: missing-message-field
+  - id: no-msg2
+    languages: [python]
+    severity: WARNING
+    pattern: foo2($X)
+  # ok: missing-message-field
+  - id: has-msg
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    pattern: bar($X)
+  # ok: missing-message-field
+  - id: extract-ok
+    languages: [python]
+    severity: WARNING
+    mode: extract
+    pattern: bar2($X)

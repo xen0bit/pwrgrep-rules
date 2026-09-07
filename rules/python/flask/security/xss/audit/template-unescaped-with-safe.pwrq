@@ -1,4 +1,5 @@
 # rules: template-unescaped-with-safe
+# fixture: python/template-unescaped-with-safe.html
 # from: python/flask/security/xss/audit/template-unescaped-with-safe.yaml
 
 . as $root

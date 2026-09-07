@@ -1,5 +1,6 @@
 # rules: detect-angular-trust-as-url-method
 # languages: javascript, typescript
+# fixture: javascript/detect-angular-trust-as-url-method.js
 # from: javascript/angular/security/detect-angular-trust-as-url-method.yaml
 
 . as $root

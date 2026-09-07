@@ -1,4 +1,5 @@
 # rules: unquoted-attribute
+# fixture: ruby/unquoted-attribute.erb
 # from: ruby/rails/security/audit/xss/templates/unquoted-attribute.yaml
 
 . as $root

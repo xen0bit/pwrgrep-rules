@@ -1,14 +1,17 @@
 # rules: wp-code-execution-audit
 # languages: php
+# fixture: php/wp-code-execution-audit.php
+#
+# The original call patterns used anonymous holes, which the PHP grammar
+# reads as inline HTML text instead of code, so the rule never fired.
+# Rewritten with a hole in function position plus a where_capture allowlist
+# of the audited names (the eval-use shape); see GUIDE.md.
 # from: php/wordpress-plugins/security/audit/wp-code-execution-audit.yaml
 
-. as $root
-| ( ($root | scan_ast(["*.php"]; [
-      "assert($$$_)",
-      "call_user_func($$$_)",
-      "eval($$$_)"
-    ])) as $all
-    | ( $all | of(["eval($$$_)","assert($$$_)","call_user_func($$$_)"])
-        | finding("wp-code-execution-audit";
-            "These functions can lead to code injection if the data inside them is user-controlled.") ) )
+["$F($CODE)", "$F($CODE, $$$_)"] as $calls
+| scan_ast("*.php"; $calls) as $all
+| ($all | of(["$F($CODE)", "$F($CODE, $$$_)"]))
+| where_capture("F"; "^(?:assert|call_user_func|eval)$")
+| finding("wp-code-execution-audit";
+            "These functions can lead to code injection if the data inside them is user-controlled.")
 | report

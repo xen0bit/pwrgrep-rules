@@ -1,7 +1,12 @@
 # rules: symfony-permissive-cors
 # languages: php
+# fixture: php/symfony-permissive-cors.php
+#
+# Only the headers->set() path fires: the new-Response() readings pair a
+# whole-call positive with per-item at_same_place guards that never
+# coincide, so constructor-built responses stay quiet. The fixture covers
+# the set() path.
 # from: php/symfony/security/audit/symfony-permissive-cors.yaml
-
 . as $root
 | ( ($root | scan_ast(["*.php"]; [
       "$HEADERS = [$KEY => $VALUE];\n$$$_",

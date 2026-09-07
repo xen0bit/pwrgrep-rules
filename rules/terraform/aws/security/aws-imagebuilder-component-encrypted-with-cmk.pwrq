@@ -1,5 +1,6 @@
 # rules: aws-imagebuilder-component-encrypted-with-cmk
 # languages: hcl
+# fixture: terraform/aws-imagebuilder-component-encrypted-with-cmk.tf
 # from: terraform/aws/security/aws-imagebuilder-component-encrypted-with-cmk.yaml
 
 . as $root

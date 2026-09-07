@@ -1,5 +1,6 @@
 # rules: pyramid-set-cookie-httponly-unsafe-value
 # languages: python
+# fixture: python/set-cookie-httponly-unsafe-value.py
 # from: python/pyramid/audit/set-cookie-httponly-unsafe-value.yaml
 
 . as $root

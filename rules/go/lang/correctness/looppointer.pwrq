@@ -1,13 +1,29 @@
 # rules: exported_loop_pointer
+# languages: go
+# fixture: go/exported-loop-pointer.go
 # from: go/lang/correctness/looppointer.yaml
+#
+# The translated regexes wrapped their wildcards in literal `<...>` (Semgrep
+# ellipsis syntax), so they matched no valid Go file; with the brackets
+# stripped the multiline wildcards still spanned loops and double-reported
+# lines. The rule now reads the loop structurally and asks whether the body
+# takes an address. It does not check the address is the iteration
+# variable's, so `&w` for an outer `w` inside the body also reads as a match:
+# `where_capture_ast("B"; "&$V")` re-binds `$V` rather than comparing it to
+# the one already bound, and neither an inline `&$V` in the body nor a
+# statement-sequence ellipsis matches at all, so there is no spelling of the
+# comparison. Over pwrq's own source that costs 52 findings for a handful of
+# real ones, nearly all of them `&err` and `&buf` declared outside the loop.
+# Since Go 1.22 the iteration variable is per-iteration and the bug it
+# describes is gone for any module that declares that version or later, so
+# the finding is worth reading only against an older `go` directive.
 
 . as $root
-| ( ($root | scan_regex(["*.go"]; [
-      "for\\s+_,\\s+(?P<VALUE>\\S+)\\s+:=\\s+range\\s+(?P<SOURCE>\\S+)\\s+\\{\\s+<[\\s\\S]*?\\s+&\\((?P<VALUE>\\S+)\\)\\s+[\\s\\S]*?>\\s+\\}",
-      "for\\s+_,\\s+(?P<VALUE>\\S+)\\s+:=\\s+range\\s+(?P<SOURCE>\\S+)\\s+\\{\\s+<[\\s\\S]*?\\s+(?P<ANYTHING>\\S+)\\([\\s\\S]*?,\\s+<[\\s\\S]*?\\s+&(?P<VALUE>\\S+)\\s+[\\s\\S]*?>,\\s+[\\s\\S]*?\\)\\s+[\\s\\S]*?>\\s+\\}",
-      "for\\s+_,\\s+(?P<VALUE>\\S+)\\s+:=\\s+range\\s+(?P<SOURCE>\\S+)\\s+\\{\\s+<[\\s\\S]*?\\s+func\\(\\)\\s+\\{\\s+<[\\s\\S]*?\\s+&(?P<VALUE>\\S+)\\s+[\\s\\S]*?>\\s+\\}\\s+[\\s\\S]*?>\\s+\\}"
+| ( ($root | scan_ast(["*.go"]; [
+      "for _, $V := range $SRC { $$$B }"
     ])) as $all
-    | ( $all | of(["for\\s+_,\\s+(?P<VALUE>\\S+)\\s+:=\\s+range\\s+(?P<SOURCE>\\S+)\\s+\\{\\s+<[\\s\\S]*?\\s+&\\((?P<VALUE>\\S+)\\)\\s+[\\s\\S]*?>\\s+\\}","for\\s+_,\\s+(?P<VALUE>\\S+)\\s+:=\\s+range\\s+(?P<SOURCE>\\S+)\\s+\\{\\s+<[\\s\\S]*?\\s+func\\(\\)\\s+\\{\\s+<[\\s\\S]*?\\s+&(?P<VALUE>\\S+)\\s+[\\s\\S]*?>\\s+\\}\\s+[\\s\\S]*?>\\s+\\}","for\\s+_,\\s+(?P<VALUE>\\S+)\\s+:=\\s+range\\s+(?P<SOURCE>\\S+)\\s+\\{\\s+<[\\s\\S]*?\\s+(?P<ANYTHING>\\S+)\\([\\s\\S]*?,\\s+<[\\s\\S]*?\\s+&(?P<VALUE>\\S+)\\s+[\\s\\S]*?>,\\s+[\\s\\S]*?\\)\\s+[\\s\\S]*?>\\s+\\}"])
+    | ( $all | of(["for _, $V := range $SRC { $$$B }"])
+          | where_capture_ast("B"; "&$V")
         | finding("exported_loop_pointer";
-            "`$VALUE` is a loop pointer that may be exported from the loop.") ) )
+            "`$V` is a loop pointer that may be exported from the loop.") ) )
 | report

@@ -1,23 +1,27 @@
 # rules: run-as-non-root-container-level-missing-security-context
+# languages: yaml
+# fixture: yaml/k8s-run-as-non-root-no-context.yaml
+#
+# The scaffolding spans never enclose, so the rule never fired. Rewritten as
+# a container block without any securityContext.
+# Container spans use an indent-anchored block (dash plus deeper fields);
+# fixture containers keep the standard four/six-space layout.
+# A `kind:` key at column zero is what says the file is a Kubernetes
+# manifest: the container block is a dashed `name:` entry with a deeper
+# body, which an eslint config or any other list of named things also is.
 # from: yaml/kubernetes/security/run-as-non-root-container-level-missing-security-context.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml"]; [
-      "\\-\\s+name:\\s+(?P<CONTAINER>\\S+)\\s+(?P<IMAGE>\\S+):\\s+(?P<IMAGEVAL>\\S+)\\s+[\\s\\S]*?",
-      "\\-\\s+name:\\s+(?P<CONTAINER>\\S+)\\s+image:\\s+(?P<IMAGEVAL>\\S+)\\s+[\\s\\S]*?\\s+securityContext:\\s+[\\s\\S]*?",
-      "spec:\\s+[\\s\\S]*?\\s+containers:\\s+[\\s\\S]*?",
-      "spec:\\s+[\\s\\S]*?\\s+containers:\\s+[\\s\\S]*?\\s+[\\s\\S]*?",
-      "spec:\\s+[\\s\\S]*?\\s+containers:\\s+[\\s\\S]*?\\s+\\-\\s+name:\\s+(?P<NAME>\\S+)\\s+image:\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+securityContext:\\s+[\\s\\S]*?\\s+runAsNonRoot:\\s+(?P<VALUE>\\S+)",
-      "spec:\\s+[\\s\\S]*?\\s+securityContext:\\s+[\\s\\S]*?\\s+runAsNonRoot:\\s+(?P<VAL>\\S+)\\s+[\\s\\S]*?"
+| ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^kind:[^\\S\n]*\\S"
+    ])) as $manifest
+| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^    -\\s+name:\\s*(?P<C>\\S+)[^\n]*((?:\n      [^\n]*)*)"
     ])) as $all
-    | ( $all | of(["\\-\\s+name:\\s+(?P<CONTAINER>\\S+)\\s+(?P<IMAGE>\\S+):\\s+(?P<IMAGEVAL>\\S+)\\s+[\\s\\S]*?"])
-          | within($all | of(["spec:\\s+[\\s\\S]*?\\s+containers:\\s+[\\s\\S]*?\\s+[\\s\\S]*?"]))
-          | outside($all | of(["spec:\\s+[\\s\\S]*?\\s+securityContext:\\s+[\\s\\S]*?\\s+runAsNonRoot:\\s+(?P<VAL>\\S+)\\s+[\\s\\S]*?"]))
-          | within($all | of(["spec:\\s+[\\s\\S]*?\\s+containers:\\s+[\\s\\S]*?"]))
-          | within($all | of(["spec:\\s+[\\s\\S]*?\\s+containers:\\s+[\\s\\S]*?\\s+\\-\\s+name:\\s+(?P<NAME>\\S+)\\s+image:\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+securityContext:\\s+[\\s\\S]*?\\s+runAsNonRoot:\\s+(?P<VALUE>\\S+)"]))
-          | not_at($all | of(["\\-\\s+name:\\s+(?P<CONTAINER>\\S+)\\s+image:\\s+(?P<IMAGEVAL>\\S+)\\s+[\\s\\S]*?\\s+securityContext:\\s+[\\s\\S]*?"]))
-          | where_capture("IMAGE"; "^(?:image)")
-          | focus("IMAGE")
+    | ( $all | of(["(?m)^    -\\s+name:\\s*(?P<C>\\S+)[^\n]*((?:\n      [^\n]*)*)"])
+          | in_files_with($manifest)
+          | where_text_not("securityContext:")
+          | focus("C")
         | finding("run-as-non-root-container-level-missing-security-context";
             "When running containers in Kubernetes, it's important to ensure that they are properly secured to prevent privilege escalation attacks.") ) )
 | report

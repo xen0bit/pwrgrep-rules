@@ -1,0 +1,10 @@
+# Gitleaks flickr-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: flickr-access-token
+flickr=abcdefghijklmnopqrstuvwxy0123456
+# ruleid: flickr-access-token
+flickr=lmnopqrstuvwxy0123456789abcdefgh
+# ok: flickr-access-token
+flickr = "example"
+# ok: flickr-access-token
+flickr = "placeholder"

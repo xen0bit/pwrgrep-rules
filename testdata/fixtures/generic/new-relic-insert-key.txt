@@ -1,0 +1,10 @@
+# Gitleaks new-relic-insert-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: new-relic-insert-key
+new-relic=NRII-abcdefghijklmnopqrstuvwxy0123456
+# ruleid: new-relic-insert-key
+new-relic=NRII-lmnopqrstuvwxy0123456789-abcdefg
+# ok: new-relic-insert-key
+new-relic = "example"
+# ok: new-relic-insert-key
+new-relic = "placeholder"

@@ -1,5 +1,6 @@
 # rules: dangerous-subprocess-use-audit
 # languages: python
+# fixture: python/dangerous-subprocess-use-audit.py
 # from: python/lang/security/audit/dangerous-subprocess-use-audit.yaml
 
 . as $root

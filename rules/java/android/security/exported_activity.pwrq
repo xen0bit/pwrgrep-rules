@@ -1,4 +1,5 @@
 # rules: exported_activity
+# fixture: java/exported-activity.xml
 # from: java/android/security/exported_activity.yaml
 
 . as $root

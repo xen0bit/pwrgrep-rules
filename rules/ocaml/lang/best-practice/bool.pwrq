@@ -1,5 +1,6 @@
 # rules: ocamllint-bool-true, ocamllint-bool-false
 # languages: ocaml
+# fixture: ocaml/ocamllint-bool-true.ml
 # from: ocaml/lang/best-practice/bool.yaml
 
 . as $root

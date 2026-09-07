@@ -1,0 +1,10 @@
+# Gitleaks facebook-access-token: invented provider-shaped values. Fixtures
+# are excluded from secret scanning, so shapes stay realistic.
+# ruleid: facebook-access-token
+token = 1234567890123456|abcdefghijklmnopqrstuvwxyz0123456
+# ruleid: facebook-access-token
+token = 123456789012345%abcdefghijklmnopqrstuvwxyz0123456789a
+# ok: facebook-access-token
+token = "example"
+# ok: facebook-access-token
+token = "placeholder"

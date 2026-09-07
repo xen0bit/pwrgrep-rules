@@ -1,5 +1,6 @@
 # rules: gcp-compute-serial-ports
 # languages: hcl
+# fixture: terraform/gcp-compute-serial-ports.tf
 # from: terraform/gcp/security/gcp-compute-serial-ports.yaml
 
 . as $root

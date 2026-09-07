@@ -1,12 +1,16 @@
 # rules: blowfish-insufficient-key-size
 # languages: java
+# fixture: java/blowfish-insufficient-key-size.java
 # from: java/lang/security/audit/blowfish-insufficient-key-size.yaml
+#
+# The construction was a bare assignment with a statement gap, neither of
+# which matches real declarations. It names the adjacent declaration now.
 
 . as $root
 | ( ($root | scan_ast(["*.java"]; [
-      "$KEYGEN = KeyGenerator.getInstance(\"Blowfish\");\n$$$_\n$KEYGEN.init($SIZE);"
+      "$T $KEYGEN = KeyGenerator.getInstance(\"Blowfish\");\n$KEYGEN.init($SIZE);"
     ])) as $all
-    | ( $all | of(["$KEYGEN = KeyGenerator.getInstance(\"Blowfish\");\n$$$_\n$KEYGEN.init($SIZE);"])
+    | ( $all | of(["$T $KEYGEN = KeyGenerator.getInstance(\"Blowfish\");\n$KEYGEN.init($SIZE);"])
           | where_capture_compare("$SIZE < 128")
         | finding("blowfish-insufficient-key-size";
             "Using less than 128 bits for Blowfish is considered insecure.") ) )

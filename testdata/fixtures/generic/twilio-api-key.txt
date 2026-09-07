@@ -1,0 +1,10 @@
+# Gitleaks twilio-api-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: twilio-api-key
+SK0123456789abcdefABCDEF0123456789
+# ruleid: twilio-api-key
+SKbcdefABCDEF0123456789abcdefABCDE
+# ok: twilio-api-key
+api_key = "example"
+# ok: twilio-api-key
+token = "placeholder"

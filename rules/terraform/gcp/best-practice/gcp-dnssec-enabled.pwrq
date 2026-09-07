@@ -1,5 +1,6 @@
 # rules: gcp-dnssec-enabled
 # languages: hcl
+# fixture: terraform/gcp-dnssec-enabled.tf
 # from: terraform/gcp/best-practice/gcp-dnssec-enabled.yaml
 
 . as $root

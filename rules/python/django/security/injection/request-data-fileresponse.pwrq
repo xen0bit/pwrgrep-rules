@@ -1,5 +1,6 @@
 # rules: request-data-fileresponse
 # languages: python
+# fixture: python/request-data-fileresponse.py
 # from: python/django/security/injection/request-data-fileresponse.yaml
 
 . as $root

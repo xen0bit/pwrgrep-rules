@@ -1,0 +1,10 @@
+# Gitleaks defined-networking-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: defined-networking-api-token
+dnkey=dnkey-abcdefghijklmnopqrstuvwxy0-123456789=_-abcdefghijklmnopqrstuvwxy0123456789=_-ab
+# ruleid: defined-networking-api-token
+dnkey=dnkey-lmnopqrstuvwxy0123456789=_--abcdefghijklmnopqrstuvwxy0123456789=_-abcdefghijklm
+# ok: defined-networking-api-token
+dnkey = "example"
+# ok: defined-networking-api-token
+dnkey = "placeholder"

@@ -1,5 +1,6 @@
 # rules: avoid-raw-sql
 # languages: python
+# fixture: python/raw-query.py
 # from: python/django/security/audit/raw-query.yaml
 
 . as $root

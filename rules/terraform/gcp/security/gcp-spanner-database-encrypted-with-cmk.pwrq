@@ -1,5 +1,6 @@
 # rules: gcp-spanner-database-encrypted-with-cmk
 # languages: hcl
+# fixture: terraform/gcp-spanner-database-encrypted-with-cmk.tf
 # from: terraform/gcp/security/gcp-spanner-database-encrypted-with-cmk.yaml
 
 . as $root

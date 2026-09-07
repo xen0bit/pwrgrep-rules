@@ -1,5 +1,6 @@
 # rules: go-ssti
 # languages: go
+# fixture: go/go-ssti.go
 # from: go/template/security/ssti.yaml
 
 . as $root

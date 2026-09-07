@@ -1,0 +1,10 @@
+# Gitleaks droneci-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: droneci-access-token
+droneci=abcdefghijklmnopqrstuvwxy0123456
+# ruleid: droneci-access-token
+droneci=lmnopqrstuvwxy0123456789abcdefgh
+# ok: droneci-access-token
+droneci = "example"
+# ok: droneci-access-token
+droneci = "placeholder"

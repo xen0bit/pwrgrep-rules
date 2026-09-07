@@ -1,5 +1,6 @@
 # rules: multiprocessing-recv
 # languages: python
+# fixture: python/conn_recv.py
 # from: python/lang/security/audit/conn_recv.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: aws-fsx-windows-encrypted-with-cmk
 # languages: hcl
+# fixture: terraform/aws-fsx-windows-encrypted-with-cmk.tf
 # from: terraform/aws/security/aws-fsx-windows-encrypted-with-cmk.yaml
 
 . as $root

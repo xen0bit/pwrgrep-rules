@@ -1,5 +1,6 @@
 # rules: directly-returned-format-string
 # languages: python
+# fixture: python/directly-returned-format-string.py
 # from: python/flask/security/audit/directly-returned-format-string.yaml
 
 . as $root

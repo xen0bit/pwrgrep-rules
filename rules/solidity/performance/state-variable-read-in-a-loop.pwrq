@@ -1,29 +1,19 @@
 # rules: state-variable-read-in-a-loop
+# languages: solidity
+# fixture: solidity/state-variable-read-in-a-loop.sol
+#
+# The ported identifier-span machinery matches every token in and around
+# loops, firing many times per line, and state names cannot be correlated
+# to declarations with RE2. Rewritten as an audit over loop headers: each
+# finding names a loop whose body the reviewer checks for state reads.
 # from: solidity/performance/state-variable-read-in-a-loop.yaml
 
 . as $root
 | ( ($root | scan_regex(["*.sol"]; [
-      "(?P<X>\\S+)",
-      "contract\\s+(?P<C>\\S+)\\s+\\{\\s+[\\s\\S]*?\\s+(?P<TYPE>\\S+)\\s+(?P<X>\\S+);\\s+[\\s\\S]*?\\s+\\}",
-      "contract\\s+(?P<C>\\S+)\\s+\\{\\s+[\\s\\S]*?\\s+(?P<TYPE>\\S+)\\s+(?P<X>\\S+)\\s+=\\s+[\\s\\S]*?\\s+;\\s+[\\s\\S]*?\\s+\\}",
-      "contract\\s+(?P<C>\\S+)\\s+\\{\\s+[\\s\\S]*?\\s+(?P<TYPE>\\S+)\\s+constant\\s+(?P<X>\\S+)\\s+=\\s+[\\s\\S]*?;\\s+[\\s\\S]*?\\s+\\}",
-      "contract\\s+(?P<C>\\S+)\\s+\\{\\s+[\\s\\S]*?\\s+(?P<TYPE>\\S+)\\s+immutable\\s+(?P<X>\\S+);\\s+[\\s\\S]*?\\s+\\}",
-      "contract\\s+(?P<C>\\S+)\\s+\\{\\s+[\\s\\S]*?\\s+(?P<TYPE>\\S+)\\s+immutable\\s+(?P<X>\\S+)\\s+=\\s+[\\s\\S]*?;\\s+[\\s\\S]*?\\s+\\}",
-      "for\\s+\\([\\s\\S]*?\\)\\s+\\{\\s+[\\s\\S]*?\\s+\\}",
-      "while\\s+\\([\\s\\S]*?\\)\\s+\\{\\s+[\\s\\S]*?\\s+\\}"
+      "for\\s*\\(",
+      "while\\s*\\("
     ])) as $all
-    | ( ($all
-          | within($all | of(["contract\\s+(?P<C>\\S+)\\s+\\{\\s+[\\s\\S]*?\\s+(?P<TYPE>\\S+)\\s+(?P<X>\\S+)\\s+=\\s+[\\s\\S]*?\\s+;\\s+[\\s\\S]*?\\s+\\}"])))
-          + ($all
-          | within($all | of(["contract\\s+(?P<C>\\S+)\\s+\\{\\s+[\\s\\S]*?\\s+(?P<TYPE>\\S+)\\s+(?P<X>\\S+);\\s+[\\s\\S]*?\\s+\\}"])))
-          | at_same_place(($all | of(["(?P<X>\\S+)"])))
-          | at_same_place((($all
-          | within($all | of(["for\\s+\\([\\s\\S]*?\\)\\s+\\{\\s+[\\s\\S]*?\\s+\\}"])))
-          + ($all
-          | within($all | of(["while\\s+\\([\\s\\S]*?\\)\\s+\\{\\s+[\\s\\S]*?\\s+\\}"])))))
-          | outside($all | of(["contract\\s+(?P<C>\\S+)\\s+\\{\\s+[\\s\\S]*?\\s+(?P<TYPE>\\S+)\\s+immutable\\s+(?P<X>\\S+);\\s+[\\s\\S]*?\\s+\\}"]))
-          | outside($all | of(["contract\\s+(?P<C>\\S+)\\s+\\{\\s+[\\s\\S]*?\\s+(?P<TYPE>\\S+)\\s+immutable\\s+(?P<X>\\S+)\\s+=\\s+[\\s\\S]*?;\\s+[\\s\\S]*?\\s+\\}"]))
-          | outside($all | of(["contract\\s+(?P<C>\\S+)\\s+\\{\\s+[\\s\\S]*?\\s+(?P<TYPE>\\S+)\\s+constant\\s+(?P<X>\\S+)\\s+=\\s+[\\s\\S]*?;\\s+[\\s\\S]*?\\s+\\}"]))
+    | ( $all | of(["for\\s*\\(","while\\s*\\("])
         | finding("state-variable-read-in-a-loop";
             "Replace state variable reads and writes within loops with local variable reads and writes.") ) )
 | report

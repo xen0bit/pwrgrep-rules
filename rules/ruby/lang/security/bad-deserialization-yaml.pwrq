@@ -1,6 +1,11 @@
 # rules: bad-deserialization-yaml
 # languages: ruby
+# fixture: ruby/bad-deserialization-yaml.rb
 # from: ruby/lang/security/bad-deserialization-yaml.yaml
+#
+# The literal exclusion read `"$$$_", $$$` as any argument list and
+# subtracted every call, so the rule never fired. It names the hole and
+# keeps only the pure-literal first argument.
 
 . as $root
 | ( ($root | scan_ast(["*.rb"]; [
@@ -8,7 +13,7 @@
       "$FILENAME = $$$_\n$$$_\n$FILE = File.read($FILENAME, $$$_)\n$$$_\nYAML.load($$$_, $FILE, $$$_)",
       "$T = $MOD.$MET(File.read($$$_))\n$$$_\nYAML.load($$$_, $T, $$$_)",
       "$T = $MOD.$MET(File.read($$$_))\n$$$_\nYAML.load($$$_, $T.$R, $$$_)",
-      "YAML.load(\"$$$_\", $$$_)",
+      "YAML.load($Y)",
       "YAML.load($$$ARGS)",
       "YAML.load($$$_, $X.$Y(File.read($$$_)), $$$_)",
       "YAML.load($$$_, $X.$Y(File.read($$$_)).$Z, $$$_)",
@@ -17,7 +22,7 @@
     ])) as $all
     | ( $all | of(["YAML.load($$$ARGS)"])
           | not_at($all | of(["YAML.load($$$_, safe: true, $$$_)"]))
-          | not_at($all | of(["YAML.load(\"$$$_\", $$$_)"]))
+          | not_at(($all | of(["YAML.load($Y)"]) | where_capture("Y"; "^[\"']")))
           | outside($all | of(["YAML.load($$$_, File.read($$$_), $$$_)"]))
           | outside($all | of(["$FILE = File.read($$$_)\n$$$_\nYAML.load($$$_, $FILE, $$$_)"]))
           | outside($all | of(["$FILENAME = $$$_\n$$$_\n$FILE = File.read($FILENAME, $$$_)\n$$$_\nYAML.load($$$_, $FILE, $$$_)"]))

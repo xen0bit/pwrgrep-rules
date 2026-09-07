@@ -1,5 +1,6 @@
 # rules: gcp-pubsub-private-topic-iam-binding
 # languages: hcl
+# fixture: terraform/gcp-pubsub-private-topic-iam-binding.tf
 # from: terraform/gcp/security/gcp-pubsub-private-topic-iam-binding.yaml
 
 . as $root

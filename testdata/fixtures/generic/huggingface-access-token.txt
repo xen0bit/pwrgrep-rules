@@ -1,0 +1,11 @@
+# Gitleaks huggingface-access-token: invented provider-shaped values. Fixtures
+# are excluded from secret scanning, so shapes stay realistic. The token must
+# be followed by a quote, space or end of text, so values are quoted.
+# ruleid: huggingface-access-token
+token = "hf_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefgh"
+# ruleid: huggingface-access-token
+token = "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"
+# ok: huggingface-access-token
+token = "example"
+# ok: huggingface-access-token
+token = "placeholder"

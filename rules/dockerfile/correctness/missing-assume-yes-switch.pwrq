@@ -1,4 +1,5 @@
 # rules: missing-assume-yes-switch
+# fixture: dockerfile/missing-assume-yes-switch.dockerfile
 # from: dockerfile/correctness/missing-assume-yes-switch.yaml
 
 . as $root

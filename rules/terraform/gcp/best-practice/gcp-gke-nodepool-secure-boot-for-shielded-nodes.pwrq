@@ -1,5 +1,6 @@
 # rules: gcp-gke-nodepool-secure-boot-for-shielded-nodes
 # languages: hcl
+# fixture: terraform/gcp-gke-nodepool-secure-boot-for-shielded-nodes.tf
 # from: terraform/gcp/best-practice/gcp-gke-nodepool-secure-boot-for-shielded-nodes.yaml
 
 . as $root

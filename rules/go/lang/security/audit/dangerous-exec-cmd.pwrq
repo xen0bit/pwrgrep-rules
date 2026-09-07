@@ -1,4 +1,5 @@
 # rules: dangerous-exec-cmd
+# fixture: go/dangerous-exec-cmd.go
 # from: go/lang/security/audit/dangerous-exec-cmd.yaml
 
 . as $root

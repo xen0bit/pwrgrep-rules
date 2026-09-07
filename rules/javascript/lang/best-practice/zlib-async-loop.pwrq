@@ -1,5 +1,6 @@
 # rules: zlib-async-loop
 # languages: javascript, typescript
+# fixture: javascript/zlib-async-loop.js
 # from: javascript/lang/best-practice/zlib-async-loop.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: avoid-bind-to-all-interfaces
 # languages: python
+# fixture: python/bind.py
 # from: python/lang/security/audit/network/bind.yaml
 
 . as $root

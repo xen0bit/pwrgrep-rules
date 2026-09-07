@@ -1,5 +1,6 @@
 # rules: avoid-session-manipulation
 # languages: ruby
+# fixture: ruby/avoid-session-manipulation.rb
 # from: ruby/rails/security/audit/avoid-session-manipulation.yaml
 
 . as $root

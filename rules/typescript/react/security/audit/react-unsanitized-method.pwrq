@@ -1,10 +1,16 @@
 # rules: react-unsanitized-method
 # languages: javascript, typescript
+# fixture: typescript/react-unsanitized-method.tsx
 # from: typescript/react/security/audit/react-unsanitized-method.yaml
+#
+# The insertAdjacentHTML sink read its receiver through a `$$$` chain, which
+# matches nothing; it names the method on the receiver now. The
+# `this.window.document` / `window.document` spellings are dropped: the same
+# `$$$` chain made them dead and no spelling of them was found that parses.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "$PROP. $$$_ .$HTML('$$$_',$SINK)",
+      "$PROP.$HTML('$$$_',$SINK)",
       "$S = new Remarkable()\n$$$_",
       "$S = require(\"dompurify\")\n$$$_",
       "$S = require(\"isomorphic-dompurify\")\n$$$_",
@@ -33,14 +39,12 @@
       "import * as $S from \"sanitize-html\";\n$$$_",
       "import * as $S from \"underscore.string\"\n$$$_",
       "import * as $S from 'xss';\n$$$_",
-      "import { $$$_, $S,$$$_ } from \"dompurify\"\n$$$_",
-      "this.window.document. $$$_ .$HTML('$$$_',$SINK)",
-      "window.document. $$$_ .$HTML('$$$_',$SINK)"
+      "import { $$$_, $S,$$$_ } from \"dompurify\""
     ])) as $all
-    | ( (($all | of(["this.window.document. $$$_ .$HTML('$$$_',$SINK)","window.document. $$$_ .$HTML('$$$_',$SINK)","document.$HTML($SINK)"])
+    | ( (($all | of(["document.$HTML($SINK)"])
           | where_capture("HTML"; "^(?:(writeln|write))")
           | focus("SINK"))
-              + ($all | of(["$PROP. $$$_ .$HTML('$$$_',$SINK)"])
+              + ($all | of(["$PROP.$HTML('$$$_',$SINK)"])
           | where_capture("HTML"; "^(?:(insertAdjacentHTML))")
           | focus("SINK")))
           | reaching(((($all
@@ -61,7 +65,7 @@
               + (($all
           | in_files_with($all | of(["import $S from \"dompurify\"\n$$$_"])))
           + ($all
-          | in_files_with($all | of(["import { $$$_, $S,$$$_ } from \"dompurify\"\n$$$_"])))
+          | in_files_with($all | of(["import { $$$_, $S,$$$_ } from \"dompurify\""])))
           + ($all
           | in_files_with($all | of(["import * as $S from \"dompurify\"\n$$$_"])))
           + ($all

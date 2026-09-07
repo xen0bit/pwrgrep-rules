@@ -1,5 +1,6 @@
 # rules: sequelize-tls-disabled-cert-validation
 # languages: javascript, typescript
+# fixture: javascript/sequelize-tls-disabled-cert-validation.js
 # from: javascript/sequelize/security/audit/sequelize-tls-disabled-cert-validation.yaml
 
 . as $root

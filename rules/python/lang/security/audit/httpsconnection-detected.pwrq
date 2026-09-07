@@ -1,5 +1,6 @@
 # rules: httpsconnection-detected
 # languages: python
+# fixture: python/httpsconnection-detected.py
 # from: python/lang/security/audit/httpsconnection-detected.yaml
 
 . as $root

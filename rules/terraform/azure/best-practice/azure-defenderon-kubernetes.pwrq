@@ -1,5 +1,6 @@
 # rules: azure-defenderon-kubernetes
 # languages: hcl
+# fixture: terraform/azure-defenderon-kubernetes.tf
 # from: terraform/azure/best-practice/azure-defenderon-kubernetes.yaml
 
 . as $root

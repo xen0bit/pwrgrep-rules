@@ -1,5 +1,6 @@
 # rules: azure-key-no-expiration-date
 # languages: hcl
+# fixture: terraform/azure-key-no-expiration-date.tf
 # from: terraform/azure/security/azure-key-no-expiration-date.yaml
 
 . as $root

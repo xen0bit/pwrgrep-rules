@@ -1,0 +1,10 @@
+# Gitleaks nytimes-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: nytimes-access-token
+nytimes=abcdefghijklmnopqrstuvwxy0123456
+# ruleid: nytimes-access-token
+nytimes=lmnopqrstuvwxy0123456789=_-abcde
+# ok: nytimes-access-token
+api_key = "example"
+# ok: nytimes-access-token
+token = "placeholder"

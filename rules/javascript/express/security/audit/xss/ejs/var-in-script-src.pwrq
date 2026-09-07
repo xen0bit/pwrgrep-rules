@@ -1,19 +1,18 @@
 # rules: var-in-script-src
 # from: javascript/express/security/audit/xss/ejs/var-in-script-src.yaml
+# fixture: javascript/var-in-script-src-ejs.js
+#
+# Repair: dead as written. `src\s+=` needed spaces around `=` that Minified
+# output omits, `<%\s+` never matched `<%=`, and `at_same_place` needed exact
+# span coincidence between nested matches. The rule now uses one combined
+# regex in the style of the working `var-in-href` rule.
 
 . as $root
 | ( ($root | scan_regex(["*.ejs","*.html"]; [
-      "<%\\s+[\\s\\S]*?\\s+>",
-      "<script\\s+[\\s\\S]*?>",
-      "src\\s+=\\s+\"[\\s\\S]*?\"",
-      "src\\s+=\\s+'[\\s\\S]*?'"
+      "<script[^>]*?src\\s*=\\s*\"[^\"]*?<%.*?%>.*?\"",
+      "<script[^>]*?src\\s*=\\s*'[^']*?<%.*?%>.*?'"
     ])) as $all
-    | ( ($all
-          | within($all | of(["src\\s+=\\s+'[\\s\\S]*?'"])))
-          + ($all
-          | within($all | of(["src\\s+=\\s+\"[\\s\\S]*?\""])))
-          | at_same_place(($all | of(["<%\\s+[\\s\\S]*?\\s+>"])))
-          | within($all | of(["<script\\s+[\\s\\S]*?>"]))
+    | ( $all | of(["<script[^>]*?src\\s*=\\s*\"[^\"]*?<%.*?%>.*?\"","<script[^>]*?src\\s*=\\s*'[^']*?<%.*?%>.*?'"])
         | finding("var-in-script-src";
             "Detected a template variable used as the 'src' in a script tag.") ) )
 | report

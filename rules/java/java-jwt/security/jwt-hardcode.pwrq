@@ -1,4 +1,5 @@
 # rules: java-jwt-hardcoded-secret
+# fixture: java/jwt-hardcode.java
 # from: java/java-jwt/security/jwt-hardcode.yaml
 
 . as $root

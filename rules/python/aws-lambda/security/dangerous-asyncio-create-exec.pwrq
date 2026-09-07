@@ -1,5 +1,6 @@
 # rules: dangerous-asyncio-create-exec
 # languages: python
+# fixture: python/dangerous-asyncio-create-exec.py
 # from: python/aws-lambda/security/dangerous-asyncio-create-exec.yaml
 
 . as $root

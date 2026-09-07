@@ -1,5 +1,6 @@
 # rules: mui-snackbar-message
 # languages: javascript, typescript
+# fixture: typescript/mui-snackbar-message.ts
 # from: typescript/react/portability/i18next/mui-snackbar-message.yaml
 
 . as $root

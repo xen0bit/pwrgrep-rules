@@ -1,5 +1,6 @@
 # rules: create-with
 # languages: ruby
+# fixture: ruby/create-with.rb
 # from: ruby/lang/security/create-with.yaml
 
 . as $root

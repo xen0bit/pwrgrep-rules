@@ -1,5 +1,6 @@
 # rules: java-reverse-shell
 # languages: java
+# fixture: java/java-reverse-shell.java
 # from: java/lang/security/audit/java-reverse-shell.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: unverified-ssl-context
 # languages: python
+# fixture: python/unverified-ssl-context.py
 # from: python/lang/security/unverified-ssl-context.yaml
 
 . as $root

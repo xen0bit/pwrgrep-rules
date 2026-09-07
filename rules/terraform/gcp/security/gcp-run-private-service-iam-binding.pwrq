@@ -1,5 +1,6 @@
 # rules: gcp-run-private-service-iam-binding
 # languages: hcl
+# fixture: terraform/gcp-run-private-service-iam-binding.tf
 # from: terraform/gcp/security/gcp-run-private-service-iam-binding.yaml
 
 . as $root

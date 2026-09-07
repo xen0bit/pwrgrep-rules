@@ -1,5 +1,6 @@
 # rules: azure-appservice-http-logging-enabled
 # languages: hcl
+# fixture: terraform/azure-appservice-http-logging-enabled.tf
 # from: terraform/azure/security/appservice/azure-appservice-http-logging-enabled.yaml
 
 . as $root

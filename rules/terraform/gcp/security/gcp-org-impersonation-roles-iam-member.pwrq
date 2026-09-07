@@ -1,5 +1,6 @@
 # rules: gcp-org-impersonation-roles-iam-member
 # languages: hcl
+# fixture: terraform/gcp-org-impersonation-roles-iam-member.tf
 # from: terraform/gcp/security/gcp-org-impersonation-roles-iam-member.yaml
 
 . as $root

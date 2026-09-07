@@ -1,5 +1,6 @@
 # rules: no-strings-as-booleans
 # languages: python
+# fixture: python/useless-comparison.py
 # from: python/lang/correctness/useless-comparison.yaml
 
 . as $root

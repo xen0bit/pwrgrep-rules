@@ -1,5 +1,6 @@
 # rules: aws-kinesis-video-stream-encrypted-with-cmk
 # languages: hcl
+# fixture: terraform/aws-kinesis-video-stream-encrypted-with-cmk.tf
 # from: terraform/aws/security/aws-kinesis-video-stream-encrypted-with-cmk.yaml
 
 . as $root

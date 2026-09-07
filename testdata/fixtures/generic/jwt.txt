@@ -1,0 +1,10 @@
+# Gitleaks jwt: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: jwt
+eyabcdefghijklmnopq.eyrstuvwxyABCDEFGHI.
+# ruleid: jwt
+eylmnopqrstuvwxyABC.eyDEFGHIJKLMNOPQRST.
+# ok: jwt
+api_key = "example"
+# ok: jwt
+token = "placeholder"

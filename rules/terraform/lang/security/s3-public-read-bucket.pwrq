@@ -1,4 +1,5 @@
 # rules: s3-public-read-bucket
+# fixture: terraform/s3-public-read-bucket.tf
 # from: terraform/lang/security/s3-public-read-bucket.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: azure-key-backedby-hsm
 # languages: hcl
+# fixture: terraform/azure-key-backedby-hsm.tf
 # from: terraform/azure/security/azure-key-backedby-hsm.yaml
 
 . as $root

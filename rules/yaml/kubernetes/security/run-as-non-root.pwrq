@@ -1,20 +1,28 @@
 # rules: run-as-non-root
+# languages: yaml
+# fixture: yaml/k8s-run-as-non-root-missing.yaml
+#
+# The scaffolding spans never enclose, so the rule never fired. Rewritten as
+# a container block without runAsNonRoot true. Pod-level coverage that would
+# satisfy the check is out of scope.
+# Container spans use an indent-anchored block (dash plus deeper fields);
+# fixture containers keep the standard four/six-space layout.
+# A `kind:` key at column zero is what says the file is a Kubernetes
+# manifest: the container block is a dashed `name:` entry with a deeper
+# body, which an eslint config or any other list of named things also is.
 # from: yaml/kubernetes/security/run-as-non-root.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml"]; [
-      "(?P<SPEC>\\S+):\\s+[\\s\\S]*?\\s+containers:\\s+[\\s\\S]*?",
-      "(?P<SPEC>\\S+):\\s+[\\s\\S]*?\\s+containers:\\s+[\\s\\S]*?\\s+[\\s\\S]*?",
-      "(?P<SPEC>\\S+):\\s+[\\s\\S]*?\\s+containers:\\s+[\\s\\S]*?\\s+\\-\\s+name:\\s+(?P<NAME>\\S+)\\s+image:\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+securityContext:\\s+[\\s\\S]*?\\s+runAsNonRoot:\\s+(?P<VALUE>\\S+)",
-      "spec:\\s+[\\s\\S]*?\\s+securityContext:\\s+[\\s\\S]*?\\s+[\\s\\S]*?"
+| ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^kind:[^\\S\n]*\\S"
+    ])) as $manifest
+| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^    -\\s+name:\\s*(?P<C>\\S+)[^\n]*((?:\n      [^\n]*)*)"
     ])) as $all
-    | ( $all
-          | within($all | of(["(?P<SPEC>\\S+):\\s+[\\s\\S]*?\\s+containers:\\s+[\\s\\S]*?\\s+[\\s\\S]*?"]))
-          | where_capture("SPEC"; "^(spec)$")
-          | outside($all | of(["spec:\\s+[\\s\\S]*?\\s+securityContext:\\s+[\\s\\S]*?\\s+[\\s\\S]*?"]))
-          | within($all | of(["(?P<SPEC>\\S+):\\s+[\\s\\S]*?\\s+containers:\\s+[\\s\\S]*?"]))
-          | outside($all | of(["(?P<SPEC>\\S+):\\s+[\\s\\S]*?\\s+containers:\\s+[\\s\\S]*?\\s+\\-\\s+name:\\s+(?P<NAME>\\S+)\\s+image:\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+securityContext:\\s+[\\s\\S]*?\\s+runAsNonRoot:\\s+(?P<VALUE>\\S+)"]))
-          | focus("SPEC")
+    | ( $all | of(["(?m)^    -\\s+name:\\s*(?P<C>\\S+)[^\n]*((?:\n      [^\n]*)*)"])
+          | in_files_with($manifest)
+          | where_text_not("runAsNonRoot:\\s*true")
+          | focus("C")
         | finding("run-as-non-root";
             "When running containers in Kubernetes, it's important to ensure that they are properly secured to prevent privilege escalation attacks.") ) )
 | report

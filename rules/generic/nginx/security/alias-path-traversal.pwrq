@@ -1,4 +1,9 @@
 # rules: alias-path-traversal
+# fixture: generic/alias-path-traversal.txt
+#
+# The where_capture_ast guard holds a regex source (`^.*[^\/]$`) where an AST
+# pattern belongs, so it never matches. It is replaced with a text guard on
+# the captured location path: fire unless the path ends in a separator.
 # from: generic/nginx/security/alias-path-traversal.yaml
 
 . as $root
@@ -6,7 +11,7 @@
       "location\\s+(?P<LOCATION>[\\s\\S]*?)\\s+\\{\\s+[\\s\\S]*?\\s+alias\\s+[\\s\\S]*?\\/;\\s+[\\s\\S]*?\\s+\\}"
     ])) as $all
     | ( $all | of(["location\\s+(?P<LOCATION>[\\s\\S]*?)\\s+\\{\\s+[\\s\\S]*?\\s+alias\\s+[\\s\\S]*?\\/;\\s+[\\s\\S]*?\\s+\\}"])
-          | where_capture_ast("LOCATION"; "\\^\\.\\*\\[\\^\\/\\]\\$")
+          | where_capture_not("LOCATION"; "/$")
         | finding("alias-path-traversal";
             "The alias in this location block is subject to a path traversal because the location path does not end in a path separator (e.g., '/').") ) )
 | report

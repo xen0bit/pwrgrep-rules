@@ -1,14 +1,21 @@
 # rules: insecure-javascriptserializer-deserialization
 # languages: c_sharp
+#
+# The translated sink wrapped the resolver in double parentheses, which
+# is not C# and matches nothing. It names the construction directly now.
+# The `using` file condition ended in a `\n$$$` gap, which matches nothing -
+# `new X();` must also stand as its own statement, since a declaration is not
+# an assignment. The fixture writes both accordingly.
+# fixture: csharp/javascript-serializer.cs
 # from: csharp/lang/security/insecure-deserialization/javascript-serializer.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.cs"]; [
-      "new JavaScriptSerializer((SimpleTypeResolver $RESOLVER))",
-      "using System.Web.Script.Serialization;\n$$$_"
+      "new JavaScriptSerializer(new SimpleTypeResolver($$$_));",
+      "using System.Web.Script.Serialization;"
     ])) as $all
-    | ( $all | of(["new JavaScriptSerializer((SimpleTypeResolver $RESOLVER))"])
-          | in_files_with($all | of(["using System.Web.Script.Serialization;\n$$$_"]))
+    | ( $all | of(["new JavaScriptSerializer(new SimpleTypeResolver($$$_));"])
+          | in_files_with($all | of(["using System.Web.Script.Serialization;"]))
         | finding("insecure-javascriptserializer-deserialization";
             "The SimpleTypeResolver class is insecure and should not be used.") ) )
 | report

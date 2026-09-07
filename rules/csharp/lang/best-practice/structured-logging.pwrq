@@ -1,5 +1,6 @@
 # rules: structured-logging
 # languages: c_sharp
+# fixture: csharp/structured-logging.cs
 # from: csharp/lang/best-practice/structured-logging.yaml
 
 . as $root

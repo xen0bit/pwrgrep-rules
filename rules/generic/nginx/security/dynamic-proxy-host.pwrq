@@ -1,4 +1,5 @@
 # rules: dynamic-proxy-host
+# fixture: generic/dynamic-proxy-host.txt
 # from: generic/nginx/security/dynamic-proxy-host.yaml
 
 . as $root

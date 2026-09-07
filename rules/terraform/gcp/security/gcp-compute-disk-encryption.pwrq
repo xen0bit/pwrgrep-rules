@@ -1,5 +1,6 @@
 # rules: gcp-compute-disk-encryption
 # languages: hcl
+# fixture: terraform/gcp-compute-disk-encryption.tf
 # from: terraform/gcp/security/gcp-compute-disk-encryption.yaml
 
 . as $root

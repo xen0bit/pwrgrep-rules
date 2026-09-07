@@ -1,16 +1,21 @@
 # rules: dangerous-execution
 # languages: go
+# fixture: go/dangerous-execution.go
 # from: go/otto/security/audit/dangerous-execution.yaml
+#
+# The static exclusion read `"$$$_", $$$` as any argument list and subtracted
+# every call, so the rule never fired. It names the argument hole and keeps
+# only the pure-literal spelling.
 
 . as $root
 | ( ($root | scan_ast(["*.go"]; [
       "$VM = otto.New($$$_)\n$$$_",
-      "$VM.Run(\"$$$_\", $$$_)",
+      "$VM.Run($SRC)",
       "$VM.Run($$$_)"
     ])) as $all
     | ( $all | of(["$VM.Run($$$_)"])
           | in_files_with($all | of(["$VM = otto.New($$$_)\n$$$_"]))
-          | not_at($all | of(["$VM.Run(\"$$$_\", $$$_)"]))
+          | not_at(($all | of(["$VM.Run($SRC)"]) | where_capture("SRC"; "^\".*\"$")))
         | finding("dangerous-execution";
             "Detected non-static script inside otto VM.") ) )
 | report

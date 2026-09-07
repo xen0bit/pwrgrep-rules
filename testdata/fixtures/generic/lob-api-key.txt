@@ -1,0 +1,10 @@
+# Gitleaks lob-api-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: lob-api-key
+lob=live_abcdef0123456789abcdef0123456789abc
+# ruleid: lob-api-key
+lob=live_56789abcdef0123456789abcdef01234567
+# ok: lob-api-key
+lob = "example"
+# ok: lob-api-key
+lob = "placeholder"

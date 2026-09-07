@@ -1,5 +1,6 @@
 # rules: aws-docdb-encrypted-with-cmk
 # languages: hcl
+# fixture: terraform/aws-docdb-encrypted-with-cmk.tf
 # from: terraform/aws/security/aws-docdb-encrypted-with-cmk.yaml
 
 . as $root

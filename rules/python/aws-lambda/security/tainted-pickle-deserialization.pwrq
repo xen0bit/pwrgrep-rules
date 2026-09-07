@@ -1,5 +1,6 @@
 # rules: tainted-pickle-deserialization
 # languages: python
+# fixture: python/tainted-pickle-deserialization.py
 # from: python/aws-lambda/security/tainted-pickle-deserialization.yaml
 
 . as $root

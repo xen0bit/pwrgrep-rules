@@ -1,5 +1,6 @@
 # rules: gcp-bigtable-instance-encrypted-with-cmk
 # languages: hcl
+# fixture: terraform/gcp-bigtable-instance-encrypted-with-cmk.tf
 # from: terraform/gcp/security/gcp-bigtable-instance-encrypted-with-cmk.yaml
 
 . as $root

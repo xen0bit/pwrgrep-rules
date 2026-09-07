@@ -1,22 +1,48 @@
 # rules: code-after-unconditional-return, return-not-in-function
 # languages: python
+# fixture: python/return.py
+#
+# Both halves self-fired: `code-after-unconditional-return` was a regex
+# matching `return <anything>` on its own line, so it reported the
+# return rather than the dead code; `return-not-in-function` subtracted
+# `def` patterns that end in a literal `# TODO` comment no real file
+# has, so every function return was "outside" one. A two-statement
+# `return` + follower pattern is no rescue either: beside a gap the
+# `return` keyword is dropped and the pattern matches `def` lines with
+# comments for followers. The `return` and the statement under it are
+# required to sit at the same indentation: a `return` inside an `if` is
+# followed by code at a shallower indent, and reading "a return with a
+# line after it" reports one Python function in ten. The capture starts at
+# the body's first statement, so that statement carries no indent of its
+# own and is tested separately; after it, RE2 has no backreference, so the
+# two indentations a body actually has - four spaces for a function, eight
+# for a method - are written out. The same two indentations are required of
+# the line under a first-statement return, because a return whose
+# expression runs over several lines is followed by its own continuation,
+# indented deeper. A docstring that starts a line with the word "return"
+# at the body's own indentation still reads as one. The rule therefore asks the function body as
+# text whether a `return` line is followed by a code-opening line, which
+# is the corpus's body-as-text technique; a comment between return and
+# dead code hides it, and a trailing comment after a final return is
+# correctly silent. The finding lands on the `def`. The second half
+# subtracts real `def` scaffolds with named body holes.
 # from: python/lang/maintainability/return.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.py"]; [
-      "def $F($$$_) ->  $Y:\n    $$$_",
-      "def $F($$$_):\n    $$$_\n# TODO: first pattern should just automatically include this one",
-      "return $$$_"
+      "def $F($$$_):\n  $$$BODY",
+      "def $F($$$_) -> $Y:\n  $$$BODY",
+      "return $R"
     ])) as $all
-    | ( $all | of(["return $$$_"])
-          | outside($all | of(["def $F($$$_):\n    $$$_\n# TODO: first pattern should just automatically include this one"]))
-          | outside($all | of(["def $F($$$_) ->  $Y:\n    $$$_"]))
+    | ( (($all | of(["return $R"])
+          | outside($all | of(["def $F($$$_):\n  $$$BODY"]))
+          | outside($all | of(["def $F($$$_) -> $Y:\n  $$$BODY"])))
         | finding("return-not-in-function";
-            "`return` only makes sense inside a function") ) )
-+ ( ($root | scan_regex(["*.py"]; [
-      "return\\s+[\\s\\S]*?\\s+(?P<S>\\S+)"
-    ])) as $all
-    | ( $all | of(["return\\s+[\\s\\S]*?\\s+(?P<S>\\S+)"])
+            "`return` only makes sense inside a function"))
+        + (($all | of(["def $F($$$_):\n  $$$BODY", "def $F($$$_) -> $Y:\n  $$$BODY"])
+          | where_capture("BODY"; "(?:\\Areturn\\b[^\\n]*\\n(?:    |        )[A-Za-z0-9_\"'({\\[])|(?m:^    return\\b[^\\n]*\\n    [A-Za-z0-9_\"'({\\[])|(?m:^        return\\b[^\\n]*\\n        [A-Za-z0-9_\"'({\\[])"))
         | finding("code-after-unconditional-return";
-            "code after return statement will not be executed") ) )
+            "code after return statement will not be executed")) ))
+| report
+| report
 | report

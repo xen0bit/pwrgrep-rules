@@ -1,5 +1,6 @@
 # rules: uncaught-executor-exceptions
 # languages: python
+# fixture: python/concurrent.py
 # from: python/lang/correctness/concurrent.yaml
 
 . as $root

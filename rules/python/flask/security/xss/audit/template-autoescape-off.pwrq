@@ -1,4 +1,5 @@
 # rules: template-autoescape-off
+# fixture: python/flask-template-autoescape-off.html
 # from: python/flask/security/xss/audit/template-autoescape-off.yaml
 
 . as $root

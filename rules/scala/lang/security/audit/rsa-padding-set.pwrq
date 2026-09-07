@@ -1,5 +1,6 @@
 # rules: rsa-padding-set
 # languages: scala
+# fixture: scala/rsa-padding-set.scala
 # from: scala/lang/security/audit/rsa-padding-set.yaml
 
 . as $root

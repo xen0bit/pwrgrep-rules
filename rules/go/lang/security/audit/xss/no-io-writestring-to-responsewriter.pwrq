@@ -1,20 +1,27 @@
 # rules: no-io-writestring-to-responsewriter
 # languages: go
+# fixture: go/no-io-writestring-to-responsewriter.go
 # from: go/lang/security/audit/xss/no-io-writestring-to-responsewriter.yaml
+#
+# The handler scaffolds put `$$$_` ellipses around the ResponseWriter
+# parameter, which match no parameter list; the `within` never held and the
+# rule never fired. They name the two-parameter handler shapes now. The
+# static exclusion read `"$$$_"` as any second argument and subtracted every
+# call; it names the hole and keeps only the pure-literal spelling.
 
 . as $root
 | ( ($root | scan_ast(["*.go"]; [
-      "func $HANDLER($$$_, $WRITER http.ResponseWriter, $$$_) {\n  $$$_\n}",
-      "func($$$_, $WRITER http.ResponseWriter, $$$_) {\n  $$$_\n}",
-      "io.WriteString($WRITER, \"$$$_\")",
+      "func $HANDLER($W http.ResponseWriter, $R *http.Request) {$$$BODY}",
+      "func($W http.ResponseWriter, $R *http.Request) {$$$BODY}",
+      "io.WriteString($W, $S)",
       "io.WriteString($WRITER, $STRING)"
     ])) as $all
     | ( ($all
-          | within($all | of(["func $HANDLER($$$_, $WRITER http.ResponseWriter, $$$_) {\n  $$$_\n}"])))
+          | within($all | of(["func $HANDLER($W http.ResponseWriter, $R *http.Request) {$$$BODY}"])))
           + ($all
-          | within($all | of(["func($$$_, $WRITER http.ResponseWriter, $$$_) {\n  $$$_\n}"])))
+          | within($all | of(["func($W http.ResponseWriter, $R *http.Request) {$$$BODY}"])))
           | at_same_place(($all | of(["io.WriteString($WRITER, $STRING)"])))
-          | not_at($all | of(["io.WriteString($WRITER, \"$$$_\")"]))
+          | not_at($all | of(["io.WriteString($W, $S)"]) | where_capture("S"; "^\".*\"$"))
         | finding("no-io-writestring-to-responsewriter";
             "Detected 'io.WriteString()' writing directly to 'http.ResponseWriter'.") ) )
 | report

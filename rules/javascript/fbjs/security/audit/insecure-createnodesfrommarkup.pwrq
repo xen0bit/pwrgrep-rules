@@ -1,17 +1,19 @@
 # rules: insecure-createnodesfrommarkup
 # languages: javascript, typescript
+# fixture: javascript/insecure-createnodesfrommarkup.js
 # from: javascript/fbjs/security/audit/insecure-createnodesfrommarkup.yaml
+#
+# Repair: dead as written. The literal-argument exclusions
+# `createNodesFromMarkup("$$$", $$$)` read their holes as any value and
+# subtracted every call. The exclusion now keeps only fully-quoted text.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "$X.createNodesFromMarkup(\"$$$_\",$$$_)",
-      "$X.createNodesFromMarkup($$$_)",
-      "createNodesFromMarkup(\"$$$_\",$$$_)",
-      "createNodesFromMarkup($$$_)"
+      "$X.createNodesFromMarkup($MARKUP)",
+      "createNodesFromMarkup($MARKUP)"
     ])) as $all
-    | ( $all | of(["createNodesFromMarkup($$$_)","$X.createNodesFromMarkup($$$_)"])
-          | not_at($all | of(["createNodesFromMarkup(\"$$$_\",$$$_)"]))
-          | not_at($all | of(["$X.createNodesFromMarkup(\"$$$_\",$$$_)"]))
+    | ( $all | of(["createNodesFromMarkup($MARKUP)","$X.createNodesFromMarkup($MARKUP)"])
+          | not_at(($all | of(["createNodesFromMarkup($MARKUP)","$X.createNodesFromMarkup($MARKUP)"]) | where_capture("MARKUP"; "^[\"'].*[\"']$")))
         | finding("insecure-createnodesfrommarkup";
             "User controlled data in a `createNodesFromMarkup` is an anti-pattern that can lead to XSS vulnerabilities") ) )
 | report

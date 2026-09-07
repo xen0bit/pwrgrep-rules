@@ -1,0 +1,31 @@
+rules:
+  - id: contra
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    patterns:
+      # ruleid: unsatisfiable-rule
+      - pattern: foo($X)
+      - pattern-not: foo($X)
+  - id: contra2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    patterns:
+      # ruleid: unsatisfiable-rule
+      - pattern-not: bar($X)
+      - pattern: bar($X)
+  - id: fine
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    patterns:
+      # ok: unsatisfiable-rule
+      - pattern: baz($X)
+      - pattern-not: qux($X)
+  - id: fine2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ok: unsatisfiable-rule
+    pattern: single($X)

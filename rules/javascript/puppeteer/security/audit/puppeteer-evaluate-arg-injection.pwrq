@@ -1,5 +1,6 @@
 # rules: puppeteer-evaluate-arg-injection
 # languages: javascript, typescript
+# fixture: javascript/puppeteer-evaluate-arg-injection.js
 # from: javascript/puppeteer/security/audit/puppeteer-evaluate-arg-injection.yaml
 
 . as $root
@@ -9,7 +10,7 @@
       "$PAGE.evaluateOnNewDocument($CODE,$$$_,$PWRQDEEP1,$$$_)",
       "function $FUNC ($$$_,$INPUT,$$$_) {$$$_}",
       "function ($$$_,$INPUT,$$$_) {$$$_}",
-      "require('puppeteer');\n$$$_"
+      "require('puppeteer')"
     ])) as $all
     | ( ($all
           | within($all | of(["function $FUNC ($$$_,$INPUT,$$$_) {$$$_}"])))
@@ -21,7 +22,7 @@
           | where_capture_ast("PWRQDEEP1"; "$INPUT"))
           + ($all | of(["$PAGE.evaluateOnNewDocument($CODE,$$$_,$PWRQDEEP1,$$$_)"])
           | where_capture_ast("PWRQDEEP1"; "$INPUT"))))
-          | in_files_with($all | of(["require('puppeteer');\n$$$_"]))
+          | in_files_with($all | of(["require('puppeteer')"]))
         | finding("puppeteer-evaluate-arg-injection";
             "If unverified user data can reach the `evaluate` method it can result in Server-Side Request Forgery vulnerabilities") ) )
 | report

@@ -1,5 +1,6 @@
 # rules: tempfile-without-flush
 # languages: python
+# fixture: python/flush.py
 # from: python/lang/correctness/tempfile/flush.yaml
 
 . as $root

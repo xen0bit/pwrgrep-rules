@@ -1,5 +1,6 @@
 # rules: azure-postgresql-threat-detection-enabled
 # languages: hcl
+# fixture: terraform/azure-postgresql-threat-detection-enabled.tf
 # from: terraform/azure/best-practice/azure-postgresql-threat-detection-enabled.yaml
 
 . as $root

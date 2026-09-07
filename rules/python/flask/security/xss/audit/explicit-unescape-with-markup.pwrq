@@ -1,5 +1,6 @@
 # rules: explicit-unescape-with-markup
 # languages: python
+# fixture: python/explicit-unescape-with-markup.py
 # from: python/flask/security/xss/audit/explicit-unescape-with-markup.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: avoid-accessing-request-in-wrong-handler
 # languages: python
+# fixture: python/access-request-in-wrong-handler.py
 # from: python/flask/correctness/access-request-in-wrong-handler.yaml
 
 . as $root

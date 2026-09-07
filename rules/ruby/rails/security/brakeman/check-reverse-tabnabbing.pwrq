@@ -1,4 +1,7 @@
 # rules: check-reverse-tabnabbing
+# fixture: ruby/check-reverse-tabnabbing.erb
+#
+# The `target:\s+[\s\S]*?` container matches with an empty tail, so a `_blank` value after it is never `within` it. The tail now reads the value itself (`\s*\S+`). The `rel: ...noopener` exclusion is likewise fenced to one tag (`[^%]*?`), since its gaps otherwise span from an unsafe tag into a safe one and exclude everything.
 # from: ruby/rails/security/brakeman/check-reverse-tabnabbing.yaml
 
 . as $root
@@ -6,9 +9,9 @@
       "<%=\\s+(?P<INLINERUBY>[\\s\\S]*?)\\s+%>",
       "<%=\\s+(?P<INLINERUBYDO>[\\s\\S]*?)\\s+do\\s+\\-%>\\s+[\\s\\S]*?\\s+<%\\s+end\\s+%>",
       "<%=\\s+[\\s\\S]*?\\s+do\\s+\\-\\s+%>",
-      "<%=\\s+[\\s\\S]*?\\s+rel:\\s+'noopener\\s+noreferrer'\\s+[\\s\\S]*?%>",
+      "<%=\\s+[^%]*?\\s+rel:\\s+'noopener\\s+noreferrer'\\s+[^%]*?%>",
       "_blank",
-      "target:\\s+[\\s\\S]*?"
+      "target:\\s*\\S+"
     ])) as $all
     | ( $all | of(["_blank"])
           | at_same_place((($all
@@ -16,8 +19,8 @@
           + ($all
           | outside($all | of(["<%=\\s+[\\s\\S]*?\\s+do\\s+\\-\\s+%>"]))
           | within($all | of(["<%=\\s+(?P<INLINERUBY>[\\s\\S]*?)\\s+%>"])))))
-          | within($all | of(["target:\\s+[\\s\\S]*?"]))
-          | outside($all | of(["<%=\\s+[\\s\\S]*?\\s+rel:\\s+'noopener\\s+noreferrer'\\s+[\\s\\S]*?%>"]))
+          | within($all | of(["target:\\s*\\S+"]))
+          | outside($all | of(["<%=\\s+[^%]*?\\s+rel:\\s+'noopener\\s+noreferrer'\\s+[^%]*?%>"]))
         | finding("check-reverse-tabnabbing";
             "Setting an anchor target of `_blank` without the `noopener` or `noreferrer` attribute allows reverse tabnabbing on Internet Explorer, Opera, and Android Webview.") ) )
 | report

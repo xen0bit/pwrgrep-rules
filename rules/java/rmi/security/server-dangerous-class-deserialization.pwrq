@@ -1,5 +1,6 @@
 # rules: server-dangerous-class-deserialization
 # languages: java
+# fixture: java/server-dangerous-class-deserialization.java
 # from: java/rmi/security/server-dangerous-class-deserialization.yaml
 
 . as $root

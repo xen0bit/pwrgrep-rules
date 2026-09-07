@@ -1,5 +1,6 @@
 # rules: eks-public-endpoint-enabled
 # languages: hcl
+# fixture: terraform/eks-public-endpoint-enabled.tf
 # from: terraform/lang/security/eks-public-endpoint-enabled.yaml
 
 . as $root

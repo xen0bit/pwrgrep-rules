@@ -1,5 +1,6 @@
 # rules: hardcoded-token
 # languages: python
+# fixture: python/hardcoded-token.py
 # from: python/boto3/security/hardcoded-token.yaml
 
 . as $root

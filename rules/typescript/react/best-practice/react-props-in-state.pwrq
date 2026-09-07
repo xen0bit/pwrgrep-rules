@@ -1,5 +1,11 @@
 # rules: react-props-in-state
+# fixture: typescript/react-props-in-state.tsx
 # from: typescript/react/best-practice/react-props-in-state.yaml
+#
+# The bare `state = ...` spelling also matches inside `this.state = ...`,
+# which reported the same line twice. The bare branch keeps only matches
+# outside the `this.` spans (their starts differ, so exact coincidence
+# cannot see the overlap).
 
 . as $root
 | ( ($root | scan_regex(["*.js","*.ts"]; [
@@ -13,7 +19,11 @@
       "useState\\(function\\s+(?P<X>\\S+)\\([\\s\\S]*?\\)\\s+\\{\\s+[\\s\\S]*?\\s+<[\\s\\S]*?\\s+(?P<PROP>\\S+)\\.(?P<KEY>\\S+)\\s+[\\s\\S]*?>\\s+[\\s\\S]*?\\s+\\}\\)",
       "useState\\(function\\s+(?P<X>\\S+)\\([\\s\\S]*?\\)\\s+\\{\\s+[\\s\\S]*?\\s+<[\\s\\S]*?\\s+(?P<PROP>\\S+)\\s+[\\s\\S]*?>\\s+[\\s\\S]*?\\s+\\}\\)"
     ])) as $all
-    | ( ($all | of(["state\\s+=\\s+\\{(?P<NAME>\\S+):\\s+<[\\s\\S]*?\\s+this\\.props\\.(?P<PROP>\\S+)\\s+[\\s\\S]*?>\\}","this\\.state\\s+=\\s+\\{(?P<NAME>\\S+):\\s+<[\\s\\S]*?\\s+this\\.props\\.(?P<PROP>\\S+)\\s+[\\s\\S]*?>\\}"])
+    | ( ($all | of(["state\\s+=\\s+\\{(?P<NAME>\\S+):\\s+<[\\s\\S]*?\\s+this\\.props\\.(?P<PROP>\\S+)\\s+[\\s\\S]*?>\\}"])
+          | outside($all | of(["this\\.state\\s+=\\s+\\{(?P<NAME>\\S+):\\s+<[\\s\\S]*?\\s+this\\.props\\.(?P<PROP>\\S+)\\s+[\\s\\S]*?>\\}"]))
+          | within($all | of(["class\\s+(?P<CN>\\S+)\\s+extends\\s+React\\.Component\\s+\\{\\s+[\\s\\S]*?\\s+\\}"]))
+          | where_capture_not("NAME"; "^(?:default|initial)"))
+          + (($all | of(["this\\.state\\s+=\\s+\\{(?P<NAME>\\S+):\\s+<[\\s\\S]*?\\s+this\\.props\\.(?P<PROP>\\S+)\\s+[\\s\\S]*?>\\}"]))
           | within($all | of(["class\\s+(?P<CN>\\S+)\\s+extends\\s+React\\.Component\\s+\\{\\s+[\\s\\S]*?\\s+\\}"]))
           | where_capture_not("NAME"; "^(?:default|initial)"))
           + (($all

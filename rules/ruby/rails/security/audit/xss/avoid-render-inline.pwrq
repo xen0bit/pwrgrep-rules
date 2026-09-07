@@ -1,5 +1,6 @@
 # rules: avoid-render-inline
 # languages: ruby
+# fixture: ruby/avoid-render-inline.rb
 # from: ruby/rails/security/audit/xss/avoid-render-inline.yaml
 
 . as $root

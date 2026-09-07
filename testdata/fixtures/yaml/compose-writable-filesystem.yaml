@@ -1,0 +1,17 @@
+version: "3"
+services:
+  # ruleid: writable-filesystem-service
+  web:
+    image: nginx
+  # ruleid: writable-filesystem-service
+  api:
+    image: myapi:latest
+    read_only: false
+  # ok: writable-filesystem-service
+  worker:
+    image: worker:1.0
+    read_only: true
+  # ok: writable-filesystem-service
+  cron:
+    image: cron:1.0
+    read_only: true

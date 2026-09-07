@@ -1,0 +1,10 @@
+# Gitleaks slack-app-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: slack-app-token
+token = xapp-1-A1B2C3D4E5-1234567890-abcdefghij1234567890abcdefghij1234
+# ruleid: slack-app-token
+token = xapp-2-Z9Y8X7W6V5-0987654321-0987654321zyxwvutsrqponmlkjihgfe
+# ok: slack-app-token
+token = "example"
+# ok: slack-app-token
+token = "placeholder"

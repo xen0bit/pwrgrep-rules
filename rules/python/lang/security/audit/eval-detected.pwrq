@@ -1,5 +1,6 @@
 # rules: eval-detected
 # languages: python
+# fixture: python/eval-detected.py
 # from: python/lang/security/audit/eval-detected.yaml
 
 . as $root

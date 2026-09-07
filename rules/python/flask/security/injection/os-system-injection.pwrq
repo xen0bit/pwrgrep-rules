@@ -1,5 +1,6 @@
 # rules: os-system-injection
 # languages: python
+# fixture: python/os-system-injection.py
 # from: python/flask/security/injection/os-system-injection.yaml
 
 . as $root

@@ -1,15 +1,21 @@
 # rules: dangerous-open
 # languages: ruby
+# fixture: ruby/dangerous-open.rb
 # from: ruby/lang/security/dangerous-open.yaml
+#
+# The call shapes carried a trailing `$$$` that matches nothing in this
+# grammar, so no `open` ever reached the finding. They name exact arities,
+# and the static exclusion keeps only the pure-literal first argument.
 
 . as $root
 | ( ($root | scan_ast(["*.rb"]; [
-      "open(\"$$$_\",$$$_)",
-      "open($CMD,$$$_)"
+      "open($S)",
+      "open($S, $M)",
+      "open($CMD)",
+      "open($CMD, $MODE)"
     ])) as $all
-    | ( $all | of(["open($CMD,$$$_)"])
-          | not_at($all | of(["open(\"$$$_\",$$$_)"]))
-          | where_capture("CMD"; "^(?:|)")
+    | ( $all | of(["open($CMD)","open($CMD, $MODE)"])
+          | not_at(($all | of(["open($S)","open($S, $M)"]) | where_capture("S"; "^[\"']")))
         | finding("dangerous-open";
             "Detected non-static command inside 'open'.") ) )
 | report

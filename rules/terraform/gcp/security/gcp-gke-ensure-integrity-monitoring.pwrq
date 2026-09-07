@@ -1,5 +1,6 @@
 # rules: gcp-gke-ensure-integrity-monitoring
 # languages: hcl
+# fixture: terraform/gcp-gke-ensure-integrity-monitoring.tf
 # from: terraform/gcp/security/gcp-gke-ensure-integrity-monitoring.yaml
 
 . as $root

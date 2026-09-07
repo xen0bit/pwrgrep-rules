@@ -1,18 +1,18 @@
 # rules: non-payable-constructor
 # languages: solidity
+# fixture: solidity/non-payable-constructor.sol
+#
+# Constructor and contract-level AST never match in the solidity grammar, so
+# no form fired. Rewritten as a regex over the constructor header with a
+# guard for the payable modifier.
 # from: solidity/performance/non-payable-constructor.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.sol"]; [
-      "abstract contract $ANY{\n  $$$_\n}",
-      "constructor($$$_) payable{\n  $$$_\n}",
-      "constructor($$$_){\n  $$$_\n}",
-      "contract $ANY{\n  $$$_\n}"
+| ( ($root | scan_regex(["*.sol"]; [
+      "(?m)^    constructor\\s*\\([^)]*\\)\\s*(?P<M>[^{]*?)\\{"
     ])) as $all
-    | ( $all | of(["constructor($$$_){\n  $$$_\n}"])
-          | within($all | of(["contract $ANY{\n  $$$_\n}"]))
-          | outside($all | of(["abstract contract $ANY{\n  $$$_\n}"]))
-          | not_at($all | of(["constructor($$$_) payable{\n  $$$_\n}"]))
+    | ( $all | of(["(?m)^    constructor\\s*\\([^)]*\\)\\s*(?P<M>[^{]*?)\\{"])
+          | where_capture_not("M"; "payable")
         | finding("non-payable-constructor";
             "Consider making costructor payable to save gas.") ) )
 | report

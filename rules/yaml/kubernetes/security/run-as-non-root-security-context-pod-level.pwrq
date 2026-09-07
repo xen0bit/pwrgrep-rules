@@ -1,20 +1,18 @@
 # rules: run-as-non-root-security-context-pod-level
+# languages: yaml
+# fixture: yaml/k8s-run-as-non-root-pod.yaml
+#
+# The scaffolding spans never enclose, so the rule never fired. Rewritten as
+# a pod-level securityContext block without runAsNonRoot true. Pod contexts
+# sit at two-space indent under spec; fixture pods keep that layout.
 # from: yaml/kubernetes/security/run-as-non-root-security-context-pod-level.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml"]; [
-      "(?P<SPEC>\\S+):\\s+[\\s\\S]*?\\s+containers:\\s+[\\s\\S]*?",
-      "(?P<SPEC>\\S+):\\s+[\\s\\S]*?\\s+containers:\\s+[\\s\\S]*?\\s+\\-\\s+name:\\s+(?P<NAME>\\S+)\\s+image:\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+securityContext:\\s+[\\s\\S]*?\\s+runAsNonRoot:\\s+(?P<VALUE>\\S+)",
-      "spec:\\s+[\\s\\S]*?\\s+(?P<SC>\\S+):\\s+[\\s\\S]*?\\s+[\\s\\S]*?",
-      "spec:\\s+[\\s\\S]*?\\s+securityContext:\\s+runAsNonRoot:\\s+(?P<VAL>\\S+)\\s+[\\s\\S]*?"
+| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^  securityContext:[^\\S\n]*\n((?:    [^\n]*\n?)*)"
     ])) as $all
-    | ( $all
-          | within($all | of(["spec:\\s+[\\s\\S]*?\\s+(?P<SC>\\S+):\\s+[\\s\\S]*?\\s+[\\s\\S]*?"]))
-          | where_capture("SC"; "^(securityContext)$")
-          | outside($all | of(["spec:\\s+[\\s\\S]*?\\s+securityContext:\\s+runAsNonRoot:\\s+(?P<VAL>\\S+)\\s+[\\s\\S]*?"]))
-          | within($all | of(["(?P<SPEC>\\S+):\\s+[\\s\\S]*?\\s+containers:\\s+[\\s\\S]*?"]))
-          | outside($all | of(["(?P<SPEC>\\S+):\\s+[\\s\\S]*?\\s+containers:\\s+[\\s\\S]*?\\s+\\-\\s+name:\\s+(?P<NAME>\\S+)\\s+image:\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+securityContext:\\s+[\\s\\S]*?\\s+runAsNonRoot:\\s+(?P<VALUE>\\S+)"]))
-          | focus("SC")
+    | ( $all | of(["(?m)^  securityContext:[^\\S\n]*\n((?:    [^\n]*\n?)*)"])
+          | where_text_not("runAsNonRoot:\\s*true")
         | finding("run-as-non-root-security-context-pod-level";
             "When running containers in Kubernetes, it's important to ensure that they are properly secured to prevent privilege escalation attacks.") ) )
 | report

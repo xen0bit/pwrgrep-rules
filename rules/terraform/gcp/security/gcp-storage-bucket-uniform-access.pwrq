@@ -1,5 +1,6 @@
 # rules: gcp-storage-bucket-uniform-access
 # languages: hcl
+# fixture: terraform/gcp-storage-bucket-uniform-access.tf
 # from: terraform/gcp/security/gcp-storage-bucket-uniform-access.yaml
 
 . as $root

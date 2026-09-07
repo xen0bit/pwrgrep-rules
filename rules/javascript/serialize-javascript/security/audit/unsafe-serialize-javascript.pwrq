@@ -1,5 +1,6 @@
 # rules: unsafe-serialize-javascript
 # languages: javascript, typescript
+# fixture: javascript/unsafe-serialize-javascript.js
 # from: javascript/serialize-javascript/security/audit/unsafe-serialize-javascript.yaml
 
 . as $root

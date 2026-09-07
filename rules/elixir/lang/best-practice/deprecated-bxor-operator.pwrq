@@ -1,5 +1,6 @@
 # rules: deprecated_bxor_operator
 # languages: elixir
+# fixture: elixir/deprecated-bxor-operator.ex
 # from: elixir/lang/best-practice/deprecated-bxor-operator.yaml
 
 . as $root

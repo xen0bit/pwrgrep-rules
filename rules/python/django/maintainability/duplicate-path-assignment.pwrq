@@ -1,5 +1,6 @@
 # rules: duplicate-path-assignment, conflicting-path-assignment, duplicate-path-assignment-different-names, duplicate-name-assignment
 # languages: python
+# fixture: python/duplicate-path-assignment.py
 # from: python/django/maintainability/duplicate-path-assignment.yaml
 
 . as $root

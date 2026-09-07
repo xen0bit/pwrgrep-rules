@@ -1,4 +1,5 @@
 # rules: conf-insecure-cookie-settings
+# fixture: scala/conf-insecure-cookie-settings.conf
 # from: scala/play/security/conf-insecure-cookie-settings.yaml
 
 . as $root

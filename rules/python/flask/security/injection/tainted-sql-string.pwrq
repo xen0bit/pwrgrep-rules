@@ -1,5 +1,6 @@
 # rules: tainted-sql-string
 # languages: python
+# fixture: python/flask-tainted-sql-string.py
 # from: python/flask/security/injection/tainted-sql-string.yaml
 
 . as $root

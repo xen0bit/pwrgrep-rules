@@ -1,17 +1,21 @@
 # rules: laravel-cookie-long-timeout
-# languages: php
+# languages:
+# fixture: php/laravel-cookie-long-timeout.php
+#
+# The array patterns only ever match a single item, so the within/outside
+# guards comparing whole-array spans could never subtract anything. Rewritten
+# as one regex over the config array; only a numeric literal is captured, so
+# env()-based lifetimes never match, and where_capture_compare keeps the
+# over-30-minutes check (flat arrays only). `# languages:` is empty because
+# the query is text-only.
 # from: php/laravel/security/laravel-cookie-long-timeout.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.php"]; [
-      "'lifetime'",
-      "return [\n  $$$_,\n  'lifetime' => $TIME,\n  $$$_\n];",
-      "return [\n  $$$_,\n  'lifetime' => env(\"$VAR\", $DEFAULT),\n  $$$_\n];"
+| ( ($root | scan_regex(["*.php"]; [
+      "return\\s+\\[[\\s\\S]*?'lifetime'\\s*=>\\s*(?P<TIME>\\d+)[\\s\\S]*?\\]"
     ])) as $all
-    | ( $all | of(["'lifetime'"])
-          | within($all | of(["return [\n  $$$_,\n  'lifetime' => $TIME,\n  $$$_\n];"]))
-          | outside($all | of(["return [\n  $$$_,\n  'lifetime' => env(\"$VAR\", $DEFAULT),\n  $$$_\n];"]))
-          | where_capture_compare("$TIME > 30")
+    | ( $all | of(["return\\s+\\[[\\s\\S]*?'lifetime'\\s*=>\\s*(?P<TIME>\\d+)[\\s\\S]*?\\]"])
+          | where_capture_compare("TIME > 30")
         | finding("laravel-cookie-long-timeout";
             "Found a configuration file where the lifetime attribute is over 30 minutes.") ) )
 | report

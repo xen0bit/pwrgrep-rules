@@ -1,9 +1,9 @@
 # rules: slow-pattern-general-property
 # languages: yaml
+# fixture: yaml/semgrep-slow-general-property.yaml
 # from: yaml/semgrep/slow-pattern-general-property.yaml
-
 . as $root
-| ( ($root | scan_ast(["*.yaml"]; [
+| ( ($root | scan_ast(["*.yaml","*.yml"]; [
       "pattern-inside: $X",
       "pattern-not-inside: $X",
       "pattern-not: $X",

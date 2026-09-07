@@ -1,5 +1,6 @@
 # rules: storage-queue-services-logging
 # languages: hcl
+# fixture: terraform/storage-queue-services-logging.tf
 # from: terraform/azure/security/storage/storage-queue-services-logging.yaml
 
 . as $root

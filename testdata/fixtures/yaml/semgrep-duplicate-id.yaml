@@ -1,0 +1,35 @@
+rules:
+  # ruleid: duplicate-id
+  - id: same-name
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    pattern: foo($X)
+  - id: same-name
+    message: "n"
+    languages: [python]
+    severity: WARNING
+    pattern: bar($X)
+  # ok: duplicate-id
+  - id: other-name
+    message: "o"
+    languages: [python]
+    severity: WARNING
+    pattern: baz($X)
+  # ok: duplicate-id
+  - id: third-name
+    message: "p"
+    languages: [python]
+    severity: WARNING
+    pattern: qux($X)
+  # ruleid: duplicate-id
+  - id: fourth-name
+    message: "q"
+    languages: [python]
+    severity: WARNING
+    pattern: quux($X)
+  - id: fourth-name
+    message: "r"
+    languages: [python]
+    severity: WARNING
+    pattern: corge($X)

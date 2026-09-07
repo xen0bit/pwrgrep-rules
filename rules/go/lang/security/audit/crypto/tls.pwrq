@@ -1,5 +1,6 @@
 # rules: tls-with-insecure-cipher
 # languages: go
+# fixture: go/tls-with-insecure-cipher.go
 # from: go/lang/security/audit/crypto/tls.yaml
 
 . as $root

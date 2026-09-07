@@ -1,5 +1,6 @@
 # rules: formatted-template-string
 # languages: go
+# fixture: go/formatted-template-string.go
 # from: go/lang/security/audit/net/formatted-template-string.yaml
 
 . as $root

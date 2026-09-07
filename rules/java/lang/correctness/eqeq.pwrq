@@ -1,4 +1,5 @@
 # rules: eqeq
+# fixture: java/eqeq.java
 # from: java/lang/correctness/eqeq.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: aws-transfer-server-is-public
 # languages: hcl
+# fixture: terraform/aws-transfer-server-is-public.tf
 # from: terraform/aws/security/aws-transfer-server-is-public.yaml
 
 . as $root

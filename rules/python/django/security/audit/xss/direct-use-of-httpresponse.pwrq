@@ -1,5 +1,6 @@
 # rules: direct-use-of-httpresponse
 # languages: python
+# fixture: python/direct-use-of-httpresponse.py
 # from: python/django/security/audit/xss/direct-use-of-httpresponse.yaml
 
 . as $root

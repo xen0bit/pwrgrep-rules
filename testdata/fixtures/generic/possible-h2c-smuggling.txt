@@ -1,0 +1,19 @@
+# Upgrade forwarding with HTTP/1.1 in one location enables H2C smuggling.
+# Both directive triples sit in a single block, so each ordering fires.
+location /api {
+    # ruleid: possible-nginx-h2c-smuggling
+    proxy_http_version 1.1 ;
+    # ruleid: possible-nginx-h2c-smuggling
+    # ruleid: possible-nginx-h2c-smuggling
+    proxy_set_header Upgrade $http_upgrade ;
+    proxy_set_header Connection "upgrade" ;
+    proxy_http_version 1.1 ;
+    proxy_set_header Upgrade $http_upgrade ;
+    proxy_set_header Connection "upgrade" ;
+}
+# ok: possible-nginx-h2c-smuggling
+location /static {
+    root /var/www;
+}
+# ok: possible-nginx-h2c-smuggling
+expires 30d;

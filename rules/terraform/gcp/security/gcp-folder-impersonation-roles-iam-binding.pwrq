@@ -1,5 +1,6 @@
 # rules: gcp-folder-impersonation-roles-iam-binding
 # languages: hcl
+# fixture: terraform/gcp-folder-impersonation-roles-iam-binding.tf
 # from: terraform/gcp/security/gcp-folder-impersonation-roles-iam-binding.yaml
 
 . as $root

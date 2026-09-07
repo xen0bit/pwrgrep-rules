@@ -1,20 +1,22 @@
 # rules: grpc-nodejs-insecure-connection
 # languages: javascript, typescript
+# fixture: javascript/grpc-nodejs-insecure-connection.js
 # from: javascript/grpc/security/grpc-nodejs-insecure-connection.yaml
+#
+# Repair: dead as written. The four statement-sequence shapes needed the
+# `require`, the credential assignment, and the client call to sit in one
+# statement list with exact bare-`=` spellings, so `const` declarations and
+# any intervening scope broke every branch. The rule now matches the insecure
+# credential constructor directly with a file-level `grpc` gate.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "require('grpc');\n$$$_\n$CREDS = $PWRQDEEP1;\n$$$_\n$GRPC($ADDR,$$$_,$CREDS,$$$_);",
-      "require('grpc');\n$$$_\n$CREDS = $PWRQDEEP1;\n$$$_\nnew $GRPC($ADDR,$$$_,$CREDS,$$$_);",
-      "require('grpc');\n$$$_\n$GRPC($ADDR,$$$_,$CREDENTIALS.createInsecure(),$$$_);",
-      "require('grpc');\n$$$_\nnew $GRPC($ADDR,$$$_,$CREDENTIALS.createInsecure(),$$$_);"
+      "$CREDENTIALS.createInsecure()",
+      "const $G = require('grpc')",
+      "require('grpc');\n$$$"
     ])) as $all
-    | ( ($all | of(["require('grpc');\n$$$_\n$GRPC($ADDR,$$$_,$CREDENTIALS.createInsecure(),$$$_);"]))
-          + ($all | of(["require('grpc');\n$$$_\nnew $GRPC($ADDR,$$$_,$CREDENTIALS.createInsecure(),$$$_);"]))
-          + ($all | of(["require('grpc');\n$$$_\n$CREDS = $PWRQDEEP1;\n$$$_\n$GRPC($ADDR,$$$_,$CREDS,$$$_);"])
-          | where_capture_ast("PWRQDEEP1"; "$CREDENTIALS.createInsecure()"))
-          + ($all | of(["require('grpc');\n$$$_\n$CREDS = $PWRQDEEP1;\n$$$_\nnew $GRPC($ADDR,$$$_,$CREDS,$$$_);"])
-          | where_capture_ast("PWRQDEEP1"; "$CREDENTIALS.createInsecure()"))
+    | ( ($all | of(["$CREDENTIALS.createInsecure()"]))
+          | in_files_with(($all | of(["require('grpc');\n$$$", "const $G = require('grpc')"])))
         | finding("grpc-nodejs-insecure-connection";
             "Found an insecure gRPC connection.") ) )
 | report

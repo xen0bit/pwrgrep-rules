@@ -1,5 +1,6 @@
 # rules: gcp-memory-store-for-redis-auth-enabled
 # languages: hcl
+# fixture: terraform/gcp-memory-store-for-redis-auth-enabled.tf
 # from: terraform/gcp/security/gcp-memory-store-for-redis-auth-enabled.yaml
 
 . as $root

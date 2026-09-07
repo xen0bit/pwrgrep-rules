@@ -1,0 +1,10 @@
+# Gitleaks kucoin-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: kucoin-access-token
+kucoin=abcdef0123456789abcdef01
+# ruleid: kucoin-access-token
+kucoin=56789abcdef0123456789abc
+# ok: kucoin-access-token
+kucoin = "example"
+# ok: kucoin-access-token
+kucoin = "placeholder"

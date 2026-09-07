@@ -1,23 +1,20 @@
 # rules: sense-missing-oracle-access-control
 # languages: solidity
+# fixture: solidity/sense-missing-oracle-access-control.sol
+#
+# Function patterns with gaps and modifier holes never match in the solidity
+# grammar, so no form fired. Rewritten as a regex over external and public
+# function headers carrying a REQUEST parameter, with the onlyVault spelling
+# excluded. Sender-equality checks inside the body are out of scope and stay
+# a reviewer check.
 # from: solidity/security/sense-missing-oracle-access-control.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.sol"]; [
-      "$$$_\nif (_msgSender() == $BALANCER) { $$$_ }\n$$$_",
-      "$$$_\nif (msg.sender == $BALANCER) { $$$_ }\n$$$_",
-      "$$$_\nrequire(_msgSender() == address($BALANCER),$$$_);\n$$$_",
-      "$$$_\nrequire(msg.sender == address($BALANCER),$$$_);\n$$$_",
-      "_updateOracle($LASTBLOCK,$$$_,$$$_)",
-      "function $F($$$_,$D $REQUEST,$$$_) external onlyVault($$$_) {\n    $$$_\n}",
-      "function $F($$$_,$D $REQUEST,$$$_) external {\n    $$$_\n}",
-      "function $F($$$_,$D $REQUEST,$$$_) public {\n    $$$_\n}"
+| ( ($root | scan_regex(["*.sol"]; [
+      "function\\s+(?P<F>\\w+)\\s*\\([^)]*\\bREQUEST\\b[^)]*\\)\\s*(?:external|public)\\b(?P<M>[^{]*?)\\{"
     ])) as $all
-    | ( ($all
-          | within($all | of(["function $F($$$_,$D $REQUEST,$$$_) external {\n    $$$_\n}"])))
-          + ($all
-          | within($all | of(["function $F($$$_,$D $REQUEST,$$$_) public {\n    $$$_\n}"])))
-          | outside($all | of(["function $F($$$_,$D $REQUEST,$$$_) external onlyVault($$$_) {\n    $$$_\n}"]))
+    | ( $all | of(["function\\s+(?P<F>\\w+)\\s*\\([^)]*\\bREQUEST\\b[^)]*\\)\\s*(?:external|public)\\b(?P<M>[^{]*?)\\{"])
+          | where_capture_not("M"; "onlyVault")
         | finding("sense-missing-oracle-access-control";
             "Oracle update is not restricted in $F()") ) )
 | report

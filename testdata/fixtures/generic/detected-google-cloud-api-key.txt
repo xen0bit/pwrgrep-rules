@@ -1,0 +1,9 @@
+# CWE-798: Google Cloud API key.
+# ruleid: detected-google-cloud-api-key
+AIzaSyB7xK9mQ2vT4wN8pL3jH6fD1sA5cE0gR9yU4
+# ruleid: detected-google-cloud-api-key
+AIzaSyD4nP8rT2xW6vK0mJ5hG3fB9sA7cE1qY8uZ2
+# ok: detected-google-cloud-api-key
+AIzaShort
+# ok: detected-google-cloud-api-key
+api_key = "example"

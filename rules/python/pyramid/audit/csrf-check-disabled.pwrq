@@ -1,5 +1,6 @@
 # rules: pyramid-csrf-check-disabled
 # languages: python
+# fixture: python/csrf-check-disabled.py
 # from: python/pyramid/audit/csrf-check-disabled.yaml
 
 . as $root

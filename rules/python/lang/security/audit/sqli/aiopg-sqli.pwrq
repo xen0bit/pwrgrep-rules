@@ -1,5 +1,6 @@
 # rules: aiopg-sqli
 # languages: python
+# fixture: python/aiopg-sqli.py
 # from: python/lang/security/audit/sqli/aiopg-sqli.yaml
 
 . as $root

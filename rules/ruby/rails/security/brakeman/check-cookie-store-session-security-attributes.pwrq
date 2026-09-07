@@ -1,4 +1,5 @@
 # rules: check-cookie-store-session-security-attributes
+# fixture: ruby/check-cookie-store-session-security-attributes.rb
 # from: ruby/rails/security/brakeman/check-cookie-store-session-security-attributes.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: aws-timestream-database-encrypted-with-cmk
 # languages: hcl
+# fixture: terraform/aws-timestream-database-encrypted-with-cmk.tf
 # from: terraform/aws/security/aws-timestream-database-encrypted-with-cmk.yaml
 
 . as $root

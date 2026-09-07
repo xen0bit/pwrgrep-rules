@@ -1,14 +1,26 @@
 # rules: raw-html-join
 # languages: javascript, typescript
+# fixture: javascript/raw-html-join.js
+# fixture: javascript/raw-html-join.js
 # from: javascript/browser/security/raw-html-join.yaml
+#
+# The array shapes padded every hole with `$$$_`, which matches no list, so
+# the rule never fired. They name one-, two- and three-element joins, and
+# the all-literal exclusion keeps only the fully static spelling.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "[$$$_, \"$HARDCODED\", $$$_].join(\"$$$_\")",
-      "[$$$_, $STRING, $$$_].join($$$_)"
+      "[$L1].join($L2)",
+      "[$L1, $L2].join($L3)",
+      "[$L1, $L2, $L3].join($L4)",
+      "[$A].join($J)",
+      "[$A, $B].join($J)",
+      "[$A, $B, $C].join($J)"
     ])) as $all
-    | ( ($all | of(["[$$$_, $STRING, $$$_].join($$$_)"])
-          | not_at($all | of(["[$$$_, \"$HARDCODED\", $$$_].join(\"$$$_\")"])))
+    | ( ($all | of(["[$A].join($J)","[$A, $B].join($J)","[$A, $B, $C].join($J)"]))
+          | not_at(($all | of(["[$L1].join($L2)"]) | where_capture("L1"; "^[\"']")))
+          | not_at(($all | of(["[$L1, $L2].join($L3)"]) | where_capture("L1"; "^[\"']") | where_capture("L2"; "^[\"']")))
+          | not_at(($all | of(["[$L1, $L2, $L3].join($L4)"]) | where_capture("L1"; "^[\"']") | where_capture("L2"; "^[\"']") | where_capture("L3"; "^[\"']")))
         | finding("raw-html-join";
             "User controlled data in a HTML string may result in XSS") ) )
 | report

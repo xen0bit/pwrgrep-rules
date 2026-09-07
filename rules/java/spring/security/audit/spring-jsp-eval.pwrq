@@ -1,11 +1,15 @@
 # rules: spring-jsp-eval
+# fixture: java/spring-jsp-eval.jsp
 # from: java/spring/security/audit/spring-jsp-eval.yaml
+#
+# The tag wanted whitespace before `expression=`, which the standard
+# `<spring:eval expression=...>` never has; the gap is optional now.
 
 . as $root
 | ( ($root | scan_regex(["*.jsp"]; [
-      "<spring:eval\\s+[\\s\\S]*?\\s+expression=[\\s\\S]*?>"
+      "<spring:eval\\s+(?:[^>]*?\\s+)?expression=[^>]*?>"
     ])) as $all
-    | ( $all | of(["<spring:eval\\s+[\\s\\S]*?\\s+expression=[\\s\\S]*?>"])
+    | ( $all | of(["<spring:eval\\s+(?:[^>]*?\\s+)?expression=[^>]*?>"])
         | finding("spring-jsp-eval";
             "A Spring expression is built with a dynamic value.") ) )
 | report

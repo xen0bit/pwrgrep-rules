@@ -1,5 +1,6 @@
 # rules: azure-sqlserver-no-public-access
 # languages: hcl
+# fixture: terraform/azure-sqlserver-no-public-access.tf
 # from: terraform/azure/security/azure-sqlserver-no-public-access.yaml
 
 . as $root

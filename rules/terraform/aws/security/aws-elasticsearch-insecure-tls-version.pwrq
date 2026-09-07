@@ -1,5 +1,6 @@
 # rules: aws-elasticsearch-insecure-tls-version
 # languages: hcl
+# fixture: terraform/aws-elasticsearch-insecure-tls-version.tf
 # from: terraform/aws/security/aws-elasticsearch-insecure-tls-version.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: flask-deprecated-apis
 # languages: python
+# fixture: python/deprecated-apis.py
 # from: python/flask/maintainability/deprecated/deprecated-apis.yaml
 
 . as $root

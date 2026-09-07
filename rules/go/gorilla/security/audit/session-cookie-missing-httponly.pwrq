@@ -1,5 +1,6 @@
 # rules: session-cookie-missing-httponly
 # languages: go
+# fixture: go/session-cookie-missing-httponly.go
 # from: go/gorilla/security/audit/session-cookie-missing-httponly.yaml
 
 . as $root

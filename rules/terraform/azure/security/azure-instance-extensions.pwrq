@@ -1,5 +1,6 @@
 # rules: azure-instance-extensions
 # languages: hcl
+# fixture: terraform/azure-instance-extensions.tf
 # from: terraform/azure/security/azure-instance-extensions.yaml
 
 . as $root

@@ -1,15 +1,23 @@
 # rules: react-unsanitized-property
 # languages: javascript, typescript
+# fixture: typescript/react-unsanitized-property.tsx
 # from: typescript/react/security/audit/react-unsanitized-property.yaml
+#
+# The translated sinks only fired on a line that both declares the ref and
+# assigns through it: the ref declaration and the assignment never share a
+# span, so `at_same_place` between them was empty and the whole rule was
+# dead. The assignment shapes match on their own now - `$BODY.$HTML` binds
+# `body.current` without help - and the declaration spellings stay in the
+# scan list, where they cost nothing.
+# The rule is gated on the file importing React. `el.innerHTML = <derived>`
+# is a browser shape, not a React one, and `insecure-innerhtml` already
+# reports it: over pwrq's own web UI the ungated rule found four lines, all
+# four already reported under that id, in a file with no React in it.
 
 . as $root
+| ($root | scan_regex(["*.js","*.ts"];
+    ["from\\s*['\"]react['\"]", "require\\(\\s*['\"]react['\"]\\s*\\)"])) as $isReact
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "$BODY = $REACT.createRef($$$_)\n$$$_",
-      "$BODY = $REACT.findDOMNode($$$_)\n$$$_",
-      "$BODY = $REACT.useRef($$$_)\n$$$_",
-      "$BODY = createRef($$$_)\n$$$_",
-      "$BODY = findDOMNode($$$_)\n$$$_",
-      "$BODY = useRef($$$_)\n$$$_",
       "$BODY. $$$_ .$HTML = $SINK",
       "$BODY.$HTML = $SINK",
       "$S = new Remarkable()\n$$$_",
@@ -42,23 +50,9 @@
       "import * as $S from 'xss';\n$$$_",
       "import { $$$_, $S,$$$_ } from \"dompurify\"\n$$$_"
     ])) as $all
-    | ( ((($all
-          | in_files_with($all | of(["$BODY = $REACT.useRef($$$_)\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["$BODY = useRef($$$_)\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["$BODY = findDOMNode($$$_)\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["$BODY = createRef($$$_)\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["$BODY = $REACT.findDOMNode($$$_)\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["$BODY = $REACT.createRef($$$_)\n$$$_"])))
-          | at_same_place(($all | of(["$BODY. $$$_ .$HTML = $SINK","$BODY.$HTML = $SINK"])))
+    | ( (($all | of(["$BODY. $$$_ .$HTML = $SINK","$BODY.$HTML = $SINK","ReactDOM.findDOMNode($$$_).$HTML = $SINK"])
           | where_capture("HTML"; "^(?:(innerHTML|outerHTML))")
-          | focus("SINK"))
-              + ($all | of(["ReactDOM.findDOMNode($$$_).$HTML = $SINK"])
-          | where_capture("HTML"; "^(?:(innerHTML|outerHTML))")
+          | in_files_with($isReact)
           | focus("SINK")))
           | reaching(((($all
           | within($all | of(["function $$$_({$$$_, $X, $$$_}) { $$$_ }"])))

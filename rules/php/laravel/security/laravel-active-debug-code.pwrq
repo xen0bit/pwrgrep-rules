@@ -1,14 +1,24 @@
 # rules: laravel-active-debug-code
 # languages: php
+# fixture: php/laravel-active-debug-code.php
+#
+# Literal call patterns match twice - once as the statement, once as the
+# bare expression - so every finding was reported double. Rewritten with a
+# named hole plus a where_capture guard on the argument text; the assignment
+# form already matched once and is unchanged.
 # from: php/laravel/security/laravel-active-debug-code.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.php"]; [
       "$_ENV[\"APP_DEBUG\"] = 'true'",
-      "config(['app.debug' => 'true'])",
-      "putenv(\"APP_DEBUG=true\")"
+      "config($E)",
+      "putenv($E)"
     ])) as $all
-    | ( $all | of(["putenv(\"APP_DEBUG=true\")","config(['app.debug' => 'true'])","$_ENV[\"APP_DEBUG\"] = 'true'"])
+    | ( ($all | of(["putenv($E)"])
+          | where_capture("E"; "APP_DEBUG=true"))
+        + ($all | of(["config($E)"])
+          | where_capture("E"; "app\\.debug..\\s*=>\\s*['\"]true['\"]"))
+        + ($all | of(["$_ENV[\"APP_DEBUG\"] = 'true'"]))
         | finding("laravel-active-debug-code";
             "Found an instance setting the APP_DEBUG environment variable to true.") ) )
 | report

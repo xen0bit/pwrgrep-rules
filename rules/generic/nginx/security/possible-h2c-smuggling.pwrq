@@ -1,4 +1,5 @@
 # rules: possible-nginx-h2c-smuggling
+# fixture: generic/possible-h2c-smuggling.txt
 # from: generic/nginx/security/possible-h2c-smuggling.yaml
 
 . as $root

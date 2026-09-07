@@ -1,5 +1,6 @@
 # rules: azure-postgresql-server-log-connections-enabled
 # languages: hcl
+# fixture: terraform/azure-postgresql-server-log-connections-enabled.tf
 # from: terraform/azure/best-practice/azure-postgresql-server-log-connections-enabled.yaml
 
 . as $root

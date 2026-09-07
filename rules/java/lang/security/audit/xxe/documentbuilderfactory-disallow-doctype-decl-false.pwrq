@@ -1,5 +1,6 @@
 # rules: documentbuilderfactory-disallow-doctype-decl-false
 # languages: java
+# fixture: java/documentbuilderfactory-disallow-doctype-decl-false.java
 # from: java/lang/security/audit/xxe/documentbuilderfactory-disallow-doctype-decl-false.yaml
 
 . as $root

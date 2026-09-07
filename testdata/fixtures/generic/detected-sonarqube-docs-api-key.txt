@@ -1,0 +1,9 @@
+# CWE-798: SonarQube API key.
+# ruleid: detected-sonarqube-docs-api-key
+sonar_token = "abcdef1234567890abcdef1234567890abcdef12"
+# ruleid: detected-sonarqube-docs-api-key
+sonar = "0987654321fedcba0987654321fedcba09876543"
+# ok: detected-sonarqube-docs-api-key
+sonar_token = "example"
+# ok: detected-sonarqube-docs-api-key
+# sonar token is provided by the CI environment

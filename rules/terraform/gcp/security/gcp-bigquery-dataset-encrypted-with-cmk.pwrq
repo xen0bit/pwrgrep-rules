@@ -1,5 +1,6 @@
 # rules: gcp-bigquery-dataset-encrypted-with-cmk
 # languages: hcl
+# fixture: terraform/gcp-bigquery-dataset-encrypted-with-cmk.tf
 # from: terraform/gcp/security/gcp-bigquery-dataset-encrypted-with-cmk.yaml
 
 . as $root

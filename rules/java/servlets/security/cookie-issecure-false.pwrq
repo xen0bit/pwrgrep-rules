@@ -1,14 +1,19 @@
 # rules: cookie-issecure-false
 # languages: java
+# fixture: java/cookie-issecure-false.java
+# fixture: java/cookie-issecure-false.java
 # from: java/servlets/security/cookie-issecure-false.yaml
+#
+# The cookie was read as a bare assignment, which never matches a
+# declaration with its type. Both shapes name the declaration now.
 
 . as $root
 | ( ($root | scan_ast(["*.java"]; [
-      "$COOKIE = new Cookie($$$ARGS);",
-      "$COOKIE = new Cookie($$$_);\n$$$_\n$COOKIE.setSecure($$$_);"
+      "$T $COOKIE = new Cookie($$$ARGS);",
+      "$T $COOKIE = new Cookie($$$_);\n$$$_\n$COOKIE.setSecure($$$_);"
     ])) as $all
-    | ( $all | of(["$COOKIE = new Cookie($$$ARGS);"])
-          | outside($all | of(["$COOKIE = new Cookie($$$_);\n$$$_\n$COOKIE.setSecure($$$_);"]))
+    | ( $all | of(["$T $COOKIE = new Cookie($$$ARGS);"])
+          | outside($all | of(["$T $COOKIE = new Cookie($$$_);\n$$$_\n$COOKIE.setSecure($$$_);"]))
         | finding("cookie-issecure-false";
             "Default session middleware settings: `setSecure` not set to true.") ) )
 | report

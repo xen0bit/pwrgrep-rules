@@ -1,5 +1,6 @@
 # rules: tofastproperties-code-execution
 # languages: javascript, typescript
+# fixture: javascript/tofastproperties-code-execution.js
 # from: javascript/bluebird/security/audit/tofastproperties-code-execution.yaml
 
 . as $root

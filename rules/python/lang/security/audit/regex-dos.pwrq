@@ -1,5 +1,6 @@
 # rules: regex_dos
 # languages: python
+# fixture: python/regex-dos.py
 # from: python/lang/security/audit/regex-dos.yaml
 
 . as $root

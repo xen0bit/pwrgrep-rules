@@ -1,5 +1,6 @@
 # rules: azure-datafactory-uses-git-repository
 # languages: hcl
+# fixture: terraform/azure-datafactory-uses-git-repository.tf
 # from: terraform/azure/security/azure-datafactory-uses-git-repository.yaml
 
 . as $root

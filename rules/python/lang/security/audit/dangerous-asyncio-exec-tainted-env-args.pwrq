@@ -1,5 +1,6 @@
 # rules: dangerous-asyncio-exec-tainted-env-args
 # languages: python
+# fixture: python/dangerous-asyncio-exec-tainted-env-args.py
 # from: python/lang/security/audit/dangerous-asyncio-exec-tainted-env-args.yaml
 
 . as $root

@@ -1,12 +1,17 @@
 # rules: net-webconfig-debug
+# fixture: csharp/net-webconfig-debug.config
 # from: csharp/dotnet/security/net-webconfig-debug.yaml
+#
+# The translated element shape demanded whitespace around every token, which
+# real config files do not have (`debug="true"` has none). It reads the
+# attribute with optional spacing now.
 
 . as $root
 | ( ($root | scan_regex(["*web.config*"]; [
-      "<compilation\\s+[\\s\\S]*?\\s+debug\\s+=\\s+\"true\"\\s+[\\s\\S]*?\\s+\\/>",
+      "<compilation[^>]*?debug\\s*=\\s*\"true\"[^>]*?\\/>",
       "<system\\.web>\\s+[\\s\\S]*?\\s+<\\/system\\.web>"
     ])) as $all
-    | ( $all | of(["<compilation\\s+[\\s\\S]*?\\s+debug\\s+=\\s+\"true\"\\s+[\\s\\S]*?\\s+\\/>"])
+    | ( $all | of(["<compilation[^>]*?debug\\s*=\\s*\"true\"[^>]*?\\/>"])
           | within($all | of(["<system\\.web>\\s+[\\s\\S]*?\\s+<\\/system\\.web>"]))
         | finding("net-webconfig-debug";
             "ASP.NET applications built with `debug` set to true in production may leak debug information to attackers.") ) )

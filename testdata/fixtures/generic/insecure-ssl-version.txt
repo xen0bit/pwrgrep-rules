@@ -1,0 +1,9 @@
+# Only modern TLS may be negotiated.
+# ruleid: insecure-ssl-version
+ssl_protocols TLSv1;
+# ruleid: insecure-ssl-version
+ssl_protocols TLSv1.1;
+# ok: insecure-ssl-version
+ssl_protocols TLSv1.2;
+# ok: insecure-ssl-version
+ssl_protocols TLSv1.2 TLSv1.3;

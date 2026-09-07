@@ -25,12 +25,25 @@
 # allow unauthenticated access. The rule flags direct use of superglobals
 # where the access is not inside an isset($_SESSION) guard; safe code
 # wraps superglobal access in if (isset($_SESSION['user'])).
+#
+# A PHP superglobal cannot be written into a pattern: `$_GET` is a `$` and a
+# name, which is exactly how a hole is spelled, so `$_GET[$K]` reads as "any
+# variable subscripted by anything" and matched every array access in the
+# file. The name is pinned by guard on the capture instead - the capture text
+# carries the `$` - and the same goes for `$_SESSION` in the guard patterns,
+# where reading it as a hole made every `isset($arr[$k])` an authentication
+# check. Over Guzzle, which has no session and no endpoint, the unpinned rule
+# reported 971 lines.
 
-["$_GET[\"id\"]", "$_GET[$K]", "$_POST[$K]", "$_REQUEST[$K]", "$_GET[$$$_]", "$_POST[$$$_]"] as $sinks
-| ["if (isset($_SESSION[\"user\"])) { $$$BODY }", "if (isset($_SESSION[$K])) { $$$BODY }", "if ($_SESSION[\"user\"]) { $$$BODY }", "isset($_SESSION[\"user\"])", "isset($_SESSION[$K])"] as $auth
+["$V[$K]"] as $sinks
+| ["if (isset($S[$K])) { $$$BODY }", "if ($S[$K]) { $$$BODY }", "isset($S[$K])"] as $auth
 | scan_ast(["*.php"]; $sinks + $auth) as $all
-| ( $all | of($sinks) | outside($all | of(["if (isset($_SESSION[\"user\"])) { $$$BODY }","if (isset($_SESSION[$K])) { $$$BODY }","if ($_SESSION[\"user\"]) { $$$BODY }"]))
-      | in_files_with($all | of(["if (isset($_SESSION[\"user\"])) { $$$BODY }","if (isset($_SESSION[$K])) { $$$BODY }","if ($_SESSION[\"user\"]) { $$$BODY }"]))
+| ($all | of(["if (isset($S[$K])) { $$$BODY }", "if ($S[$K]) { $$$BODY }"])
+    | where_capture("S"; "^\\$_SESSION$")) as $guards
+| ( $all | of($sinks)
+      | where_capture("V"; "^\\$_(?:GET|POST|REQUEST)$")
+      | outside($guards)
+      | in_files_with($guards)
     | finding("php-missing-auth";
         "Superglobal $_GET/$_POST used without session check; add isset($_SESSION['user']) guard") )
 | report

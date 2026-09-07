@@ -1,5 +1,6 @@
 # rules: listen-eval
 # languages: python
+# fixture: python/listeneval.py
 # from: python/lang/security/audit/logging/listeneval.yaml
 
 . as $root

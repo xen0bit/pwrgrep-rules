@@ -1,5 +1,6 @@
 # rules: check-permit-attributes-high
 # languages: ruby
+# fixture: ruby/check-permit-attributes-high.rb
 # from: ruby/rails/security/brakeman/check-permit-attributes-high.yaml
 
 . as $root

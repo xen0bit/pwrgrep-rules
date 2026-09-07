@@ -1,13 +1,20 @@
 # rules: jax-rs-path-traversal
 # languages: java
+# fixture: java/jax-rs-path-traversal.java
+# fixture: java/jax-rs-path-traversal.java
 # from: java/jax-rs/security/jax-rs-path-traversal.yaml
+#
+# The `$$$_`-padded parameters and arguments matched no real signature, so
+# the rule never fired. Both spellings name the single-parameter shape with
+# exact arities now.
 
 . as $root
 | ( ($root | scan_ast(["*.java"]; [
-      "$RETURNTYPE $FUNC ($$$_, @PathParam($$$_) $TYPE $VAR, $$$_) {\n  $$$_\n  new File($$$_, $VAR, $$$_);\n  $$$_\n}",
-      "$RETURNTYPE $FUNC ($$$_, @javax.ws.rs.PathParam($$$_) $TYPE $VAR, $$$_) {\n  $$$_\n  new File($$$_, $VAR, $$$_);\n  $$$_\n}"
+      "$RETURNTYPE $FUNC(@PathParam($P) $TYPE $VAR) { $$$BODY }",
+      "$RETURNTYPE $FUNC(@javax.ws.rs.PathParam($P) $TYPE $VAR) { $$$BODY }"
     ])) as $all
-    | ( $all | of(["$RETURNTYPE $FUNC ($$$_, @PathParam($$$_) $TYPE $VAR, $$$_) {\n  $$$_\n  new File($$$_, $VAR, $$$_);\n  $$$_\n}","$RETURNTYPE $FUNC ($$$_, @javax.ws.rs.PathParam($$$_) $TYPE $VAR, $$$_) {\n  $$$_\n  new File($$$_, $VAR, $$$_);\n  $$$_\n}"])
+    | ( $all | of(["$RETURNTYPE $FUNC(@PathParam($P) $TYPE $VAR) { $$$BODY }","$RETURNTYPE $FUNC(@javax.ws.rs.PathParam($P) $TYPE $VAR) { $$$BODY }"])
+          | where_capture_ast("BODY"; "new File($B, $VAR)")
         | finding("jax-rs-path-traversal";
             "Detected a potential path traversal.") ) )
 | report

@@ -1,16 +1,29 @@
 # rules: xml2json-xxe
 # languages: javascript, typescript
+# fixture: javascript/xml2json-xxe.js
 # from: javascript/xml2json/security/audit/xml2json-xxe.yaml
+#
+# Repair: the `var`-only statement-sequence shapes never matched `const` declarations or other scopes. Sinks are selected first with file-level gates and function-argument sources.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "var $XML = require('xml2json');\n$$$_\n$XML.toJson(\"$$$_\",$$$_);",
-      "var $XML = require('xml2json');\n$$$_\n$XML.toJson($$$_);",
-      "var $XML = require('xml2json');\n$$$_\nvar $S = \"$$$_\";\n$$$_\n$XML.toJson($S,$$$_);"
+      "($$$_, $FUNC, $$$_) => {$$$_}",
+      "($FUNC) => {$$$_}",
+      "$PARSER.toJson($DATA)",
+      "$PARSER.toJson($DATA, $OPTS)",
+      "var $XML = require('xml2json')",
+      "const $XML = require('xml2json')",
+      "function ($$$_, $FUNC, $$$_) {$$$_}",
+      "function $F($$$_, $FUNC, $$$_) {$$$_}"
     ])) as $all
-    | ( $all | of(["var $XML = require('xml2json');\n$$$_\n$XML.toJson($$$_);"])
-          | not_at($all | of(["var $XML = require('xml2json');\n$$$_\n$XML.toJson(\"$$$_\",$$$_);"]))
-          | not_at($all | of(["var $XML = require('xml2json');\n$$$_\nvar $S = \"$$$_\";\n$$$_\n$XML.toJson($S,$$$_);"]))
+    | ( (($all | of(["$PARSER.toJson($DATA)", "$PARSER.toJson($DATA, $OPTS)"])
+          | not_at(($all | of(["$PARSER.toJson($DATA)", "$PARSER.toJson($DATA, $OPTS)"]) | where_capture("DATA"; "^[\"'].*[\"']$")))
+          | focus("DATA"))
+          | in_files_with(($all | of(["var $XML = require('xml2json')", "const $XML = require('xml2json')"])))
+          | reaching(((($all | of(["function ($$$_, $FUNC, $$$_) {$$$_}","function $F($$$_, $FUNC, $$$_) {$$$_}"]))
+          + ($all | of(["($FUNC) => {$$$_}","($$$_, $FUNC, $$$_) => {$$$_}"]))
+          | focus("FUNC")));
+              ([]))
         | finding("xml2json-xxe";
-            "If unverified user data can reach the XML Parser it can result in XML External or Internal Entity (XXE) Processing vulnerabilities") ) )
+            "If unverified user data can reach the XML Parser it can result in XML External or Internal Entity (XXE) Processing vulnerabilities") ) ))
 | report

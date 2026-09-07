@@ -1,5 +1,6 @@
 # rules: aws-ecr-image-scanning-disabled
 # languages: hcl
+# fixture: terraform/aws-ecr-image-scanning-disabled.tf
 # from: terraform/aws/security/aws-ecr-image-scanning-disabled.yaml
 
 . as $root

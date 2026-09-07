@@ -1,5 +1,6 @@
 # rules: unescaped-data-in-js
 # languages: go
+# fixture: go/unescaped-data-in-js.go
 # from: go/lang/security/audit/net/unescaped-data-in-js.yaml
 
 . as $root

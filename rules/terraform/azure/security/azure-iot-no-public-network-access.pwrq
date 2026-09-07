@@ -1,5 +1,6 @@
 # rules: azure-iot-no-public-network-access
 # languages: hcl
+# fixture: terraform/azure-iot-no-public-network-access.tf
 # from: terraform/azure/security/azure-iot-no-public-network-access.yaml
 
 . as $root

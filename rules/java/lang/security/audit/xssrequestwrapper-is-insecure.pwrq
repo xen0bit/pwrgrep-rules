@@ -1,5 +1,6 @@
 # rules: xssrequestwrapper-is-insecure
 # languages: java
+# fixture: java/xssrequestwrapper-is-insecure.java
 # from: java/lang/security/audit/xssrequestwrapper-is-insecure.yaml
 
 . as $root

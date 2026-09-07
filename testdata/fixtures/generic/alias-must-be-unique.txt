@@ -1,0 +1,15 @@
+# Stage aliases must be unique; each repeated pair below fires once.
+# ruleid: alias-must-be-unique
+FROM ubuntu:22.04 AS base
+RUN echo base
+FROM alpine:3.18 AS base
+RUN echo base-again
+# ruleid: alias-must-be-unique
+FROM debian:12 AS builder
+RUN echo builder
+FROM fedora:39 AS builder
+RUN echo builder-again
+# ok: alias-must-be-unique
+FROM ubuntu:22.04
+# ok: alias-must-be-unique
+RUN echo done

@@ -1,5 +1,6 @@
 # rules: detect-openai
 # languages: javascript, typescript
+# fixture: ai/typescript/detect-openai.ts
 # from: ai/typescript/detect-openai.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: scalajs-eval
 # languages: scala
+# fixture: scala/scalajs-eval.scala
 # from: scala/lang/security/audit/scalajs-eval.yaml
 
 . as $root

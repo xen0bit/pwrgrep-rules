@@ -1,5 +1,6 @@
 # rules: writing-to-file-in-read-mode
 # languages: python
+# fixture: python/writing-to-file-in-read-mode.py
 # from: python/lang/correctness/writing-to-file-in-read-mode.yaml
 
 . as $root

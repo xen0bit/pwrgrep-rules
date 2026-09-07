@@ -1,0 +1,37 @@
+rules:
+  - id: like-bad
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      # ruleid: metadata-likelihood-incorrect-value
+      likelihood: NEVER
+    pattern: foo($X)
+  - id: like-bad2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      # ruleid: metadata-likelihood-incorrect-value
+      likelihood: medium-low
+    pattern: foo2($X)
+  - id: like-good
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      # ok: metadata-likelihood-incorrect-value
+      likelihood: LOW
+    pattern: bar($X)
+  - id: like-good2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      # ok: metadata-likelihood-incorrect-value
+      likelihood: HIGH
+    pattern: bar2($X)

@@ -1,5 +1,6 @@
 # rules: reserved-aws-lambda-environment-variable
 # languages: hcl
+# fixture: terraform/reserved-aws-lambda-environment-variable.tf
 # from: terraform/aws/correctness/reserved-aws-lambda-environment-variable.yaml
 
 . as $root

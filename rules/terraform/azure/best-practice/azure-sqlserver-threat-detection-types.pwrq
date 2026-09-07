@@ -1,5 +1,6 @@
 # rules: azure-sqlserver-threat-detection-types
 # languages: hcl
+# fixture: terraform/azure-sqlserver-threat-detection-types.tf
 # from: terraform/azure/best-practice/azure-sqlserver-threat-detection-types.yaml
 
 . as $root

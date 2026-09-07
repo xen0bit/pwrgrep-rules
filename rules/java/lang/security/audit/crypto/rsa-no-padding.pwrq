@@ -1,12 +1,18 @@
 # rules: rsa-no-padding
 # languages: java, kotlin
+# fixture: java/rsa-no-padding.java
 # from: java/lang/security/audit/crypto/rsa-no-padding.yaml
+#
+# The mode was written Semgrep-style (`"=~/RSA/.../"`), a literal string no
+# file contains, so the rule never fired. The mode is a hole now and the
+# RSA-with-NoPadding shape is a guard on what it caught.
 
 . as $root
 | ( ($root | scan_ast(["*.java","*.kt"]; [
-      "$CIPHER.getInstance(\"=~/RSA/[Nn][Oo][Nn][Ee]/NoPadding/\")"
+      "$CIPHER.getInstance($MODE)"
     ])) as $all
-    | ( $all | of(["$CIPHER.getInstance(\"=~/RSA/[Nn][Oo][Nn][Ee]/NoPadding/\")"])
+    | ( $all | of(["$CIPHER.getInstance($MODE)"])
+          | where_capture("MODE"; "^\"RSA/(?:ECB|[Nn][Oo][Nn][Ee])/NoPadding\"$")
         | finding("rsa-no-padding";
             "Using RSA without OAEP mode weakens the encryption.") ) )
 | report

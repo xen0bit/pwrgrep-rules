@@ -1,5 +1,6 @@
 # rules: custom-expression-as-sql
 # languages: python
+# fixture: python/custom-expression-as-sql.py
 # from: python/django/security/audit/custom-expression-as-sql.yaml
 
 . as $root

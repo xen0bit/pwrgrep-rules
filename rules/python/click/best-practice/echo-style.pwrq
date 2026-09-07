@@ -1,5 +1,6 @@
 # rules: use-click-secho
 # languages: python
+# fixture: python/echo-style.py
 # from: python/click/best-practice/echo-style.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: locals-as-template-context
 # languages: python
+# fixture: python/locals-as-template-context.py
 # from: python/django/security/locals-as-template-context.yaml
 
 . as $root

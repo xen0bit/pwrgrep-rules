@@ -1,4 +1,5 @@
 # rules: insecure-document-method
+# fixture: html/insecure-document-method.html
 # from: html/security/audit/insecure-document-method.yaml
 
 . as $root

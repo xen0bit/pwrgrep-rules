@@ -1,5 +1,6 @@
 # rules: cookie-setSecure
 # languages: java
+# fixture: java/cookie-setSecure.java
 # from: java/servlets/security/cookie-setSecure.yaml
 
 . as $root

@@ -1,0 +1,10 @@
+# Gitleaks gitlab-rrt: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: gitlab-rrt
+GR13489410123456789abcdefghij
+# ruleid: gitlab-rrt
+GR1348941bcdefghijklmnopqrstu
+# ok: gitlab-rrt
+api_key = "example"
+# ok: gitlab-rrt
+token = "placeholder"

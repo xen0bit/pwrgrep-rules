@@ -1,0 +1,10 @@
+# Gitleaks cloudflare-origin-ca-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: cloudflare-origin-ca-key
+v1.0-abcdef0123456789abcdef01-23456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123
+# ruleid: cloudflare-origin-ca-key
+v1.0-56789abcdef0123456789abc-def0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcde
+# ok: cloudflare-origin-ca-key
+api_key = "example"
+# ok: cloudflare-origin-ca-key
+token = "placeholder"

@@ -1,5 +1,6 @@
 # rules: command-injection-os-system
 # languages: python
+# fixture: python/command-injection-os-system.py
 # from: python/django/security/injection/command/command-injection-os-system.yaml
 
 . as $root

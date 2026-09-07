@@ -1,4 +1,5 @@
 # rules: use-short-revert-string
+# fixture: solidity/use-short-revert-string.sol
 # from: solidity/performance/use-short-revert-string.yaml
 
 . as $root

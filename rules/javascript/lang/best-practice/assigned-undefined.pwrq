@@ -1,5 +1,6 @@
 # rules: assigned-undefined
 # languages: javascript, typescript
+# fixture: javascript/assigned-undefined.js
 # from: javascript/lang/best-practice/assigned-undefined.yaml
 
 . as $root

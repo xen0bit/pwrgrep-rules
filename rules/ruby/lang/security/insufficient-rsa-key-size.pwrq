@@ -1,5 +1,6 @@
 # rules: insufficient-rsa-key-size
 # languages: ruby
+# fixture: ruby/insufficient-rsa-key-size.rb
 # from: ruby/lang/security/insufficient-rsa-key-size.yaml
 
 . as $root

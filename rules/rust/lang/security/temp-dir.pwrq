@@ -1,5 +1,6 @@
 # rules: temp-dir
 # languages: rust
+# fixture: rust/temp-dir.rs
 # from: rust/lang/security/temp-dir.yml
 
 . as $root

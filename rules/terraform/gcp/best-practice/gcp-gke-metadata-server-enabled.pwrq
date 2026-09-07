@@ -1,5 +1,6 @@
 # rules: gcp-gke-metadata-server-enabled
 # languages: hcl
+# fixture: terraform/gcp-gke-metadata-server-enabled.tf
 # from: terraform/gcp/best-practice/gcp-gke-metadata-server-enabled.yaml
 
 . as $root

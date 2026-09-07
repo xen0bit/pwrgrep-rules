@@ -1,4 +1,5 @@
 # rules: suppressed-exception-handling-finally-break
+# fixture: python/suppressed-exception-handling-finally-break.py
 # from: python/correctness/suppressed-exception-handling-finally-break.yaml
 
 . as $root

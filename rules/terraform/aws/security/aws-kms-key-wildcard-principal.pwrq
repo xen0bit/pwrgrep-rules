@@ -1,5 +1,6 @@
 # rules: aws-kms-key-wildcard-principal
 # languages: hcl
+# fixture: terraform/aws-kms-key-wildcard-principal.tf
 # from: terraform/aws/security/aws-kms-key-wildcard-principal.yaml
 
 . as $root

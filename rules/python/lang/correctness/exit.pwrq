@@ -1,5 +1,6 @@
 # rules: use-sys-exit
 # languages: python
+# fixture: python/exit.py
 # from: python/lang/correctness/exit.yaml
 
 . as $root

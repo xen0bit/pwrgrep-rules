@@ -1,5 +1,6 @@
 # rules: azure-postgresql-geo-backup-enabled
 # languages: hcl
+# fixture: terraform/azure-postgresql-geo-backup-enabled.tf
 # from: terraform/azure/best-practice/azure-postgresql-geo-backup-enabled.yaml
 
 . as $root

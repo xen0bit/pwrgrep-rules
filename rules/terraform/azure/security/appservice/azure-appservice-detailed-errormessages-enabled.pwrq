@@ -1,5 +1,6 @@
 # rules: azure-appservice-detailed-errormessages-enabled
 # languages: hcl
+# fixture: terraform/azure-appservice-detailed-errormessages-enabled.tf
 # from: terraform/azure/security/appservice/azure-appservice-detailed-errormessages-enabled.yaml
 
 . as $root

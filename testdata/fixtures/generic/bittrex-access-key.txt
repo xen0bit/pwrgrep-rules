@@ -1,0 +1,10 @@
+# Gitleaks bittrex-access-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: bittrex-access-key
+bittrex=abcdefghijklmnopqrstuvwxy0123456
+# ruleid: bittrex-access-key
+bittrex=lmnopqrstuvwxy0123456789abcdefgh
+# ok: bittrex-access-key
+bittrex = "example"
+# ok: bittrex-access-key
+bittrex = "placeholder"

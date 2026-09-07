@@ -1,6 +1,6 @@
 # pwrgrep-rules
 
-The structural rule corpus for [pwrq](https://github.com/xen0bit/pwrq): 2183
+The structural rule corpus for [pwrq](https://github.com/xen0bit/pwrq): 2177
 rules in 27 languages, each one a pwrq query and nothing else.
 
 A rule is a file and a header. There is no schema, no plugin API and nothing to
@@ -119,20 +119,25 @@ shipped, because it takes the whole run down with it.
 
 `--no-smoke` skips it, which is most of the ninety seconds.
 
-589 of the 2183 rules carry a fixture. Every rule in `rules/c`, `rules/kotlin`
-and `rules/swift` does, as does every rule in `rules/php/lang` bar four, and
-those languages' fixtures are named for the weakness rather than for the rule:
-`testdata/fixtures/c/CWE-134.c` demonstrates every way a C program writes an
-uncontrolled format string, and `c-uncontrolled-format-string` is the rule that
-has to find all of them and nothing else. Going from a number in an advisory to
-the code that causes it is one `ls`. Where a rule reports something with no
-obvious number of its own, the nearest one is used and the rule's header says
-which.
+Every one of the 2177 rules carries a fixture. In `rules/c`, `rules/kotlin`
+and `rules/swift` the fixtures are named for the weakness rather than for the
+rule: `testdata/fixtures/c/CWE-134.c` demonstrates every way a C program
+writes an uncontrolled format string, and `c-uncontrolled-format-string` is
+the rule that has to find all of them and nothing else. Going from a number in
+an advisory to the code that causes it is one `ls`. Where a rule reports
+something with no obvious number of its own, the nearest one is used and the
+rule's header says which.
 
-The framework rules - Laravel, Symfony, Doctrine, the WordPress pack - and
-most of `rules/generic` and `rules/terraform` do not have fixtures yet, and
-several of them are known not to fire; GUIDE.md says what to check and why a
-rule with no fixture is not evidence of anything.
+Six rules were removed to get there, each documented in the commit that
+removed it: one exact duplicate under a second id, one typo-path duplicate of
+the same id, one upstream-deprecated stub whose patterns were the literals `a`
+and `b`, two OCaml correctness rules whose hole shapes the matcher cannot
+compile for field-wrapped clause children (a fully-literal
+`if true then 1 else 1` matches; any hole in branch position does not), and
+one hand-written CSRF rule that turned out to be the upstream
+`django-no-csrf-token` under a second name, reporting the same lines.
+GUIDE.md says what to check, and why a rule that passes its fixture is not
+yet a rule you can ship.
 
 An id belongs to one detection. Several rules may report under it - a framework
 rule for Django and one for Flask both report `tainted-sql-string`, and that is

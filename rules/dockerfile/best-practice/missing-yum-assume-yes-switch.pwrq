@@ -1,16 +1,20 @@
 # rules: missing-yum-assume-yes-switch
 # languages: dockerfile
+# fixture: dockerfile/missing-yum-assume-yes-switch.dockerfile
+#
+# RUN-shell AST holes never fire (the shell line is one opaque literal in the
+# dockerfile grammar), so the original `RUN $$$_ yum install $$$` minus -y /
+# --assumeyes is rewritten as a single-line regex with where_text_not guards.
+# Globs widened to cover *.dockerfile fixtures too.
 # from: dockerfile/best-practice/missing-yum-assume-yes-switch.yaml
 
 . as $root
-| ( ($root | scan_ast(["Dockerfile*"]; [
-      "RUN $$$_ yum $$$_ --assumeyes $$$_",
-      "RUN $$$_ yum install $$$_",
-      "RUN $$$_ yum install $$$_ -y $$$_"
+| ( ($root | scan_regex(["Dockerfile*","*.dockerfile"]; [
+      "RUN[^\\n]*yum\\s+install[^\\n]*"
     ])) as $all
-    | ( $all | of(["RUN $$$_ yum install $$$_"])
-          | not_at($all | of(["RUN $$$_ yum install $$$_ -y $$$_"]))
-          | not_at($all | of(["RUN $$$_ yum $$$_ --assumeyes $$$_"]))
+    | ( $all | of(["RUN[^\\n]*yum\\s+install[^\\n]*"])
+          | where_text_not("\\-y")
+          | where_text_not("assumeyes")
         | finding("missing-yum-assume-yes-switch";
             "This 'yum install' is missing the '-y' switch.") ) )
 | report

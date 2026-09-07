@@ -1,5 +1,6 @@
 # rules: crypto-mode-without-authentication
 # languages: python
+# fixture: python/pycryptodome-mode-without-authentication.py
 # from: python/pycryptodome/security/mode-without-authentication.yaml
 
 . as $root

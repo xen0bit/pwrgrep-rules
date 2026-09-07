@@ -1,5 +1,6 @@
 # rules: unescaped-data-in-htmlattr
 # languages: go
+# fixture: go/unescaped-data-in-htmlattr.go
 # from: go/lang/security/audit/net/unescaped-data-in-htmlattr.yaml
 
 . as $root

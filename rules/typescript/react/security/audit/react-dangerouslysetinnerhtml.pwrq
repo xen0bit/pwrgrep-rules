@@ -1,6 +1,12 @@
 # rules: react-dangerouslysetinnerhtml
 # languages: javascript
+# fixture: typescript/react-dangerouslysetinnerhtml.tsx
 # from: typescript/react/security/audit/react-dangerouslysetinnerhtml.yaml
+#
+# An ellipsis between JSX attributes compiles to an attribute literally named
+# `$$$`, which no program contains, so the JSX sinks were dead while the
+# object-literal sink worked. The attributes are named without gaps now (as
+# in typescript-xss).
 
 . as $root
 | ( ($root | scan_ast(["*.js"]; [
@@ -19,8 +25,8 @@
       "$VALUE = $S($$$_)\n$$$_",
       "$VALUE = $S.sanitize\n$$$_",
       "$VALUE.sanitize($$$_)",
-      "<$Y $$$_ dangerouslySetInnerHTML={{__html: \"$$$_\"}} />",
-      "<$Y $$$_ dangerouslySetInnerHTML={{__html: $X}} />",
+      "<$Y dangerouslySetInnerHTML={{__html: \"$$$_\"}} />",
+      "<$Y dangerouslySetInnerHTML={{__html: $X}} />",
       "function $$$_($$$_, $X, $$$_) { $$$_ }",
       "function $$$_({$$$_, $X, $$$_}) { $$$_ }",
       "import $S from \"dompurify\"\n$$$_",
@@ -38,9 +44,9 @@
       "{dangerouslySetInnerHTML: {__html: \"$$$_\"}, $$$_}",
       "{$$$_}"
     ])) as $all
-    | ( (($all | of(["{dangerouslySetInnerHTML: {__html: $X}, $$$_}","<$Y $$$_ dangerouslySetInnerHTML={{__html: $X}} />"])
+    | ( (($all | of(["{dangerouslySetInnerHTML: {__html: $X}, $$$_}","<$Y dangerouslySetInnerHTML={{__html: $X}} />"])
           | focus("X")
-          | not_at($all | of(["<$Y $$$_ dangerouslySetInnerHTML={{__html: \"$$$_\"}} />"]))
+          | not_at($all | of(["<$Y dangerouslySetInnerHTML={{__html: \"$$$_\"}} />"]))
           | not_at($all | of(["{dangerouslySetInnerHTML: {__html: \"$$$_\"}, $$$_}"]))
           | not_at($all | of(["$PWRQDEEP1"])
           | where_capture_ast("PWRQDEEP1"; "{__html: \"$$$_\"}"))

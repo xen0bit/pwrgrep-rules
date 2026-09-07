@@ -1,0 +1,64 @@
+{
+  "Resources": {
+    "BucketA": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": "bucket-a",
+        // ruleid: public-s3-bucket
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicPolicy": true,
+          "BlockPublicAcls": false,
+          "IgnorePublicAcls": true,
+        },
+      },
+    },
+    "BucketB": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": "bucket-b",
+        // ruleid: public-s3-bucket
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicPolicy": true,
+          "BlockPublicAcls": false,
+          "RestrictPublicBuckets": true,
+        },
+      },
+    },
+    "BucketC": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": "bucket-c",
+        // ruleid: public-s3-bucket
+        "PublicAccessBlockConfiguration": {
+          "IgnorePublicAcls": true,
+          "BlockPublicAcls": false,
+          "RestrictPublicBuckets": true,
+        },
+      },
+    },
+    "BucketSafe": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": "bucket-safe",
+        // ok: public-s3-bucket
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+        },
+      },
+    },
+    "BucketSafe2": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": "bucket-safe2",
+        // ok: public-s3-bucket
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true,
+        },
+      },
+    }
+  }
+}

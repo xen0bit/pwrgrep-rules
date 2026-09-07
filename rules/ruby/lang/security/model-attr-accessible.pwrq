@@ -1,5 +1,6 @@
 # rules: model-attr-accessible
 # languages: ruby
+# fixture: ruby/model-attr-accessible.rb
 # from: ruby/lang/security/model-attr-accessible.yaml
 
 . as $root

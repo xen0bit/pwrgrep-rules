@@ -1,17 +1,21 @@
 # rules: var-in-script-tag
+# fixture: ruby/var-in-script-tag.erb
 # from: ruby/rails/security/audit/xss/templates/var-in-script-tag.yaml
+#
+# The output-tag shapes closed with `>` instead of `%>`, so they matched no
+# real tag and the rule never fired. They close with `%>` now.
 
 . as $root
 | ( ($root | scan_regex(["*.erb"]; [
-      "<%=\\s+[\\s\\S]*?\\s+>",
-      "<%=\\s+escape_javascript\\s+[\\s\\S]*?\\s+>",
-      "<%=\\s+j\\s+[\\s\\S]*?\\s+>",
+      "<%=\\s+[\\s\\S]*?\\s+%>",
+      "<%=\\s+escape_javascript\\s+[\\s\\S]*?\\s+%>",
+      "<%=\\s+j\\s+[\\s\\S]*?\\s+%>",
       "<script\\s+[\\s\\S]*?>\\s+[\\s\\S]*?\\s+<\\/script>"
     ])) as $all
-    | ( $all | of(["<%=\\s+[\\s\\S]*?\\s+>"])
+    | ( $all | of(["<%=\\s+[\\s\\S]*?\\s+%>"])
           | within($all | of(["<script\\s+[\\s\\S]*?>\\s+[\\s\\S]*?\\s+<\\/script>"]))
-          | not_at($all | of(["<%=\\s+j\\s+[\\s\\S]*?\\s+>"]))
-          | not_at($all | of(["<%=\\s+escape_javascript\\s+[\\s\\S]*?\\s+>"]))
+          | not_at($all | of(["<%=\\s+j\\s+[\\s\\S]*?\\s+%>"]))
+          | not_at($all | of(["<%=\\s+escape_javascript\\s+[\\s\\S]*?\\s+%>"]))
         | finding("var-in-script-tag";
             "Detected a template variable used in a script tag.") ) )
 | report

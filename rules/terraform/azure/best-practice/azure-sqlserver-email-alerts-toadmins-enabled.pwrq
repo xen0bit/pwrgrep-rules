@@ -1,5 +1,6 @@
 # rules: azure-sqlserver-email-alerts-toadmins-enabled
 # languages: hcl
+# fixture: terraform/azure-sqlserver-email-alerts-toadmins-enabled.tf
 # from: terraform/azure/best-practice/azure-sqlserver-email-alerts-toadmins-enabled.yaml
 
 . as $root

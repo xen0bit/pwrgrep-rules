@@ -1,4 +1,5 @@
 # rules: proxy-storage-collision
+# fixture: solidity/proxy-storage-collision.sol
 # from: solidity/security/proxy-storage-collision.yaml
 
 . as $root

@@ -1,20 +1,27 @@
 # rules: no-fprintf-to-responsewriter
 # languages: go
+# fixture: go/no-fprintf-to-responsewriter.go
 # from: go/lang/security/audit/xss/no-fprintf-to-responsewriter.yaml
+#
+# The handler scaffolds put `$$$_` ellipses around the ResponseWriter
+# parameter, which match no parameter list; the `within` never held. A hole
+# in the `fmt` method position matches nothing either, so the sink and its
+# static exclusion name `Fprintf` with exact arities, and the exclusion keeps
+# only the pure-literal two-argument spelling.
 
 . as $root
 | ( ($root | scan_ast(["*.go"]; [
-      "fmt.$PRINTF($WRITER, \"$$$_\")",
-      "fmt.$PRINTF($WRITER, $$$_)",
-      "func $HANDLER($$$_, $WRITER http.ResponseWriter, $$$_) {\n  $$$_\n}",
-      "func($$$_, $WRITER http.ResponseWriter, $$$_) {\n  $$$_\n}"
+      "fmt.Fprintf($W, $F)",
+      "fmt.Fprintf($W, $F, $A)",
+      "func $HANDLER($W http.ResponseWriter, $R *http.Request) {$$$BODY}",
+      "func($W http.ResponseWriter, $R *http.Request) {$$$BODY}"
     ])) as $all
     | ( ($all
-          | within($all | of(["func $HANDLER($$$_, $WRITER http.ResponseWriter, $$$_) {\n  $$$_\n}"])))
+          | within($all | of(["func $HANDLER($W http.ResponseWriter, $R *http.Request) {$$$BODY}"])))
           + ($all
-          | within($all | of(["func($$$_, $WRITER http.ResponseWriter, $$$_) {\n  $$$_\n}"])))
-          | at_same_place(($all | of(["fmt.$PRINTF($WRITER, $$$_)"])))
-          | not_at($all | of(["fmt.$PRINTF($WRITER, \"$$$_\")"]))
+          | within($all | of(["func($W http.ResponseWriter, $R *http.Request) {$$$BODY}"])))
+          | at_same_place((($all | of(["fmt.Fprintf($W, $F)"]) | where_capture_not("F"; "^\".*\"$"))
+          + ($all | of(["fmt.Fprintf($W, $F, $A)"]))))
         | finding("no-fprintf-to-responsewriter";
             "Detected 'Fprintf' or similar writing to 'http.ResponseWriter'.") ) )
 | report

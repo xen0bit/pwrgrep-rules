@@ -1,16 +1,20 @@
 # rules: missing-dnf-assume-yes-switch
 # languages: dockerfile
+# fixture: dockerfile/missing-dnf-assume-yes-switch.dockerfile
+#
+# RUN-shell AST holes never fire (the shell line is one opaque literal in the
+# dockerfile grammar), so the original `RUN $$$_ dnf install $$$` minus -y /
+# --assumeyes is rewritten as a single-line regex with where_text_not guards.
+# Globs widened to cover *.dockerfile fixtures too.
 # from: dockerfile/best-practice/missing-dnf-assume-yes-switch.yaml
 
 . as $root
-| ( ($root | scan_ast(["Dockerfile*"]; [
-      "RUN $$$_ dnf $$$_ --assumeyes $$$_",
-      "RUN $$$_ dnf install $$$_",
-      "RUN $$$_ dnf install $$$_ -y $$$_"
+| ( ($root | scan_regex(["Dockerfile*","*.dockerfile"]; [
+      "RUN[^\\n]*dnf\\s+install[^\\n]*"
     ])) as $all
-    | ( $all | of(["RUN $$$_ dnf install $$$_"])
-          | outside($all | of(["RUN $$$_ dnf install $$$_ -y $$$_"]))
-          | outside($all | of(["RUN $$$_ dnf $$$_ --assumeyes $$$_"]))
+    | ( $all | of(["RUN[^\\n]*dnf\\s+install[^\\n]*"])
+          | where_text_not("\\-y")
+          | where_text_not("assumeyes")
         | finding("missing-dnf-assume-yes-switch";
             "This 'dnf install' is missing the '-y' switch.") ) )
 | report

@@ -1,19 +1,26 @@
 # rules: react-jwt-in-localstorage
 # languages: javascript, typescript
+# fixture: typescript/react-jwt-in-localstorage.ts
+#
+# The translated sequences put a `$$$` gap between the decode and the store,
+# which matches nothing in TypeScript (a gap is not an ellipsis there), so the
+# two statements must stand adjacent to match. The decode is a bare assignment
+# in the original while every program writes `const decoded = ...`; both
+# spellings are read.
 # from: typescript/react/security/audit/react-jwt-in-localstorage.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
       "\"jwt-decode\"",
-      "$DECODED = jwt_decode($$$_);\n$$$_\nlocalStorage.setItem($NAME, $PWRQDEEP1);",
-      "$DECODED = jwt_decode($TOKEN,$$$_);\n$$$_\nlocalStorage.setItem($NAME, $PWRQDEEP1);",
-      "import jwt_decode from \"jwt-decode\";\n$$$_"
+      "$DECODED = jwt_decode($$$_);\nlocalStorage.setItem($NAME, $PWRQDEEP1);", "const $DECODED = jwt_decode($$$_);\nlocalStorage.setItem($NAME, $PWRQDEEP1);",
+      "$DECODED = jwt_decode($TOKEN,$$$_);\nlocalStorage.setItem($NAME, $PWRQDEEP1);", "const $DECODED = jwt_decode($TOKEN,$$$_);\nlocalStorage.setItem($NAME, $PWRQDEEP1);",
+      "import jwt_decode from \"jwt-decode\";"
     ])) as $all
-    | ( ($all | of(["$DECODED = jwt_decode($TOKEN,$$$_);\n$$$_\nlocalStorage.setItem($NAME, $PWRQDEEP1);"])
+    | ( ($all | of(["$DECODED = jwt_decode($TOKEN,$$$_);\nlocalStorage.setItem($NAME, $PWRQDEEP1);", "const $DECODED = jwt_decode($TOKEN,$$$_);\nlocalStorage.setItem($NAME, $PWRQDEEP1);"])
           | where_capture_ast("PWRQDEEP1"; "$TOKEN"))
-          + ($all | of(["$DECODED = jwt_decode($$$_);\n$$$_\nlocalStorage.setItem($NAME, $PWRQDEEP1);"])
+          + ($all | of(["$DECODED = jwt_decode($$$_);\nlocalStorage.setItem($NAME, $PWRQDEEP1);", "const $DECODED = jwt_decode($$$_);\nlocalStorage.setItem($NAME, $PWRQDEEP1);"])
           | where_capture_ast("PWRQDEEP1"; "$DECODED"))
-          | in_files_with($all | of(["import jwt_decode from \"jwt-decode\";\n$$$_","\"jwt-decode\""]))
+          | in_files_with($all | of(["import jwt_decode from \"jwt-decode\";","\"jwt-decode\""]))
         | finding("react-jwt-in-localstorage";
             "Storing JWT tokens in localStorage known to be a bad practice, consider moving your tokens from localStorage to a HTTP cookie.") ) )
 | report

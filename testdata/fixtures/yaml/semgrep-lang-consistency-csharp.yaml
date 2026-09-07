@@ -1,0 +1,25 @@
+rules:
+  - id: uses-bad
+    message: "m"
+    # ruleid: lang-consistency-csharp
+    languages: [c#]
+    severity: WARNING
+    pattern: foo($X)
+  - id: uses-bad2
+    message: "m"
+    # ruleid: lang-consistency-csharp
+    languages: [c#, csharp]
+    severity: WARNING
+    pattern: foo2($X)
+  - id: uses-good
+    message: "m"
+    # ok: lang-consistency-csharp
+    languages: [csharp]
+    severity: WARNING
+    pattern: bar($X)
+  - id: uses-good2
+    message: "m"
+    # ok: lang-consistency-csharp
+    languages: [csharp, csharp-x]
+    severity: WARNING
+    pattern: bar2($X)

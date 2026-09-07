@@ -1,0 +1,25 @@
+rules:
+  - id: empty-msg
+    # ruleid: empty-message
+    message: ""
+    languages: [python]
+    severity: WARNING
+    pattern: foo($X)
+  - id: empty-msg2
+    # ruleid: empty-message
+    message: ""
+    languages: [python]
+    severity: WARNING
+    pattern: foo2($X)
+  - id: full-msg
+    # ok: empty-message
+    message: "has message"
+    languages: [python]
+    severity: WARNING
+    pattern: bar($X)
+  - id: full-msg2
+    # ok: empty-message
+    message: "also has message"
+    languages: [python]
+    severity: WARNING
+    pattern: bar2($X)

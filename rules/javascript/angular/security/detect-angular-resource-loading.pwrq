@@ -1,15 +1,23 @@
 # rules: detect-angular-resource-loading
 # languages: javascript, typescript
+# fixture: javascript/detect-angular-resource-loading.js
 # from: javascript/angular/security/detect-angular-resource-loading.yaml
+#
+# The list shapes padded every hole with `$$$_`, which matches no list, so
+# the rule never fired. They name one- and two-element lists, and the guard
+# asks for a double star anywhere in the entry.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "$sceDelegateProvider.resourceUrlWhitelist([$$$_,$DOM,$$$_]);",
-      "$sceDelegateProvider.resourceUrlWhitelist([$$$_,'**',$$$_]);"
+      "$sceDelegateProvider.resourceUrlWhitelist([$A])",
+      "$sceDelegateProvider.resourceUrlWhitelist([$A, $B])",
+      "$sceDelegateProvider.resourceUrlWhitelist(['**'])"
     ])) as $all
-    | ( ($all | of(["$sceDelegateProvider.resourceUrlWhitelist([$$$_,'**',$$$_]);"]))
-          + ($all | of(["$sceDelegateProvider.resourceUrlWhitelist([$$$_,$DOM,$$$_]);"])
-          | where_capture("DOM"; "^'.*\\*\\*.+'$"))
+    | ( ($all | of(["$sceDelegateProvider.resourceUrlWhitelist(['**'])"]))
+          + ($all | of(["$sceDelegateProvider.resourceUrlWhitelist([$A])","$sceDelegateProvider.resourceUrlWhitelist([$A, $B])"])
+          | where_capture("B"; "'.*\\*\\*.*'"))
+          + ($all | of(["$sceDelegateProvider.resourceUrlWhitelist([$A])"])
+          | where_capture("A"; "'.*\\*\\*.*'"))
         | finding("detect-angular-resource-loading";
             "$sceDelegateProvider allowlisting can introduce security issues if wildcards are used.") ) )
 | report

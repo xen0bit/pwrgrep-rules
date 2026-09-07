@@ -1,0 +1,24 @@
+rules:
+  # ruleid: missing-language-field
+  - id: no-lang
+    message: "m"
+    severity: WARNING
+    pattern: foo($X)
+  # ruleid: missing-language-field
+  - id: no-lang2
+    message: "m"
+    severity: WARNING
+    pattern: foo2($X)
+  # ok: missing-language-field
+  - id: has-lang
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    pattern: bar($X)
+  # ok: missing-language-field
+  - id: has-lang2
+    message: "m"
+    languages:
+      - python
+    severity: WARNING
+    pattern: bar2($X)

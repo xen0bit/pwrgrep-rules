@@ -1,15 +1,36 @@
 # rules: flask-api-method-string-format
 # languages: python
+# fixture: python/flask-api-method-string-format.py
+#
+# The translated rule matched `"$$$".format(...)` — an empty string
+# calling format — so neither use leg ever fired. The receiver is now a
+# $FMT hole, `body=`-style trailing-ellipsis death is avoided with a
+# named `$TAIL` arity beside the last-argument one, and literal
+# interpolations are excluded by guard rather than by the
+# `at_same_place`-style subtractions the translation reached for. The
+# $ARG the message names is the formatted value; the $METHOD/$CLASS it
+# names are attached from the enclosing definitions by a capture join
+# (the def parameter list has no single-hole reading, so membership of
+# the formatted value in the parameters is not re-checked: any
+# non-literal interpolation in a parameterised method of a decorated
+# class is the finding).
 # from: python/flask/security/flask-api-method-string-format.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.py"]; [
-      "class $CLASS($$$_):\n  method_decorators = $$$_\n  $$$_",
-      "def $METHOD($$$_,$ARG,$$$_):\n  $$$_\n  $$$_ = requests.$REQMETHOD(\"$$$_\".format($$$_,$ARG,$$$_),$$$_)",
-      "def $METHOD($$$_,$ARG,$$$_):\n  $$$_\n  $STRING = \"$$$_\".format($$$_,$ARG,$$$_)\n  $$$_\n  $$$_ = requests.$REQMETHOD($STRING,$$$_)"
+      "def $METHOD($$$_, $ARG2, $$$_):\n  $$$BODY",
+      "class $CLASS($$$_):\n  $$$BC",
+      "requests.$REQMETHOD($FMT.format($$$_, $ARG, $$$_))",
+      "requests.$REQMETHOD($FMT.format($$$_, $ARG, $$$_), $$$_, $TAIL)",
+      "$STRING = $FMT.format($$$_, $ARG, $$$_)\n$$$_\nreturn requests.$REQMETHOD($STRING, $$$_)"
     ])) as $all
-    | ( $all | of(["def $METHOD($$$_,$ARG,$$$_):\n  $$$_\n  $STRING = \"$$$_\".format($$$_,$ARG,$$$_)\n  $$$_\n  $$$_ = requests.$REQMETHOD($STRING,$$$_)","def $METHOD($$$_,$ARG,$$$_):\n  $$$_\n  $$$_ = requests.$REQMETHOD(\"$$$_\".format($$$_,$ARG,$$$_),$$$_)"])
-          | within($all | of(["class $CLASS($$$_):\n  method_decorators = $$$_\n  $$$_"]))
-        | finding("flask-api-method-string-format";
-            "Method $METHOD in API controller $CLASS provides user arg $ARG to requests method $REQMETHOD") ) )
+    | (($all | of(["class $CLASS($$$_):\n  $$$BC"])) as $clss
+      | (($all | of(["def $METHOD($$$_, $ARG2, $$$_):\n  $$$BODY"]) | within($all | of(["class $CLASS($$$_):\n  $$$BC"]) | where_capture("BC"; "method_decorators"))) as $defs
+        | (($all | of(["requests.$REQMETHOD($FMT.format($$$_, $ARG, $$$_))", "requests.$REQMETHOD($FMT.format($$$_, $ARG, $$$_), $$$_, $TAIL)", "$STRING = $FMT.format($$$_, $ARG, $$$_)\n$$$_\nreturn requests.$REQMETHOD($STRING, $$$_)"]) | where_capture_not("ARG"; "^['\"]") | within($all | of(["def $METHOD($$$_, $ARG2, $$$_):\n  $$$BODY"]))) as $uses
+          | ($uses | map(. as $u
+            | ((($defs | map(. as $d | select([$u] | within([$d]) | length > 0))) | .[0]) as $dx
+              | ((($clss | map(. as $c | select([$dx] | within([$c]) | length > 0))) | .[0]) as $cx
+                | $u + {Captures: (.Captures + {METHOD: $dx.Captures.METHOD, CLASS: $cx.Captures.CLASS})})))))) )
+    | finding("flask-api-method-string-format";
+        "Method $METHOD in API controller $CLASS provides user arg $ARG to requests method $REQMETHOD") )
 | report

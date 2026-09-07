@@ -1,5 +1,6 @@
 # rules: telnetlib
 # languages: python
+# fixture: python/telnetlib.py
 # from: python/lang/security/audit/telnetlib.yaml
 
 . as $root

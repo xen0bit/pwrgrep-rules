@@ -1,52 +1,28 @@
 # rules: express-xml2json-xxe-event
-# languages: typescript
+# languages: javascript, typescript
+# fixture: javascript/express-xml2json-xxe-event.js
 # from: javascript/express/security/audit/express-xml2json-xxe-event.yaml
+#
+# Repair: dead as written. `function $$$_ (...)` matched only named
+# declarations so no source ever counted, and `at_same_place` needed exact
+# span coincidence between the handler and the `req` use inside it. The
+# finding is really the `req.on(...)` nesting with `toJson` inside, so the
+# rule now matches that shape directly (callback must contain a `toJson`
+# call) with a file-level `xml2json` gate. Globs cover *.js as well as *.ts.
 
 . as $root
-| ( ($root | scan_ast(["*.ts"]; [
-      "$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})",
-      "$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})",
-      "$REQ.body",
-      "$REQ.cookies",
-      "$REQ.headers",
-      "$REQ.on('$$$_', function($$$_) { $$$_ $EXPAT.toJson($INPUT,$$$_); $$$_ })",
-      "$REQ.params",
-      "$REQ.query",
-      "({ $REQ }: Request,$RES: Response) => {$$$_}",
-      "({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) => {$$$_}",
-      "body",
-      "cookies",
-      "function $$$_ ($REQ, $RES) {$$$_}",
-      "function $$$_ ($REQ, $RES, $NEXT) {$$$_}",
-      "headers",
-      "import 'xml2json';\n$$$_",
-      "params",
-      "query",
-      "require('xml2json');\n$$$_"
+| ( ($root | scan_ast(["*.js","*.ts"]; [
+      "$REQ.on($EVT, $CB)",
+      "const $X = require('xml2json')",
+      "let $X = require('xml2json')",
+      "var $X = require('xml2json')",
+      "require('xml2json');\n$$$",
+      "import 'xml2json';\n$$$"
     ])) as $all
-    | ( ((($all
-          | in_files_with($all | of(["require('xml2json');\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["import 'xml2json';\n$$$_"])))
-          | at_same_place(($all | of(["$REQ.on('$$$_', function($$$_) { $$$_ $EXPAT.toJson($INPUT,$$$_); $$$_ })"])))
-          | focus("INPUT")))
-          | reaching(((($all
-          | within($all | of(["function $$$_ ($REQ, $RES) {$$$_}"])))
-          + ($all
-          | within($all | of(["function $$$_ ($REQ, $RES, $NEXT) {$$$_}"])))
-          + (($all
-          | within($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})"])))
-          + ($all
-          | within($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})"])))
-          | where_capture("METHOD"; "^(get|post|put|head|delete|options)$"))
-          | at_same_place(($all | of(["$REQ.query","$REQ.body","$REQ.params","$REQ.cookies","$REQ.headers"]))))
-              + (($all
-          | within($all | of(["({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) => {$$$_}"])))
-          + ($all
-          | within($all | of(["({ $REQ }: Request,$RES: Response) => {$$$_}"])))
-          | at_same_place(($all | of(["params","query","cookies","headers","body"])))
-          | focus("REQ")));
-              ([]))
+    | ( ($all | of(["$REQ.on($EVT, $CB)"])
+          | where_capture_ast("CB"; "$P.toJson($D)")
+          | focus("CB"))
+          | in_files_with(($all | of(["require('xml2json');\n$$$", "import 'xml2json';\n$$$", "const $X = require('xml2json')", "let $X = require('xml2json')", "var $X = require('xml2json')"])))
         | finding("express-xml2json-xxe-event";
             "Xml Parser is used inside Request Event.") ) )
 | report

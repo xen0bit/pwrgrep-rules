@@ -1,4 +1,7 @@
 # rules: azure-appservice-min-tls-version
+# fixture: terraform/azure-appservice-min-tls-version.tf
+#
+# The `min_tls_version\s+=\s+[\s\S]*?` container matches with an empty tail, ending at the `=`, so the `"1.0"` literal after it is never `within` it. The tail now swallows the quoted value, which is the only change.
 # from: terraform/azure/security/appservice/azure-appservice-min-tls-version.yaml
 
 . as $root
@@ -6,10 +9,10 @@
       "\"1\\.0\"",
       "\"1\\.1\"",
       "(?P<RESOURCE>\\S+)\\s+\"azurerm_app_service\"\\s+\"[\\s\\S]*?\"\\s+\\{\\s+[\\s\\S]*?\\s+\\}",
-      "min_tls_version\\s+=\\s+[\\s\\S]*?"
+      "min_tls_version\\s*=\\s*\"[^\"]*\""
     ])) as $all
     | ( $all | of(["\"1\\.0\"","\"1\\.1\""])
-          | within($all | of(["min_tls_version\\s+=\\s+[\\s\\S]*?"]))
+          | within($all | of(["min_tls_version\\s*=\\s*\"[^\"]*\""]))
           | within($all | of(["(?P<RESOURCE>\\S+)\\s+\"azurerm_app_service\"\\s+\"[\\s\\S]*?\"\\s+\\{\\s+[\\s\\S]*?\\s+\\}"]))
         | finding("azure-appservice-min-tls-version";
             "Ensure web app is using the latest version of TLS encryption") ) )

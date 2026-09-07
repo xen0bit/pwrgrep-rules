@@ -1,5 +1,6 @@
 # rules: is-function-without-parentheses
 # languages: python
+# fixture: python/is-function-without-parentheses.py
 # from: python/lang/maintainability/is-function-without-parentheses.yaml
 
 . as $root

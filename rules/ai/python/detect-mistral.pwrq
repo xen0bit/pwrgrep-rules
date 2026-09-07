@@ -1,5 +1,6 @@
 # rules: detect-mistral
 # languages: python
+# fixture: ai/python/detect-mistral.py
 # from: ai/python/detect-mistral.yaml
 
 . as $root

@@ -1,13 +1,17 @@
 # rules: wp-file-manipulation-audit
 # languages: php
+# fixture: php/wp-file-manipulation-audit.php
+#
+# The original call patterns used anonymous holes, which the PHP grammar
+# reads as inline HTML text instead of code, so the rule never fired.
+# Rewritten with a hole in function position plus a where_capture allowlist
+# of the audited names (the eval-use shape); see GUIDE.md.
 # from: php/wordpress-plugins/security/audit/wp-file-manipulation-audit.yaml
 
-. as $root
-| ( ($root | scan_ast(["*.php"]; [
-      "unlink($$$_)",
-      "wp_delete_file($$$_)"
-    ])) as $all
-    | ( $all | of(["unlink($$$_)","wp_delete_file($$$_)"])
-        | finding("wp-file-manipulation-audit";
-            "These functions can be used to delete the files if the data inside the functions are user controlled.") ) )
+["$F($CODE)", "$F($CODE, $$$_)"] as $calls
+| scan_ast("*.php"; $calls) as $all
+| ($all | of(["$F($CODE)", "$F($CODE, $$$_)"]))
+| where_capture("F"; "^(?:unlink|wp_delete_file)$")
+| finding("wp-file-manipulation-audit";
+            "These functions can be used to delete the files if the data inside the functions are user controlled.")
 | report

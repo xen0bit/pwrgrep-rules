@@ -1,5 +1,6 @@
 # rules: azure-securitycenter-email-alert-admins
 # languages: hcl
+# fixture: terraform/azure-securitycenter-email-alert-admins.tf
 # from: terraform/azure/best-practice/azure-securitycenter-email-alert-admins.yaml
 
 . as $root

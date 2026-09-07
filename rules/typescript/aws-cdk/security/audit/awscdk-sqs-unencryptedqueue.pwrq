@@ -1,5 +1,10 @@
 # rules: awscdk-sqs-unencryptedqueue
 # languages: typescript
+# fixture: typescript/awscdk-sqs-unencryptedqueue.ts
+#
+# The file conditions pinned the exact import name list (`{Bucket}`) while
+# every program also imports the encryption options, so the module is named
+# as a bare string instead - the sinks still name the construct.
 # from: typescript/aws-cdk/security/audit/awscdk-sqs-unencryptedqueue.yml
 
 . as $root
@@ -10,15 +15,14 @@
       "const $X = new Queue($$$_)",
       "const $X = new Queue($$$_, {$$$_, encryption: QueueEncryption.KMS, $$$_})",
       "const $X = new Queue($$$_, {$$$_, encryption: QueueEncryption.KMS_MANAGED, $$$_})",
-      "import * as $Y from '@aws-cdk/aws-sqs'\n$$$_",
-      "import {Queue} from '@aws-cdk/aws-sqs'\n$$$_"
+      "'@aws-cdk/aws-sqs'"
     ])) as $all
     | ( ($all | of(["const $X = new Queue($$$_)"])
-          | in_files_with($all | of(["import {Queue} from '@aws-cdk/aws-sqs'\n$$$_"]))
+          | in_files_with($all | of(["'@aws-cdk/aws-sqs'"]))
           | not_at($all | of(["const $X = new Queue($$$_, {$$$_, encryption: QueueEncryption.KMS_MANAGED, $$$_})"]))
           | not_at($all | of(["const $X = new Queue($$$_, {$$$_, encryption: QueueEncryption.KMS, $$$_})"])))
           + ($all | of(["const $X = new $Y.Queue($$$_)"])
-          | in_files_with($all | of(["import * as $Y from '@aws-cdk/aws-sqs'\n$$$_"]))
+          | in_files_with($all | of(["'@aws-cdk/aws-sqs'"]))
           | not_at($all | of(["const $X = new $Y.Queue($$$_, {$$$_, encryption: $Y.QueueEncryption.KMS_MANAGED, $$$_})"]))
           | not_at($all | of(["const $X = new $Y.Queue($$$_, {$$$_, encryption: $Y.QueueEncryption.KMS, $$$_})"])))
         | finding("awscdk-sqs-unencryptedqueue";

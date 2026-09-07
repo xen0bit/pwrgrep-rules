@@ -1,59 +1,29 @@
 # rules: hardcoded-passport-secret
 # languages: javascript, typescript
+# fixture: javascript/passport-hardcode.js
 # from: javascript/passport-jwt/security/passport-hardcode.yaml
+#
+# Repair: dead as written. `within(require...)` confined matches to the
+# require span and `at_same_place` needed exact coincidence, so the strategy
+# constructor never connected to its options. The rule now matches option objects with a quoted secret key plus direct
+# secret assignments, with file-level `passport-*` gates (bare `new`
+# patterns never match).
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "$F = require(\"$I\")\n$$$_",
-      "$F = require(\"$I\").Strategy\n$$$_",
-      "$OBJ",
-      "$OBJ = {}\n$$$_",
-      "$OBJ.clientSecret = \"$$$_\"",
-      "$OBJ.consumerSecret = \"$$$_\"",
-      "$OBJ.secretOrKey = \"$$$_\"",
-      "$SECRET = '$$$_'\n$$$_",
-      "$VALUE",
-      "$VALUE = {clientSecret: $SECRET, $$$_}\n$$$_",
-      "$VALUE = {consumerSecret: $SECRET, $$$_}\n$$$_",
-      "$VALUE = {secretOrKey: $SECRET, $$$_}\n$$$_",
-      "import $F from '$I'\n$$$_",
-      "import { $STRAT as $F } from '$I'\n$$$_",
-      "new $F($VALUE,$$$_)",
-      "{clientSecret: \"$$$_\", $$$_}",
-      "{clientSecret: $SECRET, $$$_}",
-      "{consumerSecret: \"$$$_\", $$$_}",
-      "{consumerSecret: $SECRET, $$$_}",
-      "{secretOrKey: \"$$$_\", $$$_}",
-      "{secretOrKey: $SECRET, $$$_}"
+      "$OBJ.clientSecret = $VAL",
+      "$OBJ.consumerSecret = $VAL",
+      "$OBJ.secretOrKey = $VAL",
+      "const $F = require('$LIB')",
+      "const $F = require('$LIB').$MEMBER",
+      "import $F from '$LIB'\n$$$",
+      "{$KEY: $S}"
     ])) as $all
-    | ( ((($all
-          | in_files_with($all | of(["$F = require(\"$I\").Strategy\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["$F = require(\"$I\")\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["import { $STRAT as $F } from '$I'\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["import $F from '$I'\n$$$_"])))
-          | where_capture("I"; "^(?:(passport-.*))")
-          | within($all | of(["new $F($VALUE,$$$_)"]))
-          | focus("VALUE")))
-          | reaching(((($all | of(["{clientSecret: \"$$$_\", $$$_}"]))
-          + ($all | of(["{secretOrKey: \"$$$_\", $$$_}"]))
-          + ($all | of(["{consumerSecret: \"$$$_\", $$$_}"]))
-          + ($all | of(["$OBJ.clientSecret = \"$$$_\"","$OBJ.secretOrKey = \"$$$_\"","$OBJ.consumerSecret = \"$$$_\""])
-          | at_same_place(($all | of(["$OBJ"])))
-          | in_files_with($all | of(["$OBJ = {}\n$$$_"])))
-          + ($all | of(["{clientSecret: $SECRET, $$$_}","{secretOrKey: $SECRET, $$$_}","{consumerSecret: $SECRET, $$$_}"])
-          | in_files_with($all | of(["$SECRET = '$$$_'\n$$$_"])))
-          + (($all
-          | in_files_with($all | of(["$VALUE = {clientSecret: $SECRET, $$$_}\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["$VALUE = {secretOrKey: $SECRET, $$$_}\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["$VALUE = {consumerSecret: $SECRET, $$$_}\n$$$_"])))
-          | at_same_place(($all | of(["$VALUE"])))
-          | in_files_with($all | of(["$SECRET = '$$$_'\n$$$_"])))));
-              ([]))
+    | ( (($all | of(["{$KEY: $S}"])
+          | where_capture("KEY"; "^(secretOrKey|clientSecret|consumerSecret)$") | where_capture("S"; "^[\"'].*[\"']$"))
+          + (($all | of(["$OBJ.secretOrKey = $VAL","$OBJ.clientSecret = $VAL","$OBJ.consumerSecret = $VAL"])
+          | where_capture("VAL"; "^[\"']")))
+          | in_files_with(($all | of(["const $F = require('$LIB')", "const $F = require('$LIB').$MEMBER"]) | where_capture("LIB"; "^passport-")) + ($all | of(["import $F from '$LIB'\n$$$"]) | where_capture("LIB"; "^passport-"))))
         | finding("hardcoded-passport-secret";
             "A hard-coded credential was detected.") ) )
 | report

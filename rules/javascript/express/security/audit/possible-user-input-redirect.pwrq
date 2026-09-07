@@ -1,5 +1,6 @@
 # rules: unknown-value-in-redirect
 # languages: javascript, typescript
+# fixture: javascript/possible-user-input-redirect.js
 # from: javascript/express/security/audit/possible-user-input-redirect.yaml
 
 . as $root

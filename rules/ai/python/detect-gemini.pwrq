@@ -1,5 +1,6 @@
 # rules: detect-gemini
 # languages: python
+# fixture: ai/python/detect-gemini.py
 # from: ai/python/detect-gemini.yaml
 
 . as $root

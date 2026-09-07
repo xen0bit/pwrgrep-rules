@@ -1,5 +1,6 @@
 # rules: aws-elasticache-automatic-backup-not-enabled
 # languages: hcl
+# fixture: terraform/aws-elasticache-automatic-backup-not-enabled.tf
 # from: terraform/aws/best-practice/aws-elasticache-automatic-backup-not-enabled.yaml
 
 . as $root

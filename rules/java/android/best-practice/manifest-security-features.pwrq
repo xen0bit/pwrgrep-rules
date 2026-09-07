@@ -1,4 +1,5 @@
 # rules: manifest-usesCleartextTraffic-true, manifest-usesCleartextTraffic-ignored-by-nsc
+# fixture: java/manifest-usesCleartextTraffic-true.xml
 # from: java/android/best-practice/manifest-security-features.yaml
 
 . as $root

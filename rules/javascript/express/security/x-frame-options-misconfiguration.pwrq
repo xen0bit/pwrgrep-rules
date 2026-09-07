@@ -1,43 +1,43 @@
 # rules: x-frame-options-misconfiguration
-# languages: typescript
+# languages: javascript, typescript
+# fixture: javascript/x-frame-options-misconfiguration.js
 # from: javascript/express/security/x-frame-options-misconfiguration.yaml
+#
+# Repair: `function $$$_ (...)` matched only named declarations, route callbacks had to be named, and `at_same_place` needed exact span coincidence; wrappers now cover anon and named shapes and the header sink is gated by `reaching`. Globs cover *.js as well as *.ts.
 
 . as $root
-| ( ($root | scan_ast(["*.ts"]; [
+| ( ($root | scan_ast(["*.js","*.ts"]; [
       "$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})",
       "$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})",
+      "$APP.$METHOD($$$_, function ($REQ, $RES) {$$$_})",
+      "$APP.$METHOD($$$_, function ($REQ, $RES, $NEXT) {$$$_})",
+      "$REQ.query",
       "$REQ.body",
+      "$REQ.params",
       "$REQ.cookies",
       "$REQ.headers",
-      "$REQ.params",
-      "$REQ.query",
-      "$RES.header($HEADER, $$$_)",
-      "$RES.set($HEADER, $$$_)",
-      "$RES.set({$HEADER: $$$_}, $$$_)",
-      "$RES.setHeader($HEADER, $$$_)",
-      "$RES.writeHead($STATUS, {$HEADER: $$$_}, $$$_)",
+      "$RES.set($H, $V)",
+      "$RES.header($H, $V)",
+      "$RES.setHeader($H, $V)",
       "({ $REQ }: Request,$RES: Response) => {$$$_}",
       "({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) =>\n{$$$_}",
       "body",
       "cookies",
-      "function $$$_ ($REQ, $RES) {$$$_}",
-      "function $$$_ ($REQ, $RES, $NEXT) {$$$_}",
       "headers",
       "params",
-      "query"
+      "query",
+      "function ($REQ, $RES) {$$$_}",
+      "function $FUNC($REQ, $RES) {$$$_}",
+      "function ($REQ, $RES, $NEXT) {$$$_}",
+      "function $FUNC($REQ, $RES, $NEXT) {$$$_}"
     ])) as $all
-    | ( (($all | of(["$RES.set($HEADER, $$$_)","$RES.header($HEADER, $$$_)","$RES.setHeader($HEADER, $$$_)","$RES.set({$HEADER: $$$_}, $$$_)","$RES.writeHead($STATUS, {$HEADER: $$$_}, $$$_)"])
-          | where_capture("HEADER"; "^(?:.*(X-Frame-Options|x-frame-options).*)")))
-          | reaching(((($all
-          | within($all | of(["function $$$_ ($REQ, $RES) {$$$_}"])))
-          + ($all
-          | within($all | of(["function $$$_ ($REQ, $RES, $NEXT) {$$$_}"])))
-          + (($all
-          | within($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})"])))
-          + ($all
-          | within($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})"])))
-          | where_capture("METHOD"; "^(get|post|put|head|delete|options)$"))
-          | at_same_place(($all | of(["$REQ.query","$REQ.body","$REQ.params","$REQ.cookies","$REQ.headers"]))))
+    | ( (($all | of(["$RES.set($H, $V)", "$RES.header($H, $V)", "$RES.setHeader($H, $V)"])
+          | where_capture("H"; "^(?:.*(X-Frame-Options|x-frame-options).*)")
+          | focus("V"))
+          )
+          | reaching(((($all | of(["$REQ.query", "$REQ.body", "$REQ.params", "$REQ.cookies", "$REQ.headers"]))
+          | within((($all | of(["function ($REQ, $RES) {$$$_}", "function $FUNC($REQ, $RES) {$$$_}", "function ($REQ, $RES, $NEXT) {$$$_}", "function $FUNC($REQ, $RES, $NEXT) {$$$_}"])))
+          + ((($all | of(["$REQ.query", "$REQ.body", "$REQ.params", "$REQ.cookies", "$REQ.headers"])) | within((($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})", "$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})"])) + ($all | of(["$APP.$METHOD($$$_, function ($REQ, $RES) {$$$_})", "$APP.$METHOD($$$_, function ($REQ, $RES, $NEXT) {$$$_})"])))) | where_capture("METHOD"; "^(get|post|put|head|delete|options)$")))))
               + (($all
           | within($all | of(["({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) =>\n{$$$_}"])))
           + ($all

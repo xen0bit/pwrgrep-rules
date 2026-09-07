@@ -1,5 +1,6 @@
 # rules: mako-templates-detected
 # languages: python
+# fixture: python/mako-templates-detected.py
 # from: python/lang/security/audit/mako-templates-detected.yaml
 
 . as $root

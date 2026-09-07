@@ -1,5 +1,6 @@
 # rules: use_weak_rng_for_keygeneration
 # languages: c_sharp
+# fixture: csharp/use_weak_rng_for_keygeneration.cs
 # from: csharp/dotnet/security/use_weak_rng_for_keygeneration.yaml
 
 . as $root

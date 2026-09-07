@@ -1,4 +1,5 @@
 # rules: dockerfile-source-not-pinned
+# fixture: dockerfile/source-not-pinned.dockerfile
 # from: dockerfile/audit/dockerfile-source-not-pinned.yaml
 
 . as $root

@@ -1,0 +1,10 @@
+# Gitleaks sendinblue-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: sendinblue-api-token
+xkeysib-abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789-456789abcdefghij
+# ruleid: sendinblue-api-token
+xkeysib-56789abcdef0123456789abcdef0123456789abcdef0123456789abcdef01234-fghijklmnopqrstu
+# ok: sendinblue-api-token
+api_key = "example"
+# ok: sendinblue-api-token
+token = "placeholder"

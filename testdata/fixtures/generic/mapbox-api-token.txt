@@ -1,0 +1,10 @@
+# Gitleaks mapbox-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: mapbox-api-token
+mapbox=pk.abcdefghijklmnopqrstuvwxy0123456789abcdefghijklmnopqrstuvwxy.0123456789abcdefghijkl
+# ruleid: mapbox-api-token
+mapbox=pk.lmnopqrstuvwxy0123456789abcdefghijklmnopqrstuvwxy0123456789a.bcdefghijklmnopqrstuvw
+# ok: mapbox-api-token
+mapbox = "example"
+# ok: mapbox-api-token
+mapbox = "placeholder"

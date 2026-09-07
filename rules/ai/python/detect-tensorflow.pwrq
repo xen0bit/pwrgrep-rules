@@ -1,5 +1,6 @@
 # rules: detect-tensorflow
 # languages: python
+# fixture: ai/python/detect-tensorflow.py
 # from: ai/python/detect-tensorflow.yaml
 
 . as $root

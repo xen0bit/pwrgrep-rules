@@ -1,0 +1,10 @@
+# Gitleaks microsoft-teams-webhook: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: microsoft-teams-webhook
+https://a.webhook.office.com/webhookb2/bcdefghi-jklm-nopq-rstu-vwxy01234567@89abcdef-ghij-klmn-opqr-stuvwxy01234/IncomingWebhook/56789abcdefghijklmnopqrstuvwxy01/23456789-abcd-efgh-ijkl-mnopqrstuvwx
+# ruleid: microsoft-teams-webhook
+https://l.webhook.office.com/webhookb2/mnopqrst-uvwx-y012-3456-789abcdefghi@jklmnopq-rstu-vwxy-0123-456789abcdef/IncomingWebhook/ghijklmnopqrstuvwxy0123456789abc/defghijk-lmno-pqrs-tuvw-xy0123456789
+# ok: microsoft-teams-webhook
+api_key = "example"
+# ok: microsoft-teams-webhook
+token = "placeholder"

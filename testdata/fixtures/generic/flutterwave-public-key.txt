@@ -1,0 +1,10 @@
+# Gitleaks flutterwave-public-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: flutterwave-public-key
+FLWPUBK_TEST-abcdefgh0123456789abcdefgh012345-X
+# ruleid: flutterwave-public-key
+FLWPUBK_TEST-3456789abcdefgh0123456789abcdefg-X
+# ok: flutterwave-public-key
+api_key = "example"
+# ok: flutterwave-public-key
+token = "placeholder"

@@ -1,0 +1,26 @@
+<!-- django-no-csrf-token: POST forms without a CSRF token.
+
+A state-changing form with no {% csrf_token %} is reported; forms
+with the token, and GET forms, are not.
+-->
+<!-- ruleid: django-no-csrf-token -->
+<form method="post" action="/submit">
+<input type="text" name="q">
+</form>
+<!-- ruleid: django-no-csrf-token -->
+<form method='put' action="/update">
+<input type="text" name="q">
+</form>
+<form method="post" action="/safe">
+{% csrf_token %}
+<input type="text" name="q">
+</form>
+<!-- ok: django-no-csrf-token -->
+<form method="post" action="/safe2">
+{% csrf_token %}
+<input type="text" name="q">
+</form>
+<!-- ok: django-no-csrf-token -->
+<form method="get" action="/search">
+<input type="text" name="q">
+</form>

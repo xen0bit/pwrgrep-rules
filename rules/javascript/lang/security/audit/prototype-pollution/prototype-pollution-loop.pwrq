@@ -1,14 +1,17 @@
 # rules: prototype-pollution-loop
 # languages: javascript, typescript
+# fixture: javascript/prototype-pollution-loop.js
 # from: javascript/lang/security/audit/prototype-pollution/prototype-pollution-loop.yaml
+#
+# Repair: dead as written. The sink spellings `$SMTH = $SMTH[$A]` only match
+# self-read assignments, so real merge loops like `dst[k] = src[k]` never
+# matched. The sink is now `$DST[$KEY] = $VAL` inside `for-in`/`for-of`/
+# `while`/`forEach` shapes, keeping the classic-`for` exclusions.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "$SMTH = $SMTH[$A]",
-      "$SMTH = $SMTH[$A] && $Z",
-      "$SMTH = $SMTH[$A] = $$$_",
-      "$SMTH = $SMTH[$A] || $Z",
-      "$X.forEach(function $NAME($$$_) {\n  $$$_\n})",
+      "$DST[$KEY] = $VAL",
+      "$X.forEach(function $NAME($$$_) {$$$_})",
       "$X.forEach(function $NAME($OBJ, $A,$$$_) {$$$_})",
       "for ($K in $OBJ) { $$$BODY }",
       "for ($V of $ARR) { $$$BODY }",
@@ -16,13 +19,10 @@
       "for($A = $S; $$$_; $$$_) {$$$_}",
       "for(var $A = $S; $$$_; $$$_) {$$$_}"
     ])) as $all
-    | ( $all | of(["$SMTH = $SMTH[$A]","$SMTH = $SMTH[$A] = $$$_","$SMTH = $SMTH[$A] && $Z","$SMTH = $SMTH[$A] || $Z"])
-          | at_same_place((($all
-          | within($all | of(["for ($K in $OBJ) { $$$BODY }","for ($V of $ARR) { $$$BODY }"])))
-          + ($all
-          | within($all | of(["while ($COND) { $$$BODY }"])))
-          + ($all
-          | within($all | of(["$X.forEach(function $NAME($$$_) {\n  $$$_\n})"])))))
+    | ( $all | of(["$DST[$KEY] = $VAL"])
+          | within((($all | of(["for ($K in $OBJ) { $$$BODY }","for ($V of $ARR) { $$$BODY }"]))
+          + ($all | of(["while ($COND) { $$$BODY }"]))
+          + ($all | of(["$X.forEach(function $NAME($$$_) {$$$_})"]))))
           | outside($all | of(["for(var $A = $S; $$$_; $$$_) {$$$_}"]))
           | outside($all | of(["for($A = $S; $$$_; $$$_) {$$$_}"]))
           | outside($all | of(["$X.forEach(function $NAME($OBJ, $A,$$$_) {$$$_})"]))

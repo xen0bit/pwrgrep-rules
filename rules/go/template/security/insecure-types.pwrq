@@ -1,4 +1,5 @@
 # rules: go-insecure-templates
+# fixture: go/go-insecure-templates.go
 # from: go/template/security/insecure-types.yaml
 
 . as $root

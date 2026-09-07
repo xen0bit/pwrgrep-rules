@@ -1,0 +1,11 @@
+# Keep image layers small; always clean the package cache.
+# Ok lines come first: the clean-all exclusion spans forward otherwise.
+# ok: missing-yum-clean-all
+RUN yum install -y httpd && yum clean all
+# ok: missing-yum-clean-all
+RUN yum install -y httpd && \
+    yum clean all
+# ruleid: missing-yum-clean-all
+RUN yum install -y httpd
+# ruleid: missing-yum-clean-all
+RUN yum update

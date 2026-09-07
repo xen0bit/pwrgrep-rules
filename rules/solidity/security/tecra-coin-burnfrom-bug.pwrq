@@ -1,15 +1,21 @@
 # rules: tecra-coin-burnfrom-bug
 # languages: solidity
+# fixture: solidity/tecra-coin-burnfrom-bug.sol
+#
+# Fragments and gaps never match in the solidity grammar, so no form fired.
+# Rewritten as a regex over the allowance require inside a burnFrom span,
+# keeping the caller-first slot confusion that is the bug: the caller must
+# be the first index (or first allowance argument). Function spans use a
+# lazy regex body without nested braces.
 # from: solidity/security/tecra-coin-burnfrom-bug.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.sol"]; [
-      "function $BURN($$$_, address $FROM, $$$_) {\n    $$$_\n    _burn($FROM, $$$_);\n    $$$_\n}",
-      "require(_allowances[$S][$FROM] >= $X, $$$_)",
-      "require(allowance($S, $FROM) >= $X, $$$_)"
+| ( ($root | scan_regex(["*.sol"]; [
+      "require\\s*\\([^;]*?(?:_allowances\\s*\\[\\s*(?:msg\\.sender|_msgSender\\s*\\(\\s*\\))\\s*\\]|allowance\\s*\\(\\s*(?:msg\\.sender|_msgSender\\s*\\(\\s*\\))\\s*,)[^;]*>=[^;]*\\)",
+      "function\\s+burnFrom\\s*\\([\\s\\S]*?\\)\\s*[^{]*\\{[^}]*\\}"
     ])) as $all
-    | ( $all | of(["require(_allowances[$S][$FROM] >= $X, $$$_)","require(allowance($S, $FROM) >= $X, $$$_)"])
-          | within($all | of(["function $BURN($$$_, address $FROM, $$$_) {\n    $$$_\n    _burn($FROM, $$$_);\n    $$$_\n}"]))
+    | ( $all | of(["require\\s*\\([^;]*?(?:_allowances\\s*\\[\\s*(?:msg\\.sender|_msgSender\\s*\\(\\s*\\))\\s*\\]|allowance\\s*\\(\\s*(?:msg\\.sender|_msgSender\\s*\\(\\s*\\))\\s*,)[^;]*>=[^;]*\\)"])
+          | within($all | of(["function\\s+burnFrom\\s*\\([\\s\\S]*?\\)\\s*[^{]*\\{[^}]*\\}"]))
         | finding("tecra-coin-burnfrom-bug";
             "Parameter \"from\" is checked at incorrect position in \"_allowances\" mapping") ) )
 | report

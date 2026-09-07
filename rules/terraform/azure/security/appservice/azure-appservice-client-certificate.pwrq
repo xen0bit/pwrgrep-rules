@@ -1,5 +1,6 @@
 # rules: azure-appservice-client-certificate
 # languages: hcl
+# fixture: terraform/azure-appservice-client-certificate.tf
 # from: terraform/azure/security/appservice/azure-appservice-client-certificate.yaml
 
 . as $root

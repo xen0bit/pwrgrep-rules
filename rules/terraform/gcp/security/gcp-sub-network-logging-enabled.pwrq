@@ -1,5 +1,6 @@
 # rules: gcp-sub-network-logging-enabled
 # languages: hcl
+# fixture: terraform/gcp-sub-network-logging-enabled.tf
 # from: terraform/gcp/security/gcp-sub-network-logging-enabled.yaml
 
 . as $root

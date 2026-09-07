@@ -1,44 +1,49 @@
 # rules: express-vm-injection
-# languages: typescript
+# languages: javascript, typescript
+# fixture: javascript/express-vm-injection.js
 # from: javascript/express/security/express-vm-injection.yaml
+#
+# Repair: `function $$$_ (...)` matched only named declarations, route callbacks had to be named, and `at_same_place` needed exact span coincidence; wrappers now cover anon and named shapes, the `vm` gate is file-level with const/let/var require variants, and the sinks are one `$CODE` hole each. Globs cover *.js as well as *.ts.
 
 . as $root
-| ( ($root | scan_ast(["*.ts"]; [
+| ( ($root | scan_ast(["*.js","*.ts"]; [
       "$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})",
       "$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})",
+      "$APP.$METHOD($$$_, function ($REQ, $RES) {$$$_})",
+      "$APP.$METHOD($$$_, function ($REQ, $RES, $NEXT) {$$$_})",
+      "$REQ.query",
       "$REQ.body",
+      "$REQ.params",
       "$REQ.cookies",
       "$REQ.headers",
-      "$REQ.params",
-      "$REQ.query",
-      "$VM = require('vm');\n$$$_",
-      "$VM.compileFunction($$$_)",
-      "$VM.runInContext($$$_)",
-      "$VM.runInNewContext($$$_)",
-      "$VM.runInThisContext($$$_)",
+      "$VM.runInContext($CODE, $$$_)",
+      "$VM.runInNewContext($CODE, $$$_)",
+      "$VM.compileFunction($CODE, $$$_)",
+      "$VM.runInThisContext($CODE, $$$_)",
+      "new $VM.Script($CODE)",
+      "$VM = require('$IMPORT')\n$$$_",
+      "const $VM = require('$IMPORT')",
+      "let $VM = require('$IMPORT')",
+      "var $VM = require('$IMPORT')",
       "({ $REQ }: Request,$RES: Response) => {$$$_}",
       "({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) =>\n{$$$_}",
       "body",
       "cookies",
-      "function $$$_ ($REQ, $RES) {$$$_}",
-      "function $$$_ ($REQ, $RES, $NEXT) {$$$_}",
       "headers",
-      "new $VM.Script($$$_)",
       "params",
-      "query"
+      "query",
+      "function ($REQ, $RES) {$$$_}",
+      "function $FUNC($REQ, $RES) {$$$_}",
+      "function ($REQ, $RES, $NEXT) {$$$_}",
+      "function $FUNC($REQ, $RES, $NEXT) {$$$_}"
     ])) as $all
-    | ( (($all | of(["$VM.runInContext($$$_)","$VM.runInNewContext($$$_)","$VM.compileFunction($$$_)","$VM.runInThisContext($$$_)","new $VM.Script($$$_)"])
-          | in_files_with($all | of(["$VM = require('vm');\n$$$_"]))))
-          | reaching(((($all
-          | within($all | of(["function $$$_ ($REQ, $RES) {$$$_}"])))
-          + ($all
-          | within($all | of(["function $$$_ ($REQ, $RES, $NEXT) {$$$_}"])))
-          + (($all
-          | within($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})"])))
-          + ($all
-          | within($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})"])))
-          | where_capture("METHOD"; "^(get|post|put|head|delete|options)$"))
-          | at_same_place(($all | of(["$REQ.query","$REQ.body","$REQ.params","$REQ.cookies","$REQ.headers"]))))
+    | ( (($all | of(["$VM.runInContext($CODE, $$$_)", "$VM.runInNewContext($CODE, $$$_)", "$VM.compileFunction($CODE, $$$_)", "$VM.runInThisContext($CODE, $$$_)", "new $VM.Script($CODE)"])
+          | focus("CODE"))
+          | in_files_with(($all | of(["$VM = require('$IMPORT')\n$$$_", "const $VM = require('$IMPORT')", "let $VM = require('$IMPORT')", "var $VM = require('$IMPORT')"])))
+          )
+          | reaching(((($all | of(["$REQ.query", "$REQ.body", "$REQ.params", "$REQ.cookies", "$REQ.headers"]))
+          | within((($all | of(["function ($REQ, $RES) {$$$_}", "function $FUNC($REQ, $RES) {$$$_}", "function ($REQ, $RES, $NEXT) {$$$_}", "function $FUNC($REQ, $RES, $NEXT) {$$$_}"])))
+          + ((($all | of(["$REQ.query", "$REQ.body", "$REQ.params", "$REQ.cookies", "$REQ.headers"])) | within((($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})", "$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})"])) + ($all | of(["$APP.$METHOD($$$_, function ($REQ, $RES) {$$$_})", "$APP.$METHOD($$$_, function ($REQ, $RES, $NEXT) {$$$_})"])))) | where_capture("METHOD"; "^(get|post|put|head|delete|options)$")))))
               + (($all
           | within($all | of(["({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) =>\n{$$$_}"])))
           + ($all
@@ -47,5 +52,5 @@
           | focus("REQ")));
               ([]))
         | finding("express-vm-injection";
-            "Make sure that unverified user data can not reach `$VM`.") ) )
+            "Make sure that unverified user data can not reach the `vm` module.") ) )
 | report

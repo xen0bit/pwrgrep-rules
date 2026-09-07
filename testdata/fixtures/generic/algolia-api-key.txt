@@ -1,0 +1,10 @@
+# Gitleaks algolia-api-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: algolia-api-key
+algolia=abcdefghijklmnopqrstuvwxy0123456
+# ruleid: algolia-api-key
+algolia=lmnopqrstuvwxy0123456789abcdefgh
+# ok: algolia-api-key
+algolia = "example"
+# ok: algolia-api-key
+algolia = "placeholder"

@@ -1,5 +1,6 @@
 # rules: detect-anthropic
 # languages: javascript, typescript
+# fixture: ai/typescript/detect-anthropic.ts
 # from: ai/typescript/detect-anthropic.yaml
 
 . as $root

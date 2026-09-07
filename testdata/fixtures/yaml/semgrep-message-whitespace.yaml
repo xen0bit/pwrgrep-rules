@@ -1,0 +1,28 @@
+rules:
+  - id: ws-bad
+    # ruleid: message-whitespace-check
+    message: >-
+      has  double space
+    languages: [python]
+    severity: WARNING
+    pattern: foo($X)
+  - id: ws-bad2
+    # ruleid: message-whitespace-check
+    message: >-
+      spaced  out here
+    languages: [python]
+    severity: WARNING
+    pattern: foo2($X)
+  - id: ws-good
+    # ok: message-whitespace-check
+    message: >-
+      single spaces only
+    languages: [python]
+    severity: WARNING
+    pattern: bar($X)
+  - id: ws-good2
+    # ok: message-whitespace-check
+    message: "single line"
+    languages: [python]
+    severity: WARNING
+    pattern: bar2($X)

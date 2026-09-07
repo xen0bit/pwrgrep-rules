@@ -1,5 +1,6 @@
 # rules: sql-injection-using-rawsql
 # languages: python
+# fixture: python/sql-injection-rawsql.py
 # from: python/django/security/injection/sql/sql-injection-rawsql.yaml
 
 . as $root

@@ -1,14 +1,22 @@
 # rules: empty-message
 # languages: yaml
+# fixture: yaml/semgrep-empty-message.yaml
+#
+# The message pattern also matches the bare key of every message, so the
+# rule fired on all of them. A where_text guard keeps only the pair reading with an empty value, and the
+# rules-list scoping is file-level (the flow-style within never spans a block
+# file). Both globs are scanned.
 # from: yaml/semgrep/empty-message.yaml
 
+
 . as $root
-| ( ($root | scan_ast(["*.yaml"]; [
+| ( ($root | scan_ast(["*.yaml","*.yml"]; [
       "message: \"\"",
-      "rules: [$$$_, $RULE, $$$_]"
+      "rules: [$$$_, $RULE, $$$]"
     ])) as $all
     | ( $all | of(["message: \"\""])
-          | within($all | of(["rules: [$$$_, $RULE, $$$_]"]))
+          | in_files_with($all | of(["rules: [$$$_, $RULE, $$$]"]))
+          | where_text(":\\s*\"\"\\s*$")
         | finding("empty-message";
             "This rule has an empty message field.") ) )
 | report

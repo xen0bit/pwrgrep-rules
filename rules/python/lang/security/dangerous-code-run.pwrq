@@ -1,5 +1,6 @@
 # rules: dangerous-interactive-code-run
 # languages: python
+# fixture: python/dangerous-code-run.py
 # from: python/lang/security/dangerous-code-run.yaml
 
 . as $root

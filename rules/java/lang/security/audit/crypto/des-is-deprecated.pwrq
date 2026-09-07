@@ -1,5 +1,6 @@
 # rules: des-is-deprecated
 # languages: java, kotlin
+# fixture: java/des-is-deprecated.java
 # from: java/lang/security/audit/crypto/des-is-deprecated.yaml
 
 . as $root

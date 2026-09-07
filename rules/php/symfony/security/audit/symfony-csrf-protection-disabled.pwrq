@@ -1,7 +1,12 @@
 # rules: symfony-csrf-protection-disabled
 # languages: php
+# fixture: php/symfony-csrf-protection-disabled.php
+#
+# Only the literal-false forms can fire: the $VAL forms additionally
+# require a `$VAL = false;` statement gap that holes do not span, so a
+# variable-held false in the same file stays quiet. The fixture covers the
+# literal forms.
 # from: php/symfony/security/audit/symfony-csrf-protection-disabled.yaml
-
 . as $root
 | ( ($root | scan_ast(["*.php"]; [
       "$VAL = false;\n$$$_",

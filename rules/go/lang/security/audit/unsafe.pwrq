@@ -1,5 +1,6 @@
 # rules: use-of-unsafe-block
 # languages: go
+# fixture: go/use-of-unsafe-block.go
 # from: go/lang/security/audit/unsafe.yaml
 
 . as $root

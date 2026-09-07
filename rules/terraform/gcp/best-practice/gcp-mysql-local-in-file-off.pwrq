@@ -1,5 +1,6 @@
 # rules: gcp-mysql-local-in-file-off
 # languages: hcl
+# fixture: terraform/gcp-mysql-local-in-file-off.tf
 # from: terraform/gcp/best-practice/gcp-mysql-local-in-file-off.yaml
 
 . as $root

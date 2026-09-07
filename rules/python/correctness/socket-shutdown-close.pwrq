@@ -1,5 +1,6 @@
 # rules: socket-shutdown-close
 # languages: python
+# fixture: python/socket-shutdown-close.py
 # from: python/correctness/socket-shutdown-close.yaml
 
 . as $root

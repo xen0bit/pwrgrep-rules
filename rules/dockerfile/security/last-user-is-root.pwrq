@@ -1,4 +1,5 @@
 # rules: last-user-is-root
+# fixture: dockerfile/last-user-is-root.dockerfile
 # from: dockerfile/security/last-user-is-root.yaml
 
 . as $root

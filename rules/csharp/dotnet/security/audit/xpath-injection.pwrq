@@ -1,21 +1,20 @@
 # rules: xpath-injection
 # languages: c_sharp
+# fixture: csharp/xpath-injection.cs
 # from: csharp/dotnet/security/audit/xpath-injection.yaml
+#
+# The translated sinks built the query from `"$$$" + $INPUT + "$$$"`, where
+# `"$$$"` is a string literally containing `$$$` - nothing is. The sinks name
+# the compiled expression as a hole now, and the method parameter reaches it:
+# `"//user[name='" + name + "']"` carries the parameter into Compile. The
+# parameter is bound in a single-parameter signature: `$$$` flanks around a
+# `string` parameter match nothing.
 
-. as $root
-| ( ($root | scan_ast(["*.cs"]; [
-      "$T $M($$$_) {\n  $$$_\n  string $INPUT;\n}",
-      "$T $M($INPUT,$$$_) {$$$_}",
-      "Object $OBJ = $NAV.Evaluate(\"$$$_\" + $INPUT + \"$$$_\");",
-      "XPathExpression $EXPR = $NAV.Compile(\"$$$_\" + $INPUT + \"$$$_\");",
-      "XPathNodeIterator $NODE = $NAV.Select(\"$$$_\" + $INPUT + \"$$$_\");",
-      "var $EXPR = $NAV.Compile(\"$$$_\" + $INPUT + \"$$$_\");",
-      "var $NODE = $NAV.Select(\"$$$_\" + $INPUT + \"$$$_\");",
-      "var $OBJ = $NAV.Evaluate(\"$$$_\" + $INPUT + \"$$$_\");"
-    ])) as $all
-    | ( (($all | of(["XPathExpression $EXPR = $NAV.Compile(\"$$$_\" + $INPUT + \"$$$_\");","var $EXPR = $NAV.Compile(\"$$$_\" + $INPUT + \"$$$_\");","XPathNodeIterator $NODE = $NAV.Select(\"$$$_\" + $INPUT + \"$$$_\");","var $NODE = $NAV.Select(\"$$$_\" + $INPUT + \"$$$_\");","Object $OBJ = $NAV.Evaluate(\"$$$_\" + $INPUT + \"$$$_\");","var $OBJ = $NAV.Evaluate(\"$$$_\" + $INPUT + \"$$$_\");"])))
-          | reaching((($all | of(["$T $M($INPUT,$$$_) {$$$_}","$T $M($$$_) {\n  $$$_\n  string $INPUT;\n}"])));
-              ([]))
-        | finding("xpath-injection";
-            "XPath queries are constructed dynamically on user-controlled input.") ) )
+["public $T $M($U $A) { $$$BODY }"] as $methods
+| ["$NAV.Compile($E);", "$NAV.Select($E);", "$NAV.Evaluate($E);"] as $sinks
+| scan_ast("*.cs"; $methods + $sinks) as $all
+| ( ($all | of($sinks) | focus("E"))
+      | reaching((($all | of($methods) | focus("A"))); ([]))
+    | finding("xpath-injection";
+        "XPath queries are constructed dynamically on user-controlled input.") )
 | report

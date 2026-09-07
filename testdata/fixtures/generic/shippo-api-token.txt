@@ -1,0 +1,10 @@
+# Gitleaks shippo-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: shippo-api-token
+shippo_live_abcdef0123456789abcdef0123456789abcdef01
+# ruleid: shippo-api-token
+shippo_live_56789abcdef0123456789abcdef0123456789abc
+# ok: shippo-api-token
+api_key = "example"
+# ok: shippo-api-token
+token = "placeholder"

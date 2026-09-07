@@ -1,5 +1,6 @@
 # rules: gcp-bigquery-private-table-iam-member
 # languages: hcl
+# fixture: terraform/gcp-bigquery-private-table-iam-member.tf
 # from: terraform/gcp/security/gcp-bigquery-private-table-iam-member.yaml
 
 . as $root

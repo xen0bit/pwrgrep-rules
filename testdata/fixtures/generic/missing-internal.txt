@@ -1,0 +1,32 @@
+# Proxy locations reached from outside need the internal guard.
+# Ok blocks come first: the exclusion spans forward over later blocks.
+# ok: missing-internal
+location /private-api {
+
+    # Proxied to the app tier. See ticket 44.
+    proxy_pass http://$backend/ ;
+    # Ticket 44. Guarded.
+    internal;
+    # Since release 1. 2.
+
+}
+# ok: missing-internal
+location /static {
+
+    root /var/www/static;
+
+}
+location /internal-api {
+
+    # ruleid: missing-internal
+    proxy_pass http://$backend/ ;
+    # Proxied to the app tier. See ticket 42.
+
+}
+location /legacy-hook {
+
+    # ruleid: missing-internal
+    proxy_pass http://$legacy/ ;
+    # Forwarded to the legacy tier. See ticket 43.
+
+}

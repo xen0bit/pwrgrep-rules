@@ -1,18 +1,23 @@
 # rules: insecure-jms-deserialization
 # languages: java
+# fixture: java/insecure-jms-deserialization.java
+#
+# The translated rule read `$X = $Y.getObject($$$_);` — but getObject
+# takes no arguments — and wrapped everything in multi-statement
+# scaffolds, which do not compose in Java. The sink is now the three
+# no-arg declaration shapes (typed, cast, bare), kept when inside a
+# MessageListener, whose class scaffold does have a reading.
 # from: java/lang/security/insecure-jms-deserialization.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.java"]; [
-      "$X = $Y.getObject($$$_);",
-      "$X = ($Z) $Y.getObject($$$_);",
-      "public class $JMS_LISTENER implements MessageListener {\n  $$$_\n  public void onMessage(Message $JMS_MSG) {\n      $$$_\n  }\n}"
+      "$T $X = $Y.getObject();",
+      "$T $X = ($Z) $Y.getObject();",
+      "$X = $Y.getObject();",
+      "public class $C implements MessageListener {\n  $$$BODY}"
     ])) as $all
-    | ( ($all
-          | within($all | of(["$X = $Y.getObject($$$_);"])))
-          + ($all
-          | within($all | of(["$X = ($Z) $Y.getObject($$$_);"])))
-          | within($all | of(["public class $JMS_LISTENER implements MessageListener {\n  $$$_\n  public void onMessage(Message $JMS_MSG) {\n      $$$_\n  }\n}"]))
-        | finding("insecure-jms-deserialization";
-            "JMS Object messages depend on Java Serialization for marshalling/unmarshalling of the message payload when ObjectMessage.getObject() is called.") ) )
+    | ( ($all | of(["$T $X = $Y.getObject();", "$T $X = ($Z) $Y.getObject();", "$X = $Y.getObject();"])
+        | within($all | of(["public class $C implements MessageListener {\n  $$$BODY}"]))) )
+    | finding("insecure-jms-deserialization";
+        "JMS Object messages depend on Java Serialization for marshalling/unmarshalling of the message payload when ObjectMessage.getObject() is called.") )
 | report

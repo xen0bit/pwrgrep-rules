@@ -1,16 +1,21 @@
 # rules: nestjs-open-redirect
 # languages: typescript
+# fixture: typescript/nestjs-open-redirect.ts
 # from: typescript/nestjs/security/audit/nestjs-open-redirect.yaml
+#
+# The body is `$$$BODY` (`$$$` alone is a statement literally named `$$$`),
+# and a constant `{url: ...}` is excluded by asking what the hole caught: a
+# `"$$$"` string hole matches nothing, so the translated `not_at` was dead.
+# The capture keeps its quotes, hence `^["']`.
 
 . as $root
 | ( ($root | scan_ast(["*.ts"]; [
-      "class $CN {\n    @Redirect($$$_)\n    $FN($$$_) {\n        $$$_\n    }\n}",
-      "return {url: \"$$$_\"}",
+      "class $CN {\n    @Redirect($$$_)\n    $FN($$$_) {\n        $$$BODY\n    }\n}",
       "return {url: $URL}"
     ])) as $all
     | ( $all | of(["return {url: $URL}"])
-          | within($all | of(["class $CN {\n    @Redirect($$$_)\n    $FN($$$_) {\n        $$$_\n    }\n}"]))
-          | not_at($all | of(["return {url: \"$$$_\"}"]))
+          | within($all | of(["class $CN {\n    @Redirect($$$_)\n    $FN($$$_) {\n        $$$BODY\n    }\n}"]))
+          | where_capture_not("URL"; "^[\"']")
         | finding("nestjs-open-redirect";
             "Untrusted user input in {url: ...} can result in Open Redirect vulnerability.") ) )
 | report

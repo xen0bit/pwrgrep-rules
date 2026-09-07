@@ -1,5 +1,6 @@
 # rules: storage-use-secure-tls-policy
 # languages: hcl
+# fixture: terraform/storage-use-secure-tls-policy.tf
 # from: terraform/azure/security/storage/storage-use-secure-tls-policy.yaml
 
 . as $root

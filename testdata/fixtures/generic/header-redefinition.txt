@@ -1,0 +1,21 @@
+# add_header in a location drops the headers set at server level.
+server {
+    add_header X-Frame-Options "SAMEORIGIN";
+
+    location /app {
+        # ruleid: header-redefinition
+        add_header X-App "one";
+    }
+
+    location /api {
+        # ruleid: header-redefinition
+        add_header X-Api "two";
+    }
+
+    location /static {
+        # ok: header-redefinition
+        root /var/www;
+    }
+}
+# ok: header-redefinition
+listen 80;

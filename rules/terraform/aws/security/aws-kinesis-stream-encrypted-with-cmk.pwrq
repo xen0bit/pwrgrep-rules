@@ -1,5 +1,6 @@
 # rules: aws-kinesis-stream-encrypted-with-cmk
 # languages: hcl
+# fixture: terraform/aws-kinesis-stream-encrypted-with-cmk.tf
 # from: terraform/aws/security/aws-kinesis-stream-encrypted-with-cmk.yaml
 
 . as $root

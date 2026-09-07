@@ -1,0 +1,10 @@
+# Gitleaks github-fine-grained-pat: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: github-fine-grained-pat
+github_pat_0123456789abcdefghijklmnopqrstuvwxyABCDEFGHIJKLMNOPQRSTUVWXY_0123456789abcdefghijk
+# ruleid: github-fine-grained-pat
+github_pat_bcdefghijklmnopqrstuvwxyABCDEFGHIJKLMNOPQRSTUVWXY_0123456789abcdefghijklmnopqrstuv
+# ok: github-fine-grained-pat
+api_key = "example"
+# ok: github-fine-grained-pat
+token = "placeholder"

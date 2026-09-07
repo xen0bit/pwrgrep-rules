@@ -1,5 +1,6 @@
 # rules: user-exec
 # languages: python
+# fixture: python/django-user-exec.py
 # from: python/django/security/injection/code/user-exec.yaml
 
 . as $root

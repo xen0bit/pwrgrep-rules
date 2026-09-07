@@ -1,5 +1,6 @@
 # rules: disabled-cert-validation
 # languages: python
+# fixture: python/disabled-cert-validation.py
 # from: python/lang/security/audit/network/disabled-cert-validation.yaml
 
 . as $root

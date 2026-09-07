@@ -1,14 +1,22 @@
 # rules: attr-mutable-initializer
 # languages: python
+# fixture: python/mutable-initializer.py
+#
+# Almost alive as written — but `$M = [$$$]` and `$M = {$$$}` match any
+# assignment at all (a lone ellipsis in brackets collapses, while a
+# named hole there never matches), so every class-level assignment in
+# an attrs class fired, mutable or not. The two displays are now $L/$D
+# holes guarded on their opening bracket; the dict()/list()/set() call
+# spellings already read precisely and are unchanged.
 # from: python/attr/correctness/mutable-initializer.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.py"]; [
-      "$M = [$$$_]",
+      "$M = $L",
       "$M = dict($$$_)",
       "$M = list($$$_)",
       "$M = set($$$_)",
-      "$M = {$$$_}",
+      "$M = $D",
       "@attr.s($$$_,auto_attribs=True, $$$_)\nclass $X($$$_):\n  $$$_",
       "@attrs.define\nclass $X($$$_):\n  $$$_",
       "def $Y($$$_) -> $TYPE:\n  $$$_",
@@ -18,7 +26,9 @@
           | within($all | of(["@attr.s($$$_,auto_attribs=True, $$$_)\nclass $X($$$_):\n  $$$_"])))
           + ($all
           | within($all | of(["@attrs.define\nclass $X($$$_):\n  $$$_"])))
-          | at_same_place(($all | of(["$M = {$$$_}","$M = [$$$_]","$M = list($$$_)","$M = set($$$_)","$M = dict($$$_)"])))
+          | at_same_place((($all | of(["$M = $L"]) | where_capture("L"; "^\\["))
+            + ($all | of(["$M = $D"]) | where_capture("D"; "^\\{"))
+            + ($all | of(["$M = list($$$_)","$M = set($$$_)","$M = dict($$$_)"]))))
           | outside($all | of(["def $Y($$$_):\n  $$$_"]))
           | outside($all | of(["def $Y($$$_) -> $TYPE:\n  $$$_"]))
         | finding("attr-mutable-initializer";

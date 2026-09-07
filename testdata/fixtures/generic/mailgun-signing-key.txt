@@ -1,0 +1,10 @@
+# Gitleaks mailgun-signing-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: mailgun-signing-key
+mailgun=abcdefgh0123456789abcdefgh012345-6789abcd-efgh0123
+# ruleid: mailgun-signing-key
+mailgun=3456789abcdefgh0123456789abcdefg-h0123456-789abcde
+# ok: mailgun-signing-key
+mailgun = "example"
+# ok: mailgun-signing-key
+mailgun = "placeholder"

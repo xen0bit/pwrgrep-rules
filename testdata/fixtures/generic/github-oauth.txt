@@ -1,0 +1,10 @@
+# Gitleaks github-oauth: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: github-oauth
+gho_0123456789abcdefghijklmnopqrstuvwxyA
+# ruleid: github-oauth
+gho_bcdefghijklmnopqrstuvwxyABCDEFGHIJKL
+# ok: github-oauth
+api_key = "example"
+# ok: github-oauth
+token = "placeholder"

@@ -1,5 +1,6 @@
 # rules: insufficient-dsa-key-size
 # languages: python
+# fixture: python/pycryptodome-insufficient-dsa-key-size.py
 # from: python/pycryptodome/security/insufficient-dsa-key-size.yaml
 
 . as $root

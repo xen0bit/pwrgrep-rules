@@ -1,5 +1,6 @@
 # rules: detect-promptfoo
 # languages: javascript, typescript
+# fixture: ai/typescript/detect-promptfoo.ts
 # from: ai/typescript/detect-promptfoo.yaml
 
 . as $root

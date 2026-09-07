@@ -1,4 +1,5 @@
 # rules: jsx-not-internationalized
+# fixture: typescript/jsx-not-internationalized.tsx
 # from: typescript/react/portability/i18next/jsx-not-internationalized.yaml
 
 . as $root

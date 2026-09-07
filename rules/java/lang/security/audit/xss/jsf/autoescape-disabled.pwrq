@@ -1,4 +1,5 @@
 # rules: autoescape-disabled
+# fixture: java/autoescape-disabled.html
 # from: java/lang/security/audit/xss/jsf/autoescape-disabled.yaml
 
 . as $root

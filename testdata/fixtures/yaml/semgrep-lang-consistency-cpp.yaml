@@ -1,0 +1,25 @@
+rules:
+  - id: uses-bad
+    message: "m"
+    # ruleid: lang-consistency-cpp
+    languages: [c++]
+    severity: WARNING
+    pattern: foo($X)
+  - id: uses-bad2
+    message: "m"
+    # ruleid: lang-consistency-cpp
+    languages: [c++, cpp]
+    severity: WARNING
+    pattern: foo2($X)
+  - id: uses-good
+    message: "m"
+    # ok: lang-consistency-cpp
+    languages: [cpp]
+    severity: WARNING
+    pattern: bar($X)
+  - id: uses-good2
+    message: "m"
+    # ok: lang-consistency-cpp
+    languages: [cpp, c]
+    severity: WARNING
+    pattern: bar2($X)

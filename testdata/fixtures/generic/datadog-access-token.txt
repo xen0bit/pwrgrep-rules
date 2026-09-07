@@ -1,0 +1,10 @@
+# Gitleaks datadog-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: datadog-access-token
+datadog=abcdefghijklmnopqrstuvwxy0123456789abcde
+# ruleid: datadog-access-token
+datadog=lmnopqrstuvwxy0123456789abcdefghijklmnop
+# ok: datadog-access-token
+datadog = "example"
+# ok: datadog-access-token
+datadog = "placeholder"

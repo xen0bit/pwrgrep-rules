@@ -1,5 +1,6 @@
 # rules: gcp-datafusion-stack-driver-monitoring
 # languages: hcl
+# fixture: terraform/gcp-datafusion-stack-driver-monitoring.tf
 # from: terraform/gcp/security/gcp-datafusion-stack-driver-monitoring.yaml
 
 . as $root

@@ -1,12 +1,17 @@
 # rules: use-abi-encodecall-instead-of-encodewithselector
 # languages: solidity
+# fixture: solidity/use-abi-encodecall-instead-of-encodewithselector.sol
+#
+# Statement and expression fragments never match in the solidity grammar
+# - only whole functions (and regex) do - so the original AST pattern could
+# never fire. Rewritten as a regex over the text.
 # from: solidity/best-practice/use-abi-encodecall-instead-of-encodewithselector.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.sol"]; [
-      "abi.encodeWithSelector($$$_);"
+| ( ($root | scan_regex(["*.sol"]; [
+      "abi\\.encodeWithSelector\\s*\\("
     ])) as $all
-    | ( $all | of(["abi.encodeWithSelector($$$_);"])
+    | ( $all | of(["abi\\.encodeWithSelector\\s*\\("])
         | finding("use-abi-encodecall-instead-of-encodewithselector";
             "To guarantee arguments type safety it is recommended to use `abi.encodeCall` instead of `abi.encodeWithSelector`.") ) )
 | report

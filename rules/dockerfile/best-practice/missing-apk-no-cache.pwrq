@@ -1,4 +1,5 @@
 # rules: missing-apk-no-cache
+# fixture: dockerfile/apk-no-cache.dockerfile
 # from: dockerfile/best-practice/missing-apk-no-cache.yaml
 
 . as $root

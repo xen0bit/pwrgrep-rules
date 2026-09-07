@@ -1,21 +1,21 @@
 # rules: init-variables-with-default-value
 # languages: solidity
+# fixture: solidity/init-variables-with-default-value.sol
+#
+# Fragments never match in the solidity grammar, so no form fired. Rewritten
+# as a regex over declarations at contract indent ((?m)^ with four spaces);
+# deeper-indented locals never match, and constant/immutable lines are
+# excluded by guard. Double-quote literals use a hex escape because raw
+# quotes cannot appear inside of() patterns.
 # from: solidity/performance/init-variables-with-default-value.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.sol"]; [
-      "$TYPE $VAR = \"\";",
-      "$TYPE $VAR = '';",
-      "$TYPE $VAR = 0;",
-      "$TYPE $VAR = false;",
-      "$TYPE constant $VAR = $$$_;",
-      "contract $C {\n  $$$_\n  $TYPE immutable $VAR = $$$_;\n  $$$_\n}",
-      "function $F($$$_) {\n  $$$_\n}"
+| ( ($root | scan_regex(["*.sol"]; [
+      "(?m)^    (?:uint\\d*|int\\d*|bool|string|address|bytes\\d*)(?:\\s+(?:public|private|internal))?\\s+\\w+\\s*=\\s*(?:0|false|\\x22\\x22|'')\\s*;"
     ])) as $all
-    | ( $all | of(["$TYPE $VAR = 0;","$TYPE $VAR = false;","$TYPE $VAR = \"\";","$TYPE $VAR = '';"])
-          | not_at($all | of(["$TYPE constant $VAR = $$$_;"]))
-          | outside($all | of(["contract $C {\n  $$$_\n  $TYPE immutable $VAR = $$$_;\n  $$$_\n}"]))
-          | outside($all | of(["function $F($$$_) {\n  $$$_\n}"]))
+    | ( $all | of(["(?m)^    (?:uint\\d*|int\\d*|bool|string|address|bytes\\d*)(?:\\s+(?:public|private|internal))?\\s+\\w+\\s*=\\s*(?:0|false|\\x22\\x22|'')\\s*;"])
+          | where_text_not("constant")
+          | where_text_not("immutable")
         | finding("init-variables-with-default-value";
             "Uninitialized variables are assigned with the types default value.") ) )
 | report

@@ -1,5 +1,6 @@
 # rules: azure-vmencryption-at-host-enabled
 # languages: hcl
+# fixture: terraform/azure-vmencryption-at-host-enabled.tf
 # from: terraform/azure/security/azure-vmencryption-at-host-enabled.yaml
 
 . as $root

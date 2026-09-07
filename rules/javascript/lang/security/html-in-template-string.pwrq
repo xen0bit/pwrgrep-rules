@@ -1,5 +1,6 @@
 # rules: html-in-template-string
 # languages: javascript, typescript
+# fixture: javascript/html-in-template-string.js
 # from: javascript/lang/security/html-in-template-string.yaml
 
 . as $root

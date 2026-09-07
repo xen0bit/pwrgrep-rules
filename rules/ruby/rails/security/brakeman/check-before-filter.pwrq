@@ -1,5 +1,6 @@
 # rules: check-before-filter
 # languages: ruby
+# fixture: ruby/check-before-filter.rb
 # from: ruby/rails/security/brakeman/check-before-filter.yaml
 
 . as $root

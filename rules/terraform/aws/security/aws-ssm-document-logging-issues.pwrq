@@ -1,5 +1,6 @@
 # rules: aws-ssm-document-logging-issues
 # languages: hcl
+# fixture: terraform/aws-ssm-document-logging-issues.tf
 # from: terraform/aws/security/aws-ssm-document-logging-issues.yaml
 
 . as $root

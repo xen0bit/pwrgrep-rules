@@ -1,4 +1,5 @@
 # rules: no-interpolation-in-tag
+# fixture: go/no-interpolation-in-tag.html
 # from: go/lang/security/audit/xss/no-interpolation-in-tag.yaml
 
 . as $root

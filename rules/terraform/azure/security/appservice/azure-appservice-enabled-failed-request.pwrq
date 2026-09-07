@@ -1,5 +1,6 @@
 # rules: azure-appservice-enabled-failed-request
 # languages: hcl
+# fixture: terraform/azure-appservice-enabled-failed-request.tf
 # from: terraform/azure/security/appservice/azure-appservice-enabled-failed-request.yaml
 
 . as $root

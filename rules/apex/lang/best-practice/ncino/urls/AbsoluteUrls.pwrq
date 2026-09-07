@@ -1,11 +1,12 @@
 # rules: absolute-urls
+# fixture: apex/absolute-urls.cls
 # from: apex/lang/best-practice/ncino/urls/AbsoluteUrls.yaml
 
 . as $root
 | ( ($root | scan_regex(["*.cls"]; [
-      "\\(http\\|https\\):\\/\\/\\.\\*\\(salesforce\\|force\\|visualforce\\)\\\\\\.com\\\\\\.\\*"
+      "(http|https)://\\S*(salesforce|force|visualforce)\\.com\\S*"
     ])) as $all
-    | ( $all | of(["\\(http\\|https\\):\\/\\/\\.\\*\\(salesforce\\|force\\|visualforce\\)\\\\\\.com\\\\\\.\\*"])
+    | ( $all | of(["(http|https)://\\S*(salesforce|force|visualforce)\\.com\\S*"])
         | finding("absolute-urls";
             "Using absolute URLs to Salesforce Pages is bug prone.") ) )
 | report

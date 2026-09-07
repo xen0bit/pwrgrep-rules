@@ -1,16 +1,30 @@
 # rules: wp-file-inclusion-audit
 # languages: php
+# fixture: php/wp-file-inclusion-audit.php
+#
+# Anonymous holes in call patterns are read as inline HTML text instead
+# of code, so the rule never fired. Rewritten with named holes (the eval-use
+# shape); see GUIDE.md.
+# include and require are language constructs with no argument list, so the
+# pattern matcher has no reading of them; they are matched as text (the
+# include-from-request shape) while fread stays an AST pattern. The text
+# match is a statement at the start of a line whose path holds a PHP
+# variable: `\b(?:...|require)` with no boundary after it reads the first
+# nine characters of `requireStreamFactory(`, and with no `$` in the path
+# it reads the word "include" in a docblock. Written loose it reported
+# three hundred and thirty lines of Guzzle, none of them a loader.
 # from: php/wordpress-plugins/security/audit/wp-file-inclusion-audit.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.php"]; [
-      "fread($$$_)",
-      "include($$$_)",
-      "include_once($$$_)",
-      "require($$$_)",
-      "require_once($$$_)"
-    ])) as $all
-    | ( $all | of(["include($$$_)","require($$$_)","include_once($$$_)","require_once($$$_)","fread($$$_)"])
-        | finding("wp-file-inclusion-audit";
-            "These functions can lead to Local File Inclusion (LFI) or Remote File Inclusion (RFI) if the data inside is user-controlled.") ) )
+| ($root | scan_ast(["*.php"]; ["$F($CODE)", "$F($CODE, $$$_)"])) as $a
+| ($root | scan_regex(["*.php"]; [
+      "(?m)^[^\\S\n]*(?:include|include_once|require|require_once)\\b\\s*\\(?\\s*(?P<PATH>[^;\\n]*\\$[^;\\n]*)"
+    ])) as $b
+| ( ($a | of(["$F($CODE)", "$F($CODE, $$$_)"])
+      | where_capture("F"; "^(?:fread)$")
+      | finding("wp-file-inclusion-audit";
+          "These functions can lead to Local File Inclusion (LFI) or Remote File Inclusion (RFI) if the data inside is user-controlled."))
+  + ($b
+      | finding("wp-file-inclusion-audit";
+          "These functions can lead to Local File Inclusion (LFI) or Remote File Inclusion (RFI) if the data inside is user-controlled.")) )
 | report

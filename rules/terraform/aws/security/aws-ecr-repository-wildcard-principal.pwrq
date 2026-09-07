@@ -1,4 +1,5 @@
 # rules: aws-ecr-repository-wildcard-principal
+# fixture: terraform/aws-ecr-repository-wildcard-principal.tf
 # from: terraform/aws/security/aws-ecr-repository-wildcard-principal.yaml
 
 . as $root

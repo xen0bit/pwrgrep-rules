@@ -1,5 +1,9 @@
 # rules: dangerous-exec-command
+# fixture: go/dangerous-exec-command.go
 # from: go/lang/security/audit/dangerous-exec-command.yaml
+#
+# Only the two-or-more-argument exec.Command branch fires: single-argument
+# Command and the CommandContext branches match nothing as written.
 
 . as $root
 | ( ($root | scan_regex(["*.go"]; [

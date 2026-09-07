@@ -1,5 +1,6 @@
 # rules: python-debugger-found
 # languages: python
+# fixture: python/pdb-debugger.py
 # from: python/lang/best-practice/pdb.yaml
 
 . as $root

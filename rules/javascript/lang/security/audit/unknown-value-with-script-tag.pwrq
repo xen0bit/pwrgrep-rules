@@ -1,18 +1,22 @@
 # rules: unknown-value-with-script-tag
 # languages: javascript, typescript
+# fixture: javascript/unknown-value-with-script-tag.js
 # from: javascript/lang/security/audit/unknown-value-with-script-tag.yaml
+#
+# Repair: dead as written. The script-tag gate
+# `where_capture_ast("PWRQDEEP1"; "\"=~/.*<script.*/\"")` matched a
+# translator-mangled regex literal that never occurs, and `at_same_place`
+# needed a lone-hole match to coincide with a call. The gate is now a plain
+# substring check with pure-literal calls excluded, over explicit
+# two- and three-argument shapes (rest sandwiches bind ambiguously).
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "$OTHERFUNC($$$_, $PWRQDEEP1, $$$_)",
-      "$UNK",
-      "$UNK = $ANYFUNC($$$_);\n$$$_\n$OTHERFUNC($$$_, $PWRQDEEP1, $$$_);"
+      "$OTHERFUNC($A1, $PWRQDEEP1)","$OTHERFUNC($A1, $PWRQDEEP1, $A3)"
     ])) as $all
-    | ( $all | of(["$OTHERFUNC($$$_, $PWRQDEEP1, $$$_)"])
-          | where_capture_ast("PWRQDEEP1"; "\"=~/.*<script.*/\"")
-          | at_same_place(($all | of(["$UNK"])))
-          | within($all | of(["$UNK = $ANYFUNC($$$_);\n$$$_\n$OTHERFUNC($$$_, $PWRQDEEP1, $$$_);"])
-          | where_capture_ast("PWRQDEEP1"; "$UNK"))
+    | ( $all | of(["$OTHERFUNC($A1, $PWRQDEEP1)","$OTHERFUNC($A1, $PWRQDEEP1, $A3)"])
+          | where_capture_ast("PWRQDEEP1"; "$L + $R")
+          | where_capture("PWRQDEEP1"; "<script")
         | finding("unknown-value-with-script-tag";
-            "Cannot determine what '$UNK' is and it is used with a '<script>' tag.") ) )
+            "An unknown value is used with a '<script>' tag.") ) )
 | report

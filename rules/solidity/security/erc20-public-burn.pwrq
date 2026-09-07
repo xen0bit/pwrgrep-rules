@@ -1,7 +1,7 @@
 # rules: erc20-public-burn
 # languages: solidity
+# fixture: solidity/erc20-public-burn.sol
 # from: solidity/security/erc20-public-burn.yaml
-
 . as $root
 | ( ($root | scan_ast(["*.sol"]; [
       "function burn($$$_) $M { $$$_ }",

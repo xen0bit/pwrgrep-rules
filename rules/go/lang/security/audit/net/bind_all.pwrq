@@ -1,15 +1,19 @@
 # rules: avoid-bind-to-all-interfaces
 # languages: go
+# fixture: go/avoid-bind-to-all-interfaces.go
 # from: go/lang/security/audit/net/bind_all.yaml
+#
+# The address was written Semgrep-style (`"=~/^0.0.0.0:.*$/"`), a literal
+# string no Go file contains, so the rule never fired. The address is a hole
+# now and the all-interfaces shapes are a guard on what it caught.
 
 . as $root
 | ( ($root | scan_ast(["*.go"]; [
-      "net.Listen($NETWORK, \"=~/^0.0.0.0:.*$/\", $$$_)",
-      "net.Listen($NETWORK, \"=~/^:.*$/\", $$$_)",
-      "tls.Listen($NETWORK, \"=~/^0.0.0.0:.*$/\", $$$_)",
-      "tls.Listen($NETWORK, \"=~/^:.*$/\", $$$_)"
+      "net.Listen($NETWORK, $ADDR)",
+      "tls.Listen($NETWORK, $ADDR, $CONFIG)"
     ])) as $all
-    | ( $all | of(["tls.Listen($NETWORK, \"=~/^0.0.0.0:.*$/\", $$$_)","net.Listen($NETWORK, \"=~/^0.0.0.0:.*$/\", $$$_)","tls.Listen($NETWORK, \"=~/^:.*$/\", $$$_)","net.Listen($NETWORK, \"=~/^:.*$/\", $$$_)"])
+    | ( $all | of(["net.Listen($NETWORK, $ADDR)","tls.Listen($NETWORK, $ADDR, $CONFIG)"])
+          | where_capture("ADDR"; "^\"(0\\.0\\.0\\.0)?:")
         | finding("avoid-bind-to-all-interfaces";
             "Detected a network listener listening on 0.0.0.0 or an empty string.") ) )
 | report

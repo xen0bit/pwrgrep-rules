@@ -1,13 +1,20 @@
 # rules: incomplete-sanitization
-# languages: typescript
+# languages: javascript, typescript
+# fixture: javascript/incomplete-sanitization.js
 # from: javascript/lang/security/audit/incomplete-sanitization.yaml
+#
+# Repair: the TypeScript-only `($CHAR: string)` shape never matched plain
+# JavaScript, so the untyped `$STR.replace($CHAR, $$$_)` spelling is listed
+# too; the single-dangerous-character guard is unchanged apart from the `&`
+# alternative, which was over-escaped and could never match.
 
 . as $root
-| ( ($root | scan_ast(["*.ts"]; [
-      "$STR.replace(($CHAR: string), $$$_)"
+| ( ($root | scan_ast(["*.js","*.ts"]; [
+      "$STR.replace(($CHAR: string), $$$_)",
+      "$STR.replace($CHAR, $$$_)"
     ])) as $all
-    | ( $all | of(["$STR.replace(($CHAR: string), $$$_)"])
-          | where_capture("CHAR"; "^[\\\"\\']([\\'\\\"\\<\\>\\*\\|\\{\\}\\[\\]\\%\\$]{1}|\\\\n|\\\\r|\\\\t|\\\\&)[\\\"\\']$")
+    | ( $all | of(["$STR.replace(($CHAR: string), $$$_)","$STR.replace($CHAR, $$$_)"])
+          | where_capture("CHAR"; "^[\\\"\\']([\\'\\\"\\<\\>\\*\\|\\{\\}\\[\\]\\%\\$]{1}|\\\\n|\\\\r|\\\\t|\\&)[\\\"\\']$")
         | finding("incomplete-sanitization";
             "`$STR.replace` method will only replace the first occurrence when used with a string argument ($CHAR).") ) )
 | report

@@ -1,5 +1,6 @@
 # rules: keyvault-purge-enabled
 # languages: hcl
+# fixture: terraform/keyvault-purge-enabled.tf
 # from: terraform/azure/security/keyvault/keyvault-purge-enabled.yaml
 
 . as $root

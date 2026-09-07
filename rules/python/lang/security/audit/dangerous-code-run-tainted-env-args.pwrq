@@ -1,5 +1,6 @@
 # rules: dangerous-interactive-code-run-tainted-env-args
 # languages: python
+# fixture: python/dangerous-interactive-code-run-tainted-env-args.py
 # from: python/lang/security/audit/dangerous-code-run-tainted-env-args.yaml
 
 . as $root

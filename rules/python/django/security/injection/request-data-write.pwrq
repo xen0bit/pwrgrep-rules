@@ -1,5 +1,6 @@
 # rules: request-data-write
 # languages: python
+# fixture: python/request-data-write.py
 # from: python/django/security/injection/request-data-write.yaml
 
 . as $root

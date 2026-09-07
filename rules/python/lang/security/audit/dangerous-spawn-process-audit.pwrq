@@ -1,5 +1,6 @@
 # rules: dangerous-spawn-process-audit
 # languages: python
+# fixture: python/dangerous-spawn-process-audit.py
 # from: python/lang/security/audit/dangerous-spawn-process-audit.yaml
 
 . as $root

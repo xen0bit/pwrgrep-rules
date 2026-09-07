@@ -1,5 +1,6 @@
 # rules: avoid-content-tag
 # languages: ruby
+# fixture: ruby/avoid-content-tag.rb
 # from: ruby/rails/security/audit/xss/avoid-content-tag.yaml
 
 . as $root

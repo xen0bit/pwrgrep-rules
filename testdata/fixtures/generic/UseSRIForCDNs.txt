@@ -1,0 +1,12 @@
+# CDN scripts and styles need an integrity hash (SRI).
+# Ok blocks come first: the no-integrity pattern spans forward otherwise.
+# ok: use-SRI-for-CDNs
+<script src="https://cdn.example.com/a.js" integrity="sha384-aaa111">
+</script>
+# ok: use-SRI-for-CDNs
+<link href="https://cdn.example.com/a.css" integrity="sha384-bbb222">
+# ruleid: use-SRI-for-CDNs
+<script src="https://cdn.example.com/b.js">
+</script>
+# ruleid: use-SRI-for-CDNs
+<link href="https://cdn.example.com/b.css">

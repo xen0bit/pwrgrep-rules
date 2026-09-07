@@ -1,0 +1,10 @@
+# Gitleaks launchdarkly-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: launchdarkly-access-token
+launchdarkly=abcdefghijklmnopqrstuvwxy0123456789=_-ab
+# ruleid: launchdarkly-access-token
+launchdarkly=lmnopqrstuvwxy0123456789=_-abcdefghijklm
+# ok: launchdarkly-access-token
+launchdarkly = "example"
+# ok: launchdarkly-access-token
+launchdarkly = "placeholder"

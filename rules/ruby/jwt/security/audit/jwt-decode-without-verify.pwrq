@@ -1,5 +1,6 @@
 # rules: ruby-jwt-decode-without-verify
 # languages: ruby
+# fixture: ruby/ruby-jwt-decode-without-verify.rb
 # from: ruby/jwt/security/audit/jwt-decode-without-verify.yaml
 
 . as $root

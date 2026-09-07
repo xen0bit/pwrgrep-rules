@@ -1,5 +1,6 @@
 # rules: gcp-compute-template-public-ip
 # languages: hcl
+# fixture: terraform/gcp-compute-template-public-ip.tf
 # from: terraform/gcp/security/gcp-compute-template-public-ip.yaml
 
 . as $root

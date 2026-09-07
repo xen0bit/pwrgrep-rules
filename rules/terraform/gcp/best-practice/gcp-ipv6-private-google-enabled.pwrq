@@ -1,5 +1,6 @@
 # rules: gcp-ipv6-private-google-enabled
 # languages: hcl
+# fixture: terraform/gcp-ipv6-private-google-enabled.tf
 # from: terraform/gcp/best-practice/gcp-ipv6-private-google-enabled.yaml
 
 . as $root

@@ -1,20 +1,22 @@
 # rules: pgx-sqli
 # languages: go
+# fixture: go/pgx-sqli.go
+#
+# In Go a quoted $$$_ matches any argument, so the literal-only subtractions (a "$$$_" call-operand pair and literal-built $QUERY file tests, each paired with a bare string that matches anywhere) excluded every file and every call. The literal tests now bind $S/$T and keep only full string literals via guard; the vacuous bare-string partners are dropped.
 # from: go/lang/security/audit/sqli/pgx-sqli.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.go"]; [
-      "\"$$$_\"",
       "$DB, $$$_ = pgx.Connect($$$_)\n$$$_",
       "$DB, $$$_ = pgx.ConnectConfig($$$_)\n$$$_",
       "$DB, $$$_ = pgx.NewConnPool($$$_)\n$$$_",
-      "$DB.$METHOD($$$_, \"$$$_\" + \"$$$_\", $$$_)",
+      "$DB.$METHOD($$$_, $S + $T, $$$_)",
       "$DB.$METHOD($$$_, $X + $Y, $$$_)",
       "$DB.$METHOD($$$_, fmt.Sprintf(\"$$$_\", $PARAM1, $$$_), $$$_)",
       "$DB.$METHOD($$$_,$QUERY,$$$_)",
-      "$QUERY += \"$$$_\"\n$$$_",
+      "$QUERY += $S\n$$$_",
       "$QUERY += $X\n$$$_",
-      "$QUERY = \"$$$_\" + \"$$$_\"\n$$$_",
+      "$QUERY = $S + $T\n$$$_",
       "$QUERY = $X + $Y\n$$$_",
       "$QUERY = fmt.Sprintf(\"$$$_\", $PARAM1, $$$_)\n$$$_",
       "func $FUNCNAME($$$_, $DB *pgx.Conn, $$$_) {\n  $$$_\n}"
@@ -25,9 +27,9 @@
           + ($all
           | in_files_with($all | of(["$QUERY += $X\n$$$_"])))
           + ($all
-          | in_files_with($all | of(["$QUERY = fmt.Sprintf(\"$$$_\", $PARAM1, $$$_)\n$$$_","\"$$$_\""])))))
-          | in_files_without($all | of(["$QUERY += \"$$$_\"\n$$$_","\"$$$_\""]))
-          | in_files_without($all | of(["$QUERY = \"$$$_\" + \"$$$_\"\n$$$_"])))
+          | in_files_with($all | of(["$QUERY = fmt.Sprintf(\"$$$_\", $PARAM1, $$$_)\n$$$_"])))))
+          | in_files_without($all | of(["$QUERY += $S\n$$$_"]) | where_capture("S"; "^\"[^\"]*\"$"))
+          | in_files_without($all | of(["$QUERY = $S + $T\n$$$_"]) | where_capture("S"; "^\"[^\"]*\"$") | where_capture("T"; "^\"[^\"]*\"$")))
           + ($all | of(["$DB.$METHOD($$$_, $X + $Y, $$$_)"]))
           + ($all | of(["$DB.$METHOD($$$_, fmt.Sprintf(\"$$$_\", $PARAM1, $$$_), $$$_)"]))
           | at_same_place((($all
@@ -38,7 +40,7 @@
           | in_files_with($all | of(["$DB, $$$_ = pgx.ConnectConfig($$$_)\n$$$_"])))
           + ($all
           | within($all | of(["func $FUNCNAME($$$_, $DB *pgx.Conn, $$$_) {\n  $$$_\n}"])))))
-          | not_at($all | of(["$DB.$METHOD($$$_, \"$$$_\" + \"$$$_\", $$$_)"]))
+          | not_at($all | of(["$DB.$METHOD($$$_, $S + $T, $$$_)"]) | where_capture("S"; "^\"[^\"]*\"$") | where_capture("T"; "^\"[^\"]*\"$"))
           | where_capture("METHOD"; "^(Exec|ExecEx|Query|QueryEx|QueryRow|QueryRowEx)$")
         | finding("pgx-sqli";
             "Detected string concatenation with a non-literal variable in a pgx Go SQL statement.") ) )

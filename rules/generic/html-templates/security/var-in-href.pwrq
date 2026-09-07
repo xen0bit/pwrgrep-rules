@@ -1,4 +1,5 @@
 # rules: var-in-href
+# fixture: generic/var-in-href.txt
 # from: generic/html-templates/security/var-in-href.yaml
 
 . as $root

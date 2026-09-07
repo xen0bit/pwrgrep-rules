@@ -1,5 +1,6 @@
 # rules: marshal-usage
 # languages: python
+# fixture: python/marshal.py
 # from: python/lang/security/audit/marshal.yaml
 
 . as $root

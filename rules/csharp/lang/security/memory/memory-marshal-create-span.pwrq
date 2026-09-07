@@ -1,5 +1,6 @@
 # rules: memory-marshal-create-span
 # languages: c_sharp
+# fixture: csharp/memory-marshal-create-span.cs
 # from: csharp/lang/security/memory/memory-marshal-create-span.yaml
 
 . as $root

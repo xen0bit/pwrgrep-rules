@@ -1,5 +1,6 @@
 # rules: gcp-gke-alias-ip-enabled
 # languages: hcl
+# fixture: terraform/gcp-gke-alias-ip-enabled.tf
 # from: terraform/gcp/best-practice/gcp-gke-alias-ip-enabled.yaml
 
 . as $root

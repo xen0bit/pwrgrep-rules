@@ -1,5 +1,6 @@
 # rules: gcp-gke-monitoring-enabled
 # languages: hcl
+# fixture: terraform/gcp-gke-monitoring-enabled.tf
 # from: terraform/gcp/security/gcp-gke-monitoring-enabled.yaml
 
 . as $root

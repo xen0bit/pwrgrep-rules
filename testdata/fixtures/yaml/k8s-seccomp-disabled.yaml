@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad1
+spec:
+  containers:
+    - name: app
+      image: nginx
+      securityContext:
+        # ruleid: seccomp-confinement-disabled
+        seccompProfile:
+          type: Unconfined
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad2
+spec:
+  containers:
+    - name: app
+      image: nginx
+      securityContext:
+        # ruleid: seccomp-confinement-disabled
+        seccompProfile:
+          type: Unconfined
+          localhostProfile: my-profile.json
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good1
+spec:
+  containers:
+    # ok: seccomp-confinement-disabled
+    - name: app
+      image: nginx
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good2
+spec:
+  containers:
+    # ok: seccomp-confinement-disabled
+    - name: app
+      image: nginx
+      securityContext:
+        runAsNonRoot: true

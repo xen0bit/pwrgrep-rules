@@ -1,5 +1,6 @@
 # rules: use-of-sha1
 # languages: clojure
+# fixture: clojure/use-of-sha1.clj
 # from: clojure/lang/security/use-of-sha1.yaml
 
 . as $root

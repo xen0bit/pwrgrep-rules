@@ -1,5 +1,6 @@
 # rules: dangerous-system-call-audit
 # languages: python
+# fixture: python/dangerous-system-call-audit.py
 # from: python/lang/security/audit/dangerous-system-call-audit.yaml
 
 . as $root

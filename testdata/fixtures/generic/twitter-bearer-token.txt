@@ -1,0 +1,10 @@
+# Gitleaks twitter-bearer-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: twitter-bearer-token
+twitter=AAAAAAAAAAAAAAAAAAAAAAabcdefghijklmnopqrstuvwxyABCDEFGHIJKLMNOPQRSTUVWXY0123456789%abcdefghijklmnopqrs
+# ruleid: twitter-bearer-token
+twitter=AAAAAAAAAAAAAAAAAAAAAAlmnopqrstuvwxyABCDEFGHIJKLMNOPQRSTUVWXY0123456789%abcdefghijklmnopqrstuvwxyABCDE
+# ok: twitter-bearer-token
+twitter = "example"
+# ok: twitter-bearer-token
+twitter = "placeholder"

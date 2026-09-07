@@ -1,19 +1,24 @@
 # rules: puppeteer-setcontent-injection
 # languages: javascript, typescript
+# fixture: javascript/puppeteer-setcontent-injection.js
 # from: javascript/puppeteer/security/audit/puppeteer-setcontent-injection.yaml
+#
+# The require gate trailed a statement gap that matches nothing, the file
+# gate excluded any file holding a string at all, and the literal exclusion
+# read a two-slot shape that subtracted every call. The gate is bare now,
+# the file gate reads only the assigned-literal shape, and the finding keeps
+# only non-literal markup.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "\"$$$_\"",
-      "$PAGE.setContent(\"$$$_\",$$$_)",
       "$PAGE.setContent($INPUT,$$$_)",
-      "require('puppeteer');\n$$$_",
-      "require('puppeteer');\n$$$_\nvar $INPUT = \"$$$_\";\n$$$_"
+      "require('puppeteer')",
+      "require('puppeteer')\nvar $INPUT = \"$$$_\";\n$$$_"
     ])) as $all
     | ( $all | of(["$PAGE.setContent($INPUT,$$$_)"])
-          | in_files_with($all | of(["require('puppeteer');\n$$$_"]))
-          | in_files_without($all | of(["require('puppeteer');\n$$$_\nvar $INPUT = \"$$$_\";\n$$$_","\"$$$_\""]))
-          | not_at($all | of(["$PAGE.setContent(\"$$$_\",$$$_)"]))
+          | in_files_with($all | of(["require('puppeteer')"]))
+          | in_files_without($all | of(["require('puppeteer')\nvar $INPUT = \"$$$_\";\n$$$_"]))
+          | where_capture_not("INPUT"; "^[\"']")
         | finding("puppeteer-setcontent-injection";
             "If unverified user data can reach the `setContent` method it can result in Server-Side Request Forgery vulnerabilities") ) )
 | report

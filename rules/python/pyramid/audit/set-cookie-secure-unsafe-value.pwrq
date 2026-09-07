@@ -1,5 +1,6 @@
 # rules: pyramid-set-cookie-secure-unsafe-value
 # languages: python
+# fixture: python/set-cookie-secure-unsafe-value.py
 # from: python/pyramid/audit/set-cookie-secure-unsafe-value.yaml
 
 . as $root

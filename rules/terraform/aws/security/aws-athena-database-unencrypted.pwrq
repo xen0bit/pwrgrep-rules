@@ -1,5 +1,6 @@
 # rules: aws-athena-database-unencrypted
 # languages: hcl
+# fixture: terraform/aws-athena-database-unencrypted.tf
 # from: terraform/aws/security/aws-athena-database-unencrypted.yaml
 
 . as $root

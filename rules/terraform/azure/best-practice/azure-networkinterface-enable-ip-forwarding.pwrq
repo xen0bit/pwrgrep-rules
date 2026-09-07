@@ -1,5 +1,6 @@
 # rules: azure-networkinterface-enable-ip-forwarding
 # languages: hcl
+# fixture: terraform/azure-networkinterface-enable-ip-forwarding.tf
 # from: terraform/azure/best-practice/azure-networkinterface-enable-ip-forwarding.yaml
 
 . as $root

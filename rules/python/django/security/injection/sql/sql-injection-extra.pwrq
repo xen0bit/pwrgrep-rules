@@ -1,5 +1,6 @@
 # rules: sql-injection-using-extra-where
 # languages: python
+# fixture: python/sql-injection-extra.py
 # from: python/django/security/injection/sql/sql-injection-extra.yaml
 
 . as $root

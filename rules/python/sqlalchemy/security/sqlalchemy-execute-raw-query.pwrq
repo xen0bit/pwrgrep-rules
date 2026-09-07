@@ -1,5 +1,6 @@
 # rules: sqlalchemy-execute-raw-query
 # languages: python
+# fixture: python/sqlalchemy-execute-raw-query.py
 # from: python/sqlalchemy/security/sqlalchemy-execute-raw-query.yaml
 
 . as $root

@@ -1,4 +1,5 @@
 # rules: X509-subject-name-validation
+# fixture: csharp/X509-subject-name-validation.cs
 # from: csharp/lang/security/cryptography/X509-subject-name-validation.yaml
 
 . as $root

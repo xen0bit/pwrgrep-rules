@@ -1,41 +1,45 @@
 # rules: express-wkhtmltoimage-injection, express-wkhtmltopdf-injection
-# languages: typescript
+# languages: javascript, typescript
+# fixture: javascript/express-wkhtml-injection.js
 # from: javascript/express/security/express-wkhtml-injection.yaml
+#
+# Repair: `function $$$_ (...)` matched only named declarations, route callbacks had to be named, and `at_same_place` needed exact span coincidence; wrappers now cover anon and named shapes and both sinks are gated by `reaching` over one `$DST` hole. Globs cover *.js as well as *.ts.
 
 . as $root
-| ( ($root | scan_ast(["*.ts"]; [
+| ( ($root | scan_ast(["*.js","*.ts"]; [
       "$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})",
       "$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})",
+      "$APP.$METHOD($$$_, function ($REQ, $RES) {$$$_})",
+      "$APP.$METHOD($$$_, function ($REQ, $RES, $NEXT) {$$$_})",
+      "$REQ.query",
       "$REQ.body",
+      "$REQ.params",
       "$REQ.cookies",
       "$REQ.headers",
-      "$REQ.params",
-      "$REQ.query",
-      "$WK = require('wkhtmltopdf');\n$$$_",
-      "$WK($SINK,$$$_)",
-      "$WK.generate($SINK,$$$_)",
+      "$WK.generate($DST, $$$_)",
+      "$WK($DST, $$$_)",
+      "$WK = require('wkhtmltopdf');\n$$$",
+      "const $WK = require('wkhtmltopdf')",
+      "let $WK = require('wkhtmltopdf')",
+      "var $WK = require('wkhtmltopdf')",
       "({ $REQ }: Request,$RES: Response) => {$$$_}",
       "({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) =>\n{$$$_}",
       "body",
       "cookies",
-      "function $$$_ ($REQ, $RES) {$$$_}",
-      "function $$$_ ($REQ, $RES, $NEXT) {$$$_}",
       "headers",
       "params",
-      "query"
+      "query",
+      "function ($REQ, $RES) {$$$_}",
+      "function $FUNC($REQ, $RES) {$$$_}",
+      "function ($REQ, $RES, $NEXT) {$$$_}",
+      "function $FUNC($REQ, $RES, $NEXT) {$$$_}"
     ])) as $all
-    | ( (($all | of(["$WK.generate($SINK,$$$_)"])
-          | focus("SINK")))
-          | reaching(((($all
-          | within($all | of(["function $$$_ ($REQ, $RES) {$$$_}"])))
-          + ($all
-          | within($all | of(["function $$$_ ($REQ, $RES, $NEXT) {$$$_}"])))
-          + (($all
-          | within($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})"])))
-          + ($all
-          | within($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})"])))
-          | where_capture("METHOD"; "^(get|post|put|head|delete|options)$"))
-          | at_same_place(($all | of(["$REQ.query","$REQ.body","$REQ.params","$REQ.cookies","$REQ.headers"]))))
+    | ( (($all | of(["$WK.generate($DST, $$$_)"])
+          | focus("DST"))
+          )
+          | reaching(((($all | of(["$REQ.query", "$REQ.body", "$REQ.params", "$REQ.cookies", "$REQ.headers"]))
+          | within((($all | of(["function ($REQ, $RES) {$$$_}", "function $FUNC($REQ, $RES) {$$$_}", "function ($REQ, $RES, $NEXT) {$$$_}", "function $FUNC($REQ, $RES, $NEXT) {$$$_}"])))
+          + ((($all | of(["$REQ.query", "$REQ.body", "$REQ.params", "$REQ.cookies", "$REQ.headers"])) | within((($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})", "$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})"])) + ($all | of(["$APP.$METHOD($$$_, function ($REQ, $RES) {$$$_})", "$APP.$METHOD($$$_, function ($REQ, $RES, $NEXT) {$$$_})"])))) | where_capture("METHOD"; "^(get|post|put|head|delete|options)$")))))
               + (($all
           | within($all | of(["({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) =>\n{$$$_}"])))
           + ($all
@@ -44,20 +48,14 @@
           | focus("REQ")));
               ([]))
         | finding("express-wkhtmltoimage-injection";
-            "If unverified user data can reach the `phantom` methods it can result in Server-Side Request Forgery vulnerabilities") )
-      + ( (($all | of(["$WK($SINK,$$$_)"])
-          | in_files_with($all | of(["$WK = require('wkhtmltopdf');\n$$$_"]))
-          | focus("SINK")))
-          | reaching(((($all
-          | within($all | of(["function $$$_ ($REQ, $RES) {$$$_}"])))
-          + ($all
-          | within($all | of(["function $$$_ ($REQ, $RES, $NEXT) {$$$_}"])))
-          + (($all
-          | within($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})"])))
-          + ($all
-          | within($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})"])))
-          | where_capture("METHOD"; "^(get|post|put|head|delete|options)$"))
-          | at_same_place(($all | of(["$REQ.query","$REQ.body","$REQ.params","$REQ.cookies","$REQ.headers"]))))
+            "If unverified user data can reach the `wkhtmltoimage` methods it can result in Server-Side Request Forgery vulnerabilities") )
+      + ((($all | of(["$WK($DST, $$$_)"])
+          | where_capture("WK"; "(?i)wkhtml")
+          | focus("DST"))
+          )
+          | reaching(((($all | of(["$REQ.query", "$REQ.body", "$REQ.params", "$REQ.cookies", "$REQ.headers"]))
+          | within((($all | of(["function ($REQ, $RES) {$$$_}", "function $FUNC($REQ, $RES) {$$$_}", "function ($REQ, $RES, $NEXT) {$$$_}", "function $FUNC($REQ, $RES, $NEXT) {$$$_}"])))
+          + ((($all | of(["$REQ.query", "$REQ.body", "$REQ.params", "$REQ.cookies", "$REQ.headers"])) | within((($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})", "$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})"])) + ($all | of(["$APP.$METHOD($$$_, function ($REQ, $RES) {$$$_})", "$APP.$METHOD($$$_, function ($REQ, $RES, $NEXT) {$$$_})"])))) | where_capture("METHOD"; "^(get|post|put|head|delete|options)$")))))
               + (($all
           | within($all | of(["({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) =>\n{$$$_}"])))
           + ($all
@@ -65,6 +63,7 @@
           | at_same_place(($all | of(["params","query","cookies","headers","body"])))
           | focus("REQ")));
               ([]))
+          | in_files_with(($all | of(["$WK = require('wkhtmltopdf');\n$$$", "const $WK = require('wkhtmltopdf')", "let $WK = require('wkhtmltopdf')", "var $WK = require('wkhtmltopdf')"])))
         | finding("express-wkhtmltopdf-injection";
             "If unverified user data can reach the `wkhtmltopdf` methods it can result in Server-Side Request Forgery vulnerabilities") ) )
 | report

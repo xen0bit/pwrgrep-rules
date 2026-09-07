@@ -1,4 +1,5 @@
 # rules: avoid-native-dml-in-loops
+# fixture: apex/avoid-native-dml-in-loops.cls
 # from: apex/lang/performance/ncino/operationsInLoops/AvoidNativeDmlInLoops.yaml
 
 . as $root

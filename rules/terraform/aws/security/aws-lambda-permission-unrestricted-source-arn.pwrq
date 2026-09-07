@@ -1,5 +1,6 @@
 # rules: aws-lambda-permission-unrestricted-source-arn
 # languages: hcl
+# fixture: terraform/aws-lambda-permission-unrestricted-source-arn.tf
 # from: terraform/aws/security/aws-lambda-permission-unrestricted-source-arn.yaml
 
 . as $root

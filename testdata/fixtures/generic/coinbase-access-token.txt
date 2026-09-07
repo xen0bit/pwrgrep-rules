@@ -1,0 +1,10 @@
+# Gitleaks coinbase-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: coinbase-access-token
+coinbase=abcdefghijklmnopqrstuvwxy0123456789_-abcdefghijklmnopqrstuvwxy01
+# ruleid: coinbase-access-token
+coinbase=lmnopqrstuvwxy0123456789_-abcdefghijklmnopqrstuvwxy0123456789_-a
+# ok: coinbase-access-token
+coinbase = "example"
+# ok: coinbase-access-token
+coinbase = "placeholder"

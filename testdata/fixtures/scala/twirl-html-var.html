@@ -1,0 +1,14 @@
+@* Raw Html of a variable bypasses Twirl escaping (XSS). Escape the value
+or render it as plain text instead. *@
+<!-- ruleid: twirl-html-var -->
+@Html(userContent)
+<!-- ruleid: twirl-html-var -->
+@Html(pageBody)
+<!-- ruleid: twirl-html-var -->
+@Html(message)
+<!-- ok: twirl-html-var -->
+@escape(userContent)
+<!-- ok: twirl-html-var -->
+<p>fixed</p>
+<!-- ok: twirl-html-var -->
+@defining(userContent) { content => <p>@content</p> }

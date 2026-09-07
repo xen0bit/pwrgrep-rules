@@ -1,5 +1,6 @@
 # rules: javascript-alert, javascript-debugger, javascript-confirm, javascript-prompt
 # languages: javascript, typescript
+# fixture: javascript/leftover-debugging.js
 # from: javascript/lang/best-practice/leftover_debugging.yaml
 
 . as $root

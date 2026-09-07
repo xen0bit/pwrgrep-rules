@@ -1,15 +1,17 @@
 # rules: use-ownable2step
 # languages: solidity
+# fixture: solidity/use-ownable2step.sol
+#
+# Contract-level AST never matches in the solidity grammar, so the original
+# pattern could never fire. Rewritten as a regex over the inheritance list;
+# word boundaries keep Ownable2Step(Upgradeable) quiet.
 # from: solidity/best-practice/use-ownable2step.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.sol"]; [
-      "contract $C is $$$_,$OWNABLE,$$$_ {\n  $$$_\n}"
+| ( ($root | scan_regex(["*.sol"]; [
+      "is\\s+[^{;]*?\\bOwnable(?:Upgradeable)?\\b"
     ])) as $all
-    | ( $all
-          | within($all | of(["contract $C is $$$_,$OWNABLE,$$$_ {\n  $$$_\n}"]))
-          | where_capture("OWNABLE"; "^(?:(Ownable$|OwnableUpgradeable))")
-          | focus("OWNABLE")
+    | ( $all | of(["is\\s+[^{;]*?\\bOwnable(?:Upgradeable)?\\b"])
         | finding("use-ownable2step";
             "By demanding that the receiver of the owner permissions actively accept via a contract call of its own, `Ownable2Step` and `Ownable2StepUpgradeable` prevent the contract ownership from accidentally being transferred to an address that cannot handle it.") ) )
 | report

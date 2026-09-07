@@ -1,5 +1,6 @@
 # rules: pg8000-sqli
 # languages: python
+# fixture: python/pg8000-sqli.py
 # from: python/lang/security/audit/sqli/pg8000-sqli.yaml
 
 . as $root

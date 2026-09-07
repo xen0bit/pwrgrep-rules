@@ -1,0 +1,18 @@
+<script src="app.js">
+<%# ruleid: var-in-script-tag %>
+var x = '<%= @name %>';
+<%# ruleid: var-in-script-tag %>
+var y = '<%= @title %>';
+<%# ruleid: var-in-script-tag %>
+var z = '<%= @body %>';
+<%# ok: var-in-script-tag %>
+var e = '<%= j @escaped %>';
+<%# ok: var-in-script-tag %>
+var f = '<%= escape_javascript @other %>';
+<%# ok: var-in-script-tag %>
+var g = 'static';
+</script>
+<script>
+<%# ok: var-in-script-tag %>
+var h = 'bare script tag';
+</script>

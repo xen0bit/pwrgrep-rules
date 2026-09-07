@@ -1,5 +1,6 @@
 # rules: curl-pipe-bash
 # languages: bash
+# fixture: bash/curl-pipe-bash.sh
 # from: bash/curl/security/curl-pipe-bash.yaml
 
 . as $root

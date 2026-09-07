@@ -1,0 +1,10 @@
+# Gitleaks hubspot-api-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: hubspot-api-key
+hubspot=01234567-89AB-CDEF-0123-456789ABCDEF
+# ruleid: hubspot-api-key
+hubspot=BCDEF012-3456-789A-BCDE-F0123456789A
+# ok: hubspot-api-key
+hubspot = "example"
+# ok: hubspot-api-key
+hubspot = "placeholder"

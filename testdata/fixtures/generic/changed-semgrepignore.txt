@@ -1,0 +1,9 @@
+# Changed ignore entries; only the new-shape marker fires.
+# ruleid: changed-semgrepignore
+^(.*)$
+# ruleid: changed-semgrepignore
+^(.*)$
+# ok: changed-semgrepignore
+^#(.*)$
+# ok: changed-semgrepignore
+^\n.*$

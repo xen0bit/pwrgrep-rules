@@ -1,0 +1,15 @@
+# CWE-798: a checked-in private key block.
+# ruleid: private-key
+-----BEGIN RSA PRIVATE KEY-----
+MIIEpAIBAAKCAQEA7bq9xVzK8mN4pL2rT6wY0sU3iO5eA8cG1dF9hJ2kL4mN6pQ8rS0t
+-----END RSA PRIVATE KEY-----
+# ruleid: private-key
+-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEIYbq9xVzK8mN4pL2rT6wY0sU3iO5eA8cG1dF9hJ2kL4mN6pQ8rS0tFoAU
+-----END EC PRIVATE KEY-----
+# ok: private-key
+-----BEGIN CERTIFICATE-----
+MIIEpAIBAAQEA7bq9xVzK8mN4pL2rT6wY0sU3iO5eA8cG1dF9hJ2kL4mN6pQ8rS0t
+-----END CERTIFICATE-----
+# ok: private-key
+# keys are loaded from the environment, never checked in

@@ -1,5 +1,6 @@
 # rules: missing-cloudwatch-log-group-retention
 # languages: hcl
+# fixture: terraform/missing-cloudwatch-log-group-retention.tf
 # from: terraform/aws/best-practice/missing-cloudwatch-log-group-retention.yaml
 
 . as $root

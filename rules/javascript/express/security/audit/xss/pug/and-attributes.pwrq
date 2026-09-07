@@ -1,5 +1,6 @@
 # rules: template-and-attributes
 # from: javascript/express/security/audit/xss/pug/and-attributes.yaml
+# fixture: javascript/and-attributes-pug.js
 
 . as $root
 | ( ($root | scan_regex(["*.pug"]; [

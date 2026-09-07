@@ -1,0 +1,33 @@
+rules:
+  - id: unnec-either
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    patterns:
+      # ruleid: unnecessary-parent-operator
+      - pattern-either:
+          - foo($X)
+  - id: unnec-pattern
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ruleid: unnecessary-parent-operator
+    patterns:
+      - pattern: foo($X)
+  - id: nec-either
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    patterns:
+      # ok: unnecessary-parent-operator
+      - pattern-either:
+          - foo($X)
+          - bar($X)
+  - id: nec-patterns
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    patterns:
+      # ok: unnecessary-parent-operator
+      - pattern: foo($X)
+      - pattern-not: bar($X)

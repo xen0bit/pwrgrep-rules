@@ -1,0 +1,36 @@
+rules:
+  # ruleid: metadata-technology
+  - id: no-tech
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+    pattern: foo($X)
+  # ruleid: metadata-technology
+  - id: no-tech2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      confidence: HIGH
+    pattern: foo2($X)
+  # ok: metadata-technology
+  - id: has-tech
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      technology:
+        - python
+    pattern: bar($X)
+  # ok: metadata-technology
+  - id: has-tech2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      technology:
+        - python
+    pattern: bar2($X)

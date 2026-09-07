@@ -1,4 +1,5 @@
 # rules: copy-from-own-alias
+# fixture: generic/copy-from-own-alias.txt
 # from: generic/dockerfile/correctness/copy-from-own-alias.yaml
 
 . as $root

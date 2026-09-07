@@ -1,5 +1,6 @@
 # rules: azure-cosmosdb-have-cmk
 # languages: hcl
+# fixture: terraform/azure-cosmosdb-have-cmk.tf
 # from: terraform/azure/security/azure-cosmosdb-have-cmk.yaml
 
 . as $root

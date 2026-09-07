@@ -1,4 +1,7 @@
 # rules: azure-mysql-mintls-version
+# fixture: terraform/azure-mysql-mintls-version.tf
+#
+# The `ssl_minimal_tls_version_enforced\s+=\s+[\s\S]*?` container matches with an empty tail, ending at the `=`, so the `"TLS1_0"` literal after it is never `within` it. The tail now swallows the quoted value, which is the only change.
 # from: terraform/azure/security/azure-mysql-mintls-version.yaml
 
 . as $root
@@ -6,10 +9,10 @@
       "\"TLS1_0\"",
       "\"TLS1_1\"",
       "(?P<RESOURCE>\\S+)\\s+\"azurerm_mysql_server\"\\s+\"[\\s\\S]*?\"\\s+\\{\\s+[\\s\\S]*?\\s+\\}",
-      "ssl_minimal_tls_version_enforced\\s+=\\s+[\\s\\S]*?"
+      "ssl_minimal_tls_version_enforced\\s*=\\s*\"[^\"]*\""
     ])) as $all
     | ( $all | of(["\"TLS1_0\"","\"TLS1_1\""])
-          | within($all | of(["ssl_minimal_tls_version_enforced\\s+=\\s+[\\s\\S]*?"]))
+          | within($all | of(["ssl_minimal_tls_version_enforced\\s*=\\s*\"[^\"]*\""]))
           | within($all | of(["(?P<RESOURCE>\\S+)\\s+\"azurerm_mysql_server\"\\s+\"[\\s\\S]*?\"\\s+\\{\\s+[\\s\\S]*?\\s+\\}"]))
         | finding("azure-mysql-mintls-version";
             "Ensure MySQL is using the latest version of TLS encryption") ) )

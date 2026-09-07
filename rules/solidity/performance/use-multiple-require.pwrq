@@ -1,13 +1,19 @@
 # rules: use-multiple-require
 # languages: solidity
+# fixture: solidity/use-multiple-require.sol
+#
+# Statement and expression fragments never match in the solidity grammar
+# - only whole functions (and regex) do - so the original AST pattern could
+# never fire. Rewritten as a regex over the text.
+# The &&-inside-require shape the where_capture_ast check looked for is
+# matched textually instead.
 # from: solidity/performance/use-multiple-require.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.sol"]; [
-      "require ($PWRQDEEP1, $$$_);"
+| ( ($root | scan_regex(["*.sol"]; [
+      "require\\s*\\([\\s\\S]*?&&[\\s\\S]*?\\)"
     ])) as $all
-    | ( $all | of(["require ($PWRQDEEP1, $$$_);"])
-          | where_capture_ast("PWRQDEEP1"; "$X && $Y")
+    | ( $all | of(["require\\s*\\([\\s\\S]*?&&[\\s\\S]*?\\)"])
         | finding("use-multiple-require";
             "Using multiple require statements is cheaper than using && multiple check combinations.") ) )
 | report

@@ -1,5 +1,6 @@
 # rules: template-explicit-unescape
 # from: javascript/express/security/audit/xss/pug/explicit-unescape.yaml
+# fixture: javascript/explicit-unescape-pug.js
 
 . as $root
 | ( ($root | scan_regex(["*.pug"]; [

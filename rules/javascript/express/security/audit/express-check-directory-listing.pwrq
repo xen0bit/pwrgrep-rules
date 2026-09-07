@@ -1,5 +1,6 @@
 # rules: express-check-directory-listing
 # languages: javascript, typescript
+# fixture: javascript/express-check-directory-listing.js
 # from: javascript/express/security/audit/express-check-directory-listing.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: overly-permissive-file-permission
 # languages: java
+# fixture: java/overly-permissive-file-permission.java
 # from: java/lang/security/audit/overly-permissive-file-permission.yaml
 
 . as $root

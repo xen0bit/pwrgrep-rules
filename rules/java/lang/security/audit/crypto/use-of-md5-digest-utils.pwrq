@@ -1,5 +1,6 @@
 # rules: use-of-md5-digest-utils
 # languages: java
+# fixture: java/use-of-md5-digest-utils.java
 # from: java/lang/security/audit/crypto/use-of-md5-digest-utils.yaml
 
 . as $root

@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad1
+spec:
+  containers:
+    - name: app
+      image: nginx
+      securityContext:
+        # ruleid: allow-privilege-escalation-true
+        allowPrivilegeEscalation: true
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad2
+spec:
+  containers:
+    - name: app
+      image: nginx
+      securityContext:
+        # ruleid: allow-privilege-escalation-true
+        allowPrivilegeEscalation: true
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good1
+spec:
+  containers:
+    - name: app
+      image: nginx
+      securityContext:
+        # ok: allow-privilege-escalation-true
+        allowPrivilegeEscalation: false
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good2
+spec:
+  containers:
+    - name: app
+      image: nginx
+      # ok: allow-privilege-escalation-true
+      securityContext:
+        runAsNonRoot: true

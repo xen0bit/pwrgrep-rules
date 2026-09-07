@@ -1,0 +1,10 @@
+# Gitleaks twitch-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: twitch-api-token
+twitch=abcdefghijklmnopqrstuvwxy01234
+# ruleid: twitch-api-token
+twitch=lmnopqrstuvwxy0123456789abcdef
+# ok: twitch-api-token
+twitch = "example"
+# ok: twitch-api-token
+twitch = "placeholder"

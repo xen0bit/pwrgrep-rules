@@ -1,5 +1,6 @@
 # rules: insecure-fastjson-deserialization
 # languages: c_sharp
+# fixture: csharp/fast-json.cs
 # from: csharp/lang/security/insecure-deserialization/fast-json.yaml
 
 . as $root

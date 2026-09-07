@@ -1,0 +1,25 @@
+rules:
+  - id: slow-prop
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ruleid: slow-pattern-general-property
+    pattern: $X.$Y
+  - id: slow-prop2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ruleid: slow-pattern-general-property
+    pattern: $A.$B.$C
+  - id: fast-call
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ok: slow-pattern-general-property
+    pattern: foo($X)
+  - id: fast-str
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ok: slow-pattern-general-property
+    pattern: "literal"

@@ -1,19 +1,19 @@
 # rules: url-rewriting
 # languages: java
+# fixture: java/url-rewriting.java
 # from: java/lang/security/audit/url-rewriting.yaml
+#
+# Every shape was a method scaffold with statement gaps that match nothing,
+# so the rule never fired. The finding is the encoding call itself now.
 
 . as $root
 | ( ($root | scan_ast(["*.java"]; [
-      "$X $METHOD($$$_) {\n  $$$_\n  HttpServletResponse $RES = $$$_;\n  $$$_\n  $RES.encodeRedirectURL($$$_);\n  $$$_\n}",
-      "$X $METHOD($$$_) {\n  $$$_\n  HttpServletResponse $RES = $$$_;\n  $$$_\n  $RES.encodeRedirectUrl($$$_);\n  $$$_\n}",
-      "$X $METHOD($$$_) {\n  $$$_\n  HttpServletResponse $RES = $$$_;\n  $$$_\n  $RES.encodeURL($$$_);\n  $$$_\n}",
-      "$X $METHOD($$$_) {\n  $$$_\n  HttpServletResponse $RES = $$$_;\n  $$$_\n  $RES.encodeUrl($$$_);\n  $$$_\n}",
-      "$X $METHOD($$$_,HttpServletResponse $RES,$$$_) {\n  $$$_\n  $RES.encodeRedirectURL($$$_);\n  $$$_\n}",
-      "$X $METHOD($$$_,HttpServletResponse $RES,$$$_) {\n  $$$_\n  $RES.encodeRedirectUrl($$$_);\n  $$$_\n}",
-      "$X $METHOD($$$_,HttpServletResponse $RES,$$$_) {\n  $$$_\n  $RES.encodeURL($$$_);\n  $$$_\n}",
-      "$X $METHOD($$$_,HttpServletResponse $RES,$$$_) {\n  $$$_\n  $RES.encodeUrl($$$_);\n  $$$_\n}"
+      "$RES.encodeRedirectURL($URL)",
+      "$RES.encodeRedirectUrl($URL)",
+      "$RES.encodeURL($URL)",
+      "$RES.encodeUrl($URL)"
     ])) as $all
-    | ( $all | of(["$X $METHOD($$$_,HttpServletResponse $RES,$$$_) {\n  $$$_\n  $RES.encodeURL($$$_);\n  $$$_\n}","$X $METHOD($$$_,HttpServletResponse $RES,$$$_) {\n  $$$_\n  $RES.encodeUrl($$$_);\n  $$$_\n}","$X $METHOD($$$_,HttpServletResponse $RES,$$$_) {\n  $$$_\n  $RES.encodeRedirectURL($$$_);\n  $$$_\n}","$X $METHOD($$$_,HttpServletResponse $RES,$$$_) {\n  $$$_\n  $RES.encodeRedirectUrl($$$_);\n  $$$_\n}","$X $METHOD($$$_) {\n  $$$_\n  HttpServletResponse $RES = $$$_;\n  $$$_\n  $RES.encodeURL($$$_);\n  $$$_\n}","$X $METHOD($$$_) {\n  $$$_\n  HttpServletResponse $RES = $$$_;\n  $$$_\n  $RES.encodeUrl($$$_);\n  $$$_\n}","$X $METHOD($$$_) {\n  $$$_\n  HttpServletResponse $RES = $$$_;\n  $$$_\n  $RES.encodeRedirectURL($$$_);\n  $$$_\n}","$X $METHOD($$$_) {\n  $$$_\n  HttpServletResponse $RES = $$$_;\n  $$$_\n  $RES.encodeRedirectUrl($$$_);\n  $$$_\n}"])
+    | ( $all | of(["$RES.encodeRedirectURL($URL)","$RES.encodeRedirectUrl($URL)","$RES.encodeURL($URL)","$RES.encodeUrl($URL)"])
         | finding("url-rewriting";
             "URL rewriting has significant security risks.") ) )
 | report

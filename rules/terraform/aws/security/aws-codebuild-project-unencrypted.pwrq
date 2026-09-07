@@ -1,5 +1,6 @@
 # rules: aws-codebuild-project-unencrypted
 # languages: hcl
+# fixture: terraform/aws-codebuild-project-unencrypted.tf
 # from: terraform/aws/security/aws-codebuild-project-unencrypted.yaml
 
 . as $root

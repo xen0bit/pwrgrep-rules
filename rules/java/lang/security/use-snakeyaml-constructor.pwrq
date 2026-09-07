@@ -1,12 +1,16 @@
 # rules: use-snakeyaml-constructor
 # languages: java
+# fixture: java/use-snakeyaml-constructor.java
 # from: java/lang/security/use-snakeyaml-constructor.yaml
+#
+# The construction was read as a bare assignment with gaps, which never
+# matches a declaration. It names the declaration now.
 
 . as $root
 | ( ($root | scan_ast(["*.java"]; [
-      "$Y = new org.yaml.snakeyaml.Yaml();\n$$$_\n$Y.load($$$_);"
+      "$T $Y = new org.yaml.snakeyaml.Yaml();\n$Y.load($DOC);"
     ])) as $all
-    | ( $all | of(["$Y = new org.yaml.snakeyaml.Yaml();\n$$$_\n$Y.load($$$_);"])
+    | ( $all | of(["$T $Y = new org.yaml.snakeyaml.Yaml();\n$Y.load($DOC);"])
         | finding("use-snakeyaml-constructor";
             "Used SnakeYAML org.yaml.snakeyaml.Yaml() constructor with no arguments, which is vulnerable to deserialization attacks.") ) )
 | report

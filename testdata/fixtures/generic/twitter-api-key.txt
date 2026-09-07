@@ -1,0 +1,10 @@
+# Gitleaks twitter-api-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: twitter-api-key
+twitter=abcdefghijklmnopqrstuvwxy
+# ruleid: twitter-api-key
+twitter=lmnopqrstuvwxy0123456789a
+# ok: twitter-api-key
+twitter = "example"
+# ok: twitter-api-key
+twitter = "placeholder"

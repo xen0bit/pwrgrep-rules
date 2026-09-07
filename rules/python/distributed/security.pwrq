@@ -1,5 +1,6 @@
 # rules: require-encryption
 # languages: python
+# fixture: python/security.py
 # from: python/distributed/security.yaml
 
 . as $root

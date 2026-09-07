@@ -1,5 +1,6 @@
 # rules: aws-network-acl-allows-all-ports
 # languages: hcl
+# fixture: terraform/aws-network-acl-allows-all-ports.tf
 # from: terraform/aws/security/aws-network-acl-allows-all-ports.yaml
 
 . as $root

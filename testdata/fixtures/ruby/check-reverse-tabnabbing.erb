@@ -1,0 +1,10 @@
+<%# check-reverse-tabnabbing: unsafe link targets. %>
+<%# ruleid: check-reverse-tabnabbing %>
+<%= link_to "x", path, target: "_blank" %>
+<%# ruleid: check-reverse-tabnabbing %>
+<%= link_to "y", path, target: :_blank %>
+<%= link_to "z", path, target: "_blank", rel: 'noopener noreferrer' %>
+<%# ok: check-reverse-tabnabbing %>
+<%= link_to "z", path, target: "_blank", rel: 'noopener noreferrer' %>
+<%# ok: check-reverse-tabnabbing %>
+<%= link_to "w", path %>

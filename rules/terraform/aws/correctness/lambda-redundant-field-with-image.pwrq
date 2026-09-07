@@ -1,5 +1,6 @@
 # rules: lambda-redundant-field-with-image
 # languages: hcl
+# fixture: terraform/lambda-redundant-field-with-image.tf
 # from: terraform/aws/correctness/lambda-redundant-field-with-image.yaml
 
 . as $root

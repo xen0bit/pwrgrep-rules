@@ -1,5 +1,6 @@
 # rules: azure-mysql-encryption-enabled
 # languages: hcl
+# fixture: terraform/azure-mysql-encryption-enabled.tf
 # from: terraform/azure/security/azure-mysql-encryption-enabled.yaml
 
 . as $root

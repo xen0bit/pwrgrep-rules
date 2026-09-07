@@ -1,4 +1,5 @@
 # rules: html-raw-json
+# fixture: csharp/html-raw-json.cshtml
 # from: csharp/razor/security/html-raw-json.yaml
 
 . as $root

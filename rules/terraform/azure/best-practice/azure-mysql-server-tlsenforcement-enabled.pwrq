@@ -1,5 +1,6 @@
 # rules: azure-mysql-server-tlsenforcement-enabled
 # languages: hcl
+# fixture: terraform/azure-mysql-server-tlsenforcement-enabled.tf
 # from: terraform/azure/best-practice/azure-mysql-server-tlsenforcement-enabled.yaml
 
 . as $root

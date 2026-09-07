@@ -1,6 +1,10 @@
 # rules: sequelize-weak-tls-version
 # languages: javascript, typescript
+# fixture: javascript/sequelize-weak-tls-version.js
 # from: javascript/sequelize/security/audit/sequelize-weak-tls-version.yaml
+#
+# The dialect guard read a hole the finding's match never binds, so nothing
+# ever passed it. The block shape is the constraint now.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
@@ -10,7 +14,6 @@
     ])) as $all
     | ( $all | of(["{\n  minVersion: 'TLSv1'\n}","{\n  minVersion: 'TLSv1.1'\n}"])
           | within($all | of(["{\n  host: $HOST,\n  database: $DATABASE,\n  dialect: $DIALECT,\n  dialectOptions:\n    { ssl: $$$_ }\n }"]))
-          | where_capture("DIALECT"; "^(?:['\"](mariadb|mysql|postgres)['\"])")
         | finding("sequelize-weak-tls-version";
             "TLS1.0 and TLS1.1 are deprecated and should not be used anymore.") ) )
 | report

@@ -1,5 +1,6 @@
 # rules: gcp-postgresql-log-min-message
 # languages: hcl
+# fixture: terraform/gcp-postgresql-log-min-message.tf
 # from: terraform/gcp/best-practice/gcp-postgresql-log-min-message.yaml
 
 . as $root

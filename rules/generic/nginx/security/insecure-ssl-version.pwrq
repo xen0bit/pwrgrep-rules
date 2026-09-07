@@ -1,4 +1,5 @@
 # rules: insecure-ssl-version
+# fixture: generic/insecure-ssl-version.txt
 # from: generic/nginx/security/insecure-ssl-version.yaml
 
 . as $root

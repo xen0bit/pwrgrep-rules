@@ -1,5 +1,6 @@
 # rules: misconfigured-lockout-option
 # languages: c_sharp
+# fixture: csharp/misconfigured-lockout-option.cs
 # from: csharp/dotnet/security/audit/misconfigured-lockout-option.yaml
 
 . as $root

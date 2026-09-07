@@ -1,5 +1,6 @@
 # rules: use-raise-for-status
 # languages: python
+# fixture: python/use-raise-for-status.py
 # from: python/requests/best-practice/use-raise-for-status.yaml
 
 . as $root

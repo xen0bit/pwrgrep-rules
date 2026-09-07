@@ -1,0 +1,15 @@
+{# Django template disabling autoescape. #}
+{# Turning the escaping off renders caller input raw. Leaving it on, or #}
+{# scoping variables with escape filters, is the fix. #}
+{# ruleid: template-autoescape-off #}
+{% autoescape off %}{{ name }}{% endautoescape %}
+{# ruleid: template-autoescape-off #}
+{%  autoescape   off  %}{{ name }}{% endautoescape %}
+{# ruleid: template-autoescape-off #}
+<div>{% autoescape off %}{{ bio }}{% endautoescape %}</div>
+{# ok: template-autoescape-off #}
+{% autoescape on %}{{ name }}{% endautoescape %}
+{# ok: template-autoescape-off #}
+<p>{{ name }}</p>
+{# ok: template-autoescape-off #}
+<p>{{ bio|escape }}</p>

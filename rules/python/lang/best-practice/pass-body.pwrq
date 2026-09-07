@@ -1,5 +1,6 @@
 # rules: pass-body-fn, pass-body-range
 # languages: python
+# fixture: python/pass-body.py
 # from: python/lang/best-practice/pass-body.yaml
 
 . as $root

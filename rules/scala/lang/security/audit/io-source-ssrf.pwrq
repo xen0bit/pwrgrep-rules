@@ -1,5 +1,6 @@
 # rules: io-source-ssrf
 # languages: scala
+# fixture: scala/io-source-ssrf.scala
 # from: scala/lang/security/audit/io-source-ssrf.yaml
 
 . as $root

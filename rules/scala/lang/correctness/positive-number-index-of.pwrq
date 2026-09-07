@@ -1,5 +1,6 @@
 # rules: positive-number-index-of
 # languages: scala
+# fixture: scala/positive-number-index-of.scala
 # from: scala/lang/correctness/positive-number-index-of.yaml
 
 . as $root

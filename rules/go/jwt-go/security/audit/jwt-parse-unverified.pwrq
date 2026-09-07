@@ -1,4 +1,5 @@
 # rules: jwt-go-parse-unverified
+# fixture: go/jwt-go-parse-unverified.go
 # from: go/jwt-go/security/audit/jwt-parse-unverified.yaml
 
 . as $root

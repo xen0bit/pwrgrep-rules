@@ -1,0 +1,37 @@
+rules:
+  - id: imp-bad
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      # ruleid: metadata-impact-incorrect-value
+      impact: SEVERE
+    pattern: foo($X)
+  - id: imp-bad2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      # ruleid: metadata-impact-incorrect-value
+      impact: low
+    pattern: foo2($X)
+  - id: imp-good
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      # ok: metadata-impact-incorrect-value
+      impact: LOW
+    pattern: bar($X)
+  - id: imp-good2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      # ok: metadata-impact-incorrect-value
+      impact: HIGH
+    pattern: bar2($X)

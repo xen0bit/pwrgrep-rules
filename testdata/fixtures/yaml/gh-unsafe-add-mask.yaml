@@ -1,0 +1,14 @@
+name: t
+on: push
+jobs:
+  b:
+    runs-on: ubuntu-latest
+    steps:
+      # ruleid: unsafe-add-mask-workflow-command
+      - run: echo "::add-mask::secret"
+      # ruleid: unsafe-add-mask-workflow-command
+      - run: echo "::add-mask::${{ secrets.TOKEN }}"
+      # ok: unsafe-add-mask-workflow-command
+      - run: echo "hello"
+      # ok: unsafe-add-mask-workflow-command
+      - uses: actions/checkout@v3

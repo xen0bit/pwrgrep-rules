@@ -1,5 +1,6 @@
 # rules: appservice-require-client-cert
 # languages: hcl
+# fixture: terraform/appservice-require-client-cert.tf
 # from: terraform/azure/security/appservice/appservice-require-client-cert.yaml
 
 . as $root

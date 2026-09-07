@@ -1,0 +1,10 @@
+# Gitleaks aws-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: aws-access-token
+A3TABCDEFGHIJKLMNOPQ
+# ruleid: aws-access-token
+A3TLMNOPQRSTUVWXY012
+# ok: aws-access-token
+api_key = "example"
+# ok: aws-access-token
+token = "placeholder"

@@ -1,0 +1,9 @@
+# CWE-798: Onfido live API token.
+# ruleid: detected-onfido-live-api-token
+api_live.ABCDEFGHIJK.abcdefghijklmnopqrstuvwxyz012345
+# ruleid: detected-onfido-live-api-token
+api_live_us.ZYXWVUTSRQP.0123456789abcdefghijklmnopqrstuv
+# ok: detected-onfido-live-api-token
+api_test.ABCDEFGHIJK.abcdefghijklmnopqrstuvwxyz012345
+# ok: detected-onfido-live-api-token
+onfido_token = "example"

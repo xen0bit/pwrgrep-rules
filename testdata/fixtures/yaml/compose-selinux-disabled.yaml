@@ -1,0 +1,20 @@
+version: "3"
+services:
+  # ruleid: selinux-separation-disabled
+  web:
+    image: nginx
+    security_opt:
+      - label:disable
+  # ruleid: selinux-separation-disabled
+  api:
+    image: myapi:latest
+    security_opt:
+      - label:disable
+  # ok: selinux-separation-disabled
+  worker:
+    image: worker:1.0
+  # ok: selinux-separation-disabled
+  cron:
+    image: cron:1.0
+    security_opt:
+      - no-new-privileges:true

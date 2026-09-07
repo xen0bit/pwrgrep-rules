@@ -1,5 +1,6 @@
 # rules: azure-securitycenter-contact-emails
 # languages: hcl
+# fixture: terraform/azure-securitycenter-contact-emails.tf
 # from: terraform/azure/best-practice/azure-securitycenter-contact-emails.yaml
 
 . as $root

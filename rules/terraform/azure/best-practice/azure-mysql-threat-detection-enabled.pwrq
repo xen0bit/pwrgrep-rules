@@ -1,5 +1,6 @@
 # rules: azure-mysql-threat-detection-enabled
 # languages: hcl
+# fixture: terraform/azure-mysql-threat-detection-enabled.tf
 # from: terraform/azure/best-practice/azure-mysql-threat-detection-enabled.yaml
 
 . as $root

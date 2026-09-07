@@ -1,5 +1,6 @@
 # rules: azure-managed-disk-encryption-set
 # languages: hcl
+# fixture: terraform/azure-managed-disk-encryption-set.tf
 # from: terraform/azure/security/azure-managed-disk-encryption-set.yaml
 
 . as $root

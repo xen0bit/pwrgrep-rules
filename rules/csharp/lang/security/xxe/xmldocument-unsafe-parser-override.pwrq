@@ -1,19 +1,23 @@
 # rules: xmldocument-unsafe-parser-override
 # languages: c_sharp
+# fixture: csharp/xmldocument-unsafe-parser-override.cs
 # from: csharp/lang/security/xxe/xmldocument-unsafe-parser-override.yaml
+#
+# The translated sink had no statement position and the resolver override
+# sat behind statement gaps - both dead. A document method call is the sink
+# now, gated on an XmlUrlResolver override in the file, with the method
+# parameter reaching it.
 
-. as $root
-| ( ($root | scan_ast(["*.cs"]; [
-      "$XMLDOCUMENT.$METHOD($$$_)",
-      "XmlDocument $XMLDOCUMENT = new XmlDocument($$$_);\n$$$_\n$XMLDOCUMENT.XmlResolver = new XmlUrlResolver($$$_);\n$$$_",
-      "public $T $M($$$_,string $ARG,$$$_){$$$_}"
-    ])) as $all
-    | ( (($all | of(["$XMLDOCUMENT.$METHOD($$$_)"])
-          | in_files_with($all | of(["XmlDocument $XMLDOCUMENT = new XmlDocument($$$_);\n$$$_\n$XMLDOCUMENT.XmlResolver = new XmlUrlResolver($$$_);\n$$$_"]))))
-          | reaching((($all
-          | focus("ARG")
-          | within($all | of(["public $T $M($$$_,string $ARG,$$$_){$$$_}"]))));
-              ([]))
-        | finding("xmldocument-unsafe-parser-override";
-            "XmlReaderSettings found with DtdProcessing.Parse on an XmlReader handling a string argument from a public method.") ) )
+["public $T $M($U $A) { $$$BODY }"] as $methods
+| ["$D.$METHOD($X);"] as $sinks
+| ["XmlDocument $DOC = new XmlDocument($$$_);",
+   "$R.XmlResolver = new XmlUrlResolver($$$_);"] as $setup
+| scan_ast("*.cs"; $methods + $sinks + $setup) as $all
+| ( ($all | of($sinks)
+      | where_capture("METHOD"; "^(?:Load|LoadXml)$")
+      | focus("X"))
+      | reaching((($all | of($methods) | focus("A"))); ([]))
+      | in_files_with($all | of($setup))
+    | finding("xmldocument-unsafe-parser-override";
+        "XmlReaderSettings found with DtdProcessing.Parse on an XmlReader handling a string argument from a public method.") )
 | report

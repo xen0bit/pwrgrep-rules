@@ -1,13 +1,24 @@
 # rules: insecure-hash-function
 # languages: python
+# fixture: python/insecure-hash-function.py
+#
+# The translated patterns baked a Semgrep `=~/.../` regex into the string
+# literal, where the matcher reads it as literal text, so the rule could
+# never fire. The algorithm is now an $ALGO hole guarded by where_capture
+# with the same md4/md5 character class. The keyword-argument spelling
+# needed a second arity beside it: a trailing `, $$$` after a keyword
+# argument never matches, so `name=$ALGO` last and `name=$ALGO, ...` after
+# a named hole are two patterns.
 # from: python/lang/security/insecure-hash-function.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.py"]; [
-      "hashlib.new(\"=~/[M|m][D|d][4|5]/\", $$$_)",
-      "hashlib.new($$$_, name=\"=~/[M|m][D|d][4|5]/\", $$$_)"
+      "hashlib.new($ALGO, $$$_)",
+      "hashlib.new($$$_, name=$ALGO)",
+      "hashlib.new($$$_, name=$ALGO, $$$_, $TAIL)"
     ])) as $all
-    | ( $all | of(["hashlib.new(\"=~/[M|m][D|d][4|5]/\", $$$_)","hashlib.new($$$_, name=\"=~/[M|m][D|d][4|5]/\", $$$_)"])
+    | ( ($all | of(["hashlib.new($ALGO, $$$_)", "hashlib.new($$$_, name=$ALGO)", "hashlib.new($$$_, name=$ALGO, $$$_, $TAIL)"])
+        | where_capture("ALGO"; "[M|m][D|d][4|5]"))
         | finding("insecure-hash-function";
             "Detected use of an insecure MD4 or MD5 hash function.") ) )
 | report

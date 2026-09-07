@@ -1,5 +1,6 @@
 # rules: use-timeout
 # languages: python
+# fixture: python/use-timeout.py
 # from: python/requests/best-practice/use-timeout.yaml
 
 . as $root

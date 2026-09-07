@@ -1,5 +1,6 @@
 # rules: eqeq-is-bad
 # languages: javascript, typescript
+# fixture: javascript/useless-eqeq.js
 # from: javascript/lang/correctness/useless-eqeq.yaml
 
 . as $root

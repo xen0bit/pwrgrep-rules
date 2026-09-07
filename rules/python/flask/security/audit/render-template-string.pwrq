@@ -1,5 +1,6 @@
 # rules: render-template-string
 # languages: python
+# fixture: python/render-template-string.py
 # from: python/flask/security/audit/render-template-string.yaml
 
 . as $root

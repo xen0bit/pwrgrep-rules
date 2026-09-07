@@ -1,5 +1,6 @@
 # rules: missing-autoescape-disabled
 # languages: python
+# fixture: python/missing-autoescape-disabled.py
 # from: python/jinja2/security/audit/missing-autoescape-disabled.yaml
 
 . as $root

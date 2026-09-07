@@ -1,5 +1,6 @@
 # rules: file-disclosure
 # languages: ruby
+# fixture: ruby/file-disclosure.rb
 # from: ruby/lang/security/file-disclosure.yaml
 
 . as $root

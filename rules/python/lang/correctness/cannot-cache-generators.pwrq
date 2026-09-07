@@ -1,4 +1,5 @@
 # rules: cannot-cache-generators
+# fixture: python/cannot-cache-generators.py
 # from: python/lang/correctness/cannot-cache-generators.yaml
 
 . as $root

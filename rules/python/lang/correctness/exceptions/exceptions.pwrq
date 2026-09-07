@@ -1,5 +1,6 @@
 # rules: raise-not-base-exception
 # languages: python
+# fixture: python/exceptions.py
 # from: python/lang/correctness/exceptions/exceptions.yaml
 
 . as $root

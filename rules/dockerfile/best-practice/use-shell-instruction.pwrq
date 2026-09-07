@@ -1,4 +1,5 @@
 # rules: use-shell-instruction
+# fixture: dockerfile/use-shell-instruction.dockerfile
 # from: dockerfile/best-practice/use-shell-instruction.yaml
 
 . as $root

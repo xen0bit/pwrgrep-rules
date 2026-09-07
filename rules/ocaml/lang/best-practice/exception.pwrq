@@ -1,5 +1,6 @@
 # rules: bad-reraise
 # languages: ocaml
+# fixture: ocaml/bad-reraise.ml
 # from: ocaml/lang/best-practice/exception.yaml
 
 . as $root

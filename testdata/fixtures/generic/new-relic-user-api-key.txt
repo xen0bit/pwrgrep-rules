@@ -1,0 +1,10 @@
+# Gitleaks new-relic-user-api-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: new-relic-user-api-key
+new-relic=NRAK-abcdefghijklmnopqrstuvwxy01
+# ruleid: new-relic-user-api-key
+new-relic=NRAK-lmnopqrstuvwxy0123456789abc
+# ok: new-relic-user-api-key
+new-relic = "example"
+# ok: new-relic-user-api-key
+new-relic = "placeholder"

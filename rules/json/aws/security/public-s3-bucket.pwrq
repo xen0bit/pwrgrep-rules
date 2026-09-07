@@ -1,4 +1,5 @@
 # rules: public-s3-bucket
+# fixture: json/public-s3-bucket.json
 # from: json/aws/security/public-s3-bucket.yaml
 
 . as $root

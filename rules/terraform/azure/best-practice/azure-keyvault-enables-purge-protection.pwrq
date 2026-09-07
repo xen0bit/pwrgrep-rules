@@ -1,5 +1,6 @@
 # rules: azure-keyvault-enables-purge-protection
 # languages: hcl
+# fixture: terraform/azure-keyvault-enables-purge-protection.tf
 # from: terraform/azure/best-practice/azure-keyvault-enables-purge-protection.yaml
 
 . as $root

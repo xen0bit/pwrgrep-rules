@@ -1,4 +1,5 @@
 # rules: header-redefinition
+# fixture: generic/header-redefinition.txt
 # from: generic/nginx/security/header-redefinition.yaml
 
 . as $root

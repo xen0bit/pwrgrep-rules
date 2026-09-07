@@ -1,5 +1,6 @@
 # rules: azure-postgresql-server-connection-throttling-enabled
 # languages: hcl
+# fixture: terraform/azure-postgresql-server-connection-throttling-enabled.tf
 # from: terraform/azure/best-practice/azure-postgresql-server-connection-throttling-enabled.yaml
 
 . as $root

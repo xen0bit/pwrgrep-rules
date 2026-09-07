@@ -1,5 +1,6 @@
 # rules: make-response-with-unknown-content
 # languages: python
+# fixture: python/make-response-with-unknown-content.py
 # from: python/flask/security/audit/xss/make-response-with-unknown-content.yaml
 
 . as $root

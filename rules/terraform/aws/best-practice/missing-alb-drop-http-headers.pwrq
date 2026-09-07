@@ -1,5 +1,6 @@
 # rules: missing-alb-drop-http-headers
 # languages: hcl
+# fixture: terraform/missing-alb-drop-http-headers.tf
 # from: terraform/aws/best-practice/missing-alb-drop-http-headers.yaml
 
 . as $root

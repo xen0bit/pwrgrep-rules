@@ -1,16 +1,21 @@
 # rules: missing-pip-no-cache-dir
+# languages: dockerfile
+# fixture: dockerfile/missing-pip-no-cache-dir.dockerfile
+#
+# The ported query stitched multi-line [\s\S]*? spans across RUN lines, so a
+# pip install on one line reported on the previous line's RUN. Rewritten as a
+# single-line regex with where_text_not guards; the $PIP capture is kept for
+# the message. Globs widened to cover *.dockerfile fixtures too.
 # from: dockerfile/best-practice/missing-pip-no-cache-dir.yaml
 
 . as $root
-| ( ($root | scan_regex(["Dockerfile*"]; [
-      "ENV\\s+[\\s\\S]*?\\s+PIP_NO_CACHE_DIR=(?P<BOOL>\\S+)\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+RUN\\s+[\\s\\S]*?\\s+(?P<PIP>\\S+)\\s+install\\s+[\\s\\S]*?",
-      "ENV\\s+[\\s\\S]*?\\s+PIP_NO_CACHE_DIR\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+RUN\\s+[\\s\\S]*?\\s+(?P<PIP>\\S+)\\s+install\\s+[\\s\\S]*?",
-      "RUN\\s+[\\s\\S]*?\\s+(?P<PIP>\\S+)\\s+install\\s+[\\s\\S]*?",
-      "RUN\\s+[\\s\\S]*?\\s+(?P<PIP>\\S+)\\s+install\\s+[\\s\\S]*?\\s+\\-\\-no\\-cache\\-dir\\s+[\\s\\S]*?",
-      "RUN\\s+[\\s\\S]*?\\s+(?P<PIP>\\S+)\\s+install\\s+\\.\\s+[\\s\\S]*?"
+| ( ($root | scan_regex(["Dockerfile*","*.dockerfile"]; [
+      "RUN[^\\n]*\\s(?P<PIP>pip\\S*)\\s+[^\\n]*install[^\\n]*"
     ])) as $all
-    | ( $all
-          | where_capture("PIP"; "^(?:(pip|pip2|pip3|python -m pip|python3 -m pip))")
+    | ( $all | of(["RUN[^\\n]*\\s(?P<PIP>pip\\S*)\\s+[^\\n]*install[^\\n]*"])
+          | where_capture("PIP"; "^(pip|pip2|pip3)$")
+          | where_text_not("--no-cache-dir")
+          | where_text_not("PIP_NO_CACHE_DIR")
         | finding("missing-pip-no-cache-dir";
             "This '$PIP install' is missing '--no-cache-dir'.") ) )
 | report

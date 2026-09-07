@@ -1,4 +1,5 @@
 # rules: template-var-unescaped-with-safeseq
+# fixture: python/template-var-unescaped-with-safeseq.html
 # from: python/django/security/audit/xss/template-var-unescaped-with-safeseq.yaml
 
 . as $root

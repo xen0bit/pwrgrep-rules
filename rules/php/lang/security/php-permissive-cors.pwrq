@@ -1,18 +1,19 @@
 # rules: php-permissive-cors
 # languages: php
+# fixture: php/php-permissive-cors.php
+#
+# The header-literal half of the at_same_place pair used anonymous holes
+# and the in_files_with half needed a `$X = "literal";` assignment gap that
+# holes do not span, so the finding additionally required an unrelated string
+# assignment in the file. Rewritten as one named-hole pattern with the
+# original VALUE guard kept verbatim.
 # from: php/lang/security/php-permissive-cors.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.php"]; [
-      "\"$$$_\"",
-      "$VALUE = \"$$$_\";\n$$$_",
-      "header(\"$$$_\",$$$_)",
       "header($VALUE,$$$_)"
     ])) as $all
     | ( $all | of(["header($VALUE,$$$_)"])
-          | at_same_place((($all | of(["header(\"$$$_\",$$$_)"]))
-          + ($all
-          | in_files_with($all | of(["$VALUE = \"$$$_\";\n$$$_","\"$$$_\""])))))
           | where_capture("VALUE"; "^(?:(\\'|\\\")\\s*(Access-Control-Allow-Origin|access-control-allow-origin)\\s*:\\s*(\\*)\\s*(\\'|\\\"))")
         | finding("php-permissive-cors";
             "Access-Control-Allow-Origin response header is set to \"*\".") ) )

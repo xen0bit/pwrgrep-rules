@@ -1,4 +1,5 @@
 # rules: no-interpolation-js-template-string
+# fixture: go/no-interpolation-js-template-string.html
 # from: go/lang/security/audit/xss/no-interpolation-js-template-string.yaml
 
 . as $root

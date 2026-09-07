@@ -1,4 +1,5 @@
 # rules: flask-cors-misconfiguration
+# fixture: python/flask-cors-misconfiguration.py
 # from: python/flask/security/audit/flask-cors-misconfiguration.yaml
 
 . as $root

@@ -1,4 +1,5 @@
 # rules: jackson-unsafe-deserialization
+# fixture: java/jackson-unsafe-deserialization.java
 # from: java/lang/security/jackson-unsafe-deserialization.yaml
 
 . as $root

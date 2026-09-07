@@ -1,4 +1,5 @@
 # rules: avoid-operations-with-limits-in-loops
+# fixture: apex/avoid-operations-with-limits-in-loops.cls
 # from: apex/lang/performance/ncino/operationsInLoops/AvoidOperationsWithLimitsInLoops.yaml
 
 . as $root

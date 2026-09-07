@@ -1,5 +1,6 @@
 # rules: azure-appservice-python-version
 # languages: hcl
+# fixture: terraform/azure-appservice-python-version.tf
 # from: terraform/azure/best-practice/azure-appservice-python-version.yaml
 
 . as $root

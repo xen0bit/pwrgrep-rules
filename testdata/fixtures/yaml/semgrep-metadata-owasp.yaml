@@ -1,0 +1,35 @@
+rules:
+  - id: owasp-bad
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      # ruleid: metadata-owasp
+      owasp: "wrong-format"
+    pattern: foo($X)
+  - id: owasp-bad2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      # ruleid: metadata-owasp
+      owasp:
+        - not-a-number
+    pattern: foo2($X)
+  - id: owasp-good
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      # ok: metadata-owasp
+      owasp: "A01:2021"
+    pattern: bar($X)
+  - id: owasp-good2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      # ok: metadata-owasp
+      owasp:
+        - A02:2021
+    pattern: bar2($X)

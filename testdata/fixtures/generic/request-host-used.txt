@@ -1,0 +1,9 @@
+# The Host header is attacker-controlled.
+# ruleid: request-host-used
+proxy_set_header X-Orig-Host $host;
+# ruleid: request-host-used
+proxy_set_header X-Orig-Host $http_host;
+# ok: request-host-used
+proxy_set_header X-Real-IP $remote_addr;
+# ok: request-host-used
+server_name example.com;

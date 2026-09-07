@@ -1,5 +1,6 @@
 # rules: cookie-missing-httponly
 # languages: java
+# fixture: java/cookie-missing-httponly.java
 # from: java/lang/security/audit/cookie-missing-httponly.yaml
 
 . as $root

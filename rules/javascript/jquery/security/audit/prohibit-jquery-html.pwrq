@@ -1,14 +1,20 @@
 # rules: prohibit-jquery-html
 # languages: javascript, typescript
+# fixture: javascript/prohibit-jquery-html.js
 # from: javascript/jquery/security/audit/prohibit-jquery-html.yaml
+#
+# Repair: dead as written. The lone-hole sink `$X.html($$$_)` also matched
+# the zero-argument getter, and the literal-argument exclusion read its hole
+# as any value and subtracted every call. The sink now names its argument
+# (pinning arity) and the exclusion keeps only fully-quoted text.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "$X.html(\"$$$_\",$$$_)",
-      "$X.html($$$_)"
+      "$X.html($HTML)",
+      "$X.html($HTML, $REST)"
     ])) as $all
-    | ( $all | of(["$X.html($$$_)"])
-          | not_at($all | of(["$X.html(\"$$$_\",$$$_)"]))
+    | ( $all | of(["$X.html($HTML)","$X.html($HTML, $REST)"])
+          | not_at(($all | of(["$X.html($HTML)","$X.html($HTML, $REST)"]) | where_capture("HTML"; "^[\"'].*[\"']$")))
         | finding("prohibit-jquery-html";
             "JQuery's `html` function is susceptible to Cross Site Scripting (XSS) attacks.") ) )
 | report

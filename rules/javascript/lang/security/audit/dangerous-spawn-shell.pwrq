@@ -1,38 +1,44 @@
 # rules: dangerous-spawn-shell
 # languages: javascript, typescript
+# fixture: javascript/dangerous-spawn-shell.js
 # from: javascript/lang/security/audit/dangerous-spawn-shell.yaml
+#
+# Repair: dead as written. The sink shapes matched the literal text
+# `"=~/(sh|bash|...)/"`, a translator-mangled regex that never occurs in
+# real code, and the file gates fed require matches into `at_same_place`.
+# Sinks now name the shell explicitly with a `where_capture` whitelist, the
+# gates are file-level, and sources cover anon/named declarations and
+# arrows.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "$CMD = \"=~/(sh|bash|ksh|csh|tcsh|zsh)/\"\n$$$_",
-      "$CP.spawn($$$_)",
-      "$CP.spawnSync($$$_)",
-      "$EXEC(\"=~/(sh|bash|ksh|csh|tcsh|zsh)/\",[\"-c\", $ARG, $$$_],$$$_)",
-      "$EXEC(\"=~/(sh|bash|ksh|csh|tcsh|zsh)/\",[$ARG, $$$_],$$$_)",
-      "$EXEC($CMD,[\"-c\", $ARG, $$$_],$$$_)",
-      "$EXEC($CMD,[$ARG, $$$_],$$$_)",
-      "function $$$_ ($$$_,$FUNC,$$$_) {\n  $$$_\n}",
-      "import 'child_process'\n$$$_",
-      "require('child_process')\n$$$_",
-      "spawn($$$_)",
-      "spawnSync($$$_)"
+      "($$$_, $FUNC, $$$_) => {$$$_}",
+      "($FUNC) => {$$$_}",
+      "$CP.exec($ARG2, $$$_)",
+      "$CP.execSync($ARG2, $$$_)",
+      "$CP.spawn($SHELL, $ARG2, $$$_)",
+      "$CP.spawnSync($SHELL, $ARG2, $$$_)",
+      "const $CP = require('child_process')",
+      "function ($$$_, $FUNC, $$$_) {$$$_}",
+      "function $F($$$_, $FUNC, $$$_) {$$$_}",
+      "import $CP from 'child_process'\n$$$",
+      "import * as $CP from 'child_process'\n$$$",
+      "let $CP = require('child_process')",
+      "var $CP = require('child_process')",
+      "$CP = require('child_process')\n$$$"
     ])) as $all
-    | ( ((($all
-          | in_files_with($all | of(["require('child_process')\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["import 'child_process'\n$$$_"])))
-          | at_same_place(($all | of(["spawn($$$_)","spawnSync($$$_)","$CP.spawn($$$_)","$CP.spawnSync($$$_)"])))
-          | at_same_place((($all | of(["$EXEC(\"=~/(sh|bash|ksh|csh|tcsh|zsh)/\",[\"-c\", $ARG, $$$_],$$$_)"]))
-          + ($all | of(["$EXEC($CMD,[\"-c\", $ARG, $$$_],$$$_)"])
-          | in_files_with($all | of(["$CMD = \"=~/(sh|bash|ksh|csh|tcsh|zsh)/\"\n$$$_"])))
-          + ($all | of(["$EXEC(\"=~/(sh|bash|ksh|csh|tcsh|zsh)/\",[$ARG, $$$_],$$$_)"]))
-          + ($all | of(["$EXEC($CMD,[$ARG, $$$_],$$$_)"])
-          | in_files_with($all | of(["$CMD = \"=~/(sh|bash|ksh|csh|tcsh|zsh)/\"\n$$$_"])))))
-          | focus("ARG")))
-          | reaching((($all
-          | within($all | of(["function $$$_ ($$$_,$FUNC,$$$_) {\n  $$$_\n}"]))
+    | ( (($all | of(["$CP.spawn($SHELL, $ARG2, $$$_)","$CP.spawnSync($SHELL, $ARG2, $$$_)"])
+          | where_capture("SHELL"; "^['\"](sh|bash|ksh|csh|tcsh|zsh)['\"]$")
+          | not_at(($all | of(["$CP.spawn($SHELL, $ARG2, $$$_)","$CP.spawnSync($SHELL, $ARG2, $$$_)"]) | where_capture("ARG2"; "^[\"'].*[\"']$")))
+          | focus("ARG2"))
+          + (($all | of(["$CP.exec($ARG2, $$$_)","$CP.execSync($ARG2, $$$_)"])
+          | not_at(($all | of(["$CP.exec($ARG2, $$$_)","$CP.execSync($ARG2, $$$_)"]) | where_capture("ARG2"; "^[\"'].*[\"']$")))
+          | focus("ARG2")))
+          | in_files_with(($all | of(["$CP = require('child_process')\n$$$", "const $CP = require('child_process')", "let $CP = require('child_process')", "var $CP = require('child_process')"])) + ($all | of(["import $CP from 'child_process'\n$$$", "import * as $CP from 'child_process'\n$$$"])))
+          | reaching(((($all | of(["function ($$$_, $FUNC, $$$_) {$$$_}","function $F($$$_, $FUNC, $$$_) {$$$_}"]))
+          + ($all | of(["($FUNC) => {$$$_}","($$$_, $FUNC, $$$_) => {$$$_}"]))
           | focus("FUNC")));
               ([]))
         | finding("dangerous-spawn-shell";
-            "Detected non-literal calls to $EXEC().") ) )
+            "Detected non-literal calls to child_process spawn/exec with a shell.") ) ))
 | report

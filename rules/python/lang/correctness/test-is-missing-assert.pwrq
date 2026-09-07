@@ -1,5 +1,6 @@
 # rules: test-is-missing-assert
 # languages: python
+# fixture: python/test-is-missing-assert.py
 # from: python/lang/correctness/test-is-missing-assert.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: azure-appgateway-enables-waf
 # languages: hcl
+# fixture: terraform/azure-appgateway-enables-waf.tf
 # from: terraform/azure/best-practice/azure-appgateway-enables-waf.yaml
 
 . as $root

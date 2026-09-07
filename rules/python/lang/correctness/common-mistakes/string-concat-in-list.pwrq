@@ -1,5 +1,6 @@
 # rules: string-concat-in-list
 # languages: python
+# fixture: python/string-concat-in-list.py
 # from: python/lang/correctness/common-mistakes/string-concat-in-list.yaml
 
 . as $root

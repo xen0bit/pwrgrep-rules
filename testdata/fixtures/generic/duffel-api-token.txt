@@ -1,0 +1,10 @@
+# Gitleaks duffel-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: duffel-api-token
+duffel_test_abcdefghijklmnopqrstuvwxy0123456789_-=abcde
+# ruleid: duffel-api-token
+duffel_test_lmnopqrstuvwxy0123456789_-=abcdefghijklmnop
+# ok: duffel-api-token
+api_key = "example"
+# ok: duffel-api-token
+token = "placeholder"

@@ -1,5 +1,6 @@
 # rules: azure-waf-specificed-mode-app-gw
 # languages: hcl
+# fixture: terraform/azure-waf-specificed-mode-app-gw.tf
 # from: terraform/azure/best-practice/azure-waf-specificed-mode-app-gw.yaml
 
 . as $root

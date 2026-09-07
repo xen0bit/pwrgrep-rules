@@ -1,0 +1,11 @@
+# Gitleaks slack-config-refresh-token: invented provider-shaped values.
+# Fixtures are excluded from secret scanning, so shapes stay realistic. The
+# token body is exactly 146 uppercase alphanumerics.
+# ruleid: slack-config-refresh-token
+token = "xoxe-1-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+# ruleid: slack-config-refresh-token
+token = "xoxe-2-BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+# ok: slack-config-refresh-token
+token = "example"
+# ok: slack-config-refresh-token
+token = "placeholder"

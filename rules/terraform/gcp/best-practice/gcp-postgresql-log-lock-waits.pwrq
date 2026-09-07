@@ -1,5 +1,6 @@
 # rules: gcp-postgresql-log-lock-waits
 # languages: hcl
+# fixture: terraform/gcp-postgresql-log-lock-waits.tf
 # from: terraform/gcp/best-practice/gcp-postgresql-log-lock-waits.yaml
 
 . as $root

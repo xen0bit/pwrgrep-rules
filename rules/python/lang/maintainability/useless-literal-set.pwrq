@@ -1,5 +1,6 @@
 # rules: useless-literal-set
 # languages: python
+# fixture: python/useless-literal-set.py
 # from: python/lang/maintainability/useless-literal-set.yaml
 
 . as $root

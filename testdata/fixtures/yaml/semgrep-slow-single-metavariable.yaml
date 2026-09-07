@@ -1,0 +1,25 @@
+rules:
+  - id: slow-meta
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ruleid: slow-pattern-single-metavariable
+    pattern: $X
+  - id: slow-meta2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ruleid: slow-pattern-single-metavariable
+    pattern: $SOMETHING
+  - id: fast-dotted
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ok: slow-pattern-single-metavariable
+    pattern: $X.$Y
+  - id: fast-call
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ok: slow-pattern-single-metavariable
+    pattern: foo($X)

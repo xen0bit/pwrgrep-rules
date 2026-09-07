@@ -1,5 +1,6 @@
 # rules: gcp-datafusion-stack-driver-logging
 # languages: hcl
+# fixture: terraform/gcp-datafusion-stack-driver-logging.tf
 # from: terraform/gcp/security/gcp-datafusion-stack-driver-logging.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: no-null-cipher
 # languages: java
+# fixture: java/no-null-cipher.java
 # from: java/lang/security/audit/crypto/no-null-cipher.yaml
 
 . as $root

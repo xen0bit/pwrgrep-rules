@@ -1,14 +1,20 @@
 # rules: jwt-simple-noverify
 # languages: javascript, typescript
+# fixture: javascript/jwt-simple-noverify.js
 # from: javascript/jwt-simple/security/jwt-simple-noverify.yaml
+#
+# The require gate was a bare assignment with a trailing gap, which never
+# matches the `const` declaration real files use. Both spellings gate now.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
       "$JWT = require('jwt-simple');\n$$$_",
+      "const $JWT = require('jwt-simple')",
+      "var $JWT = require('jwt-simple')",
       "$JWT.decode($TOKEN, $SECRET, $NOVERIFY, $$$_)"
     ])) as $all
     | ( $all | of(["$JWT.decode($TOKEN, $SECRET, $NOVERIFY, $$$_)"])
-          | in_files_with($all | of(["$JWT = require('jwt-simple');\n$$$_"]))
+          | in_files_with($all | of(["$JWT = require('jwt-simple');\n$$$_","const $JWT = require('jwt-simple')","var $JWT = require('jwt-simple')"]))
         | finding("jwt-simple-noverify";
             "Detected the decoding of a JWT token without a verify step.") ) )
 | report

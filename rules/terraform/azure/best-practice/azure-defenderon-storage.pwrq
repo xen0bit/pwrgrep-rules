@@ -1,5 +1,6 @@
 # rules: azure-defenderon-storage
 # languages: hcl
+# fixture: terraform/azure-defenderon-storage.tf
 # from: terraform/azure/best-practice/azure-defenderon-storage.yaml
 
 . as $root

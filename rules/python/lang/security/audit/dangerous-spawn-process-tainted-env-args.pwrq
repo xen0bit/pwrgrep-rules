@@ -1,5 +1,14 @@
 # rules: dangerous-spawn-process-tainted-env-args
 # languages: python
+# fixture: python/dangerous-spawn-process-tainted-env-args.py
+#
+# The translated sinks read `$CMD` bare and guarded it with where_capture
+# on $METHOD/$BASH — holes bound only in the enclosing call, never in a
+# bare `$CMD` match — so every sink leg was empty. The guards now sit on
+# the call patterns that bind them, the `"$$$"` literal exclusions (which
+# only ever match an empty string) are a where_capture_not("CMD") for a
+# leading quote, and focus("CMD") puts the sink where `reaching` looks.
+# The source tree is untouched.
 # from: python/lang/security/audit/dangerous-spawn-process-tainted-env-args.yaml
 
 . as $root
@@ -7,16 +16,12 @@
       "$A",
       "$ARGS",
       "$ARGS = $PARSER.parse_args()",
-      "$CMD",
       "$OPTS, $ARGS = getopt.getopt($$$_)\n$$$_",
       "$OPTS, $ARGS = getopt.gnu_getopt($$$_)\n$$$_",
       "$PARSER = argparse.ArgumentParser($$$_)\n$$$_",
       "$PARSER = optparse.OptionParser($$$_)\n$$$_",
       "$PWRQDEEP1",
       "for $O, $A in $OPTS:\n  $$$_",
-      "os.$METHOD($MODE, \"$$$_\", \"$$$_\", \"$$$_\", $$$_)",
-      "os.$METHOD($MODE, \"$$$_\", $$$_)",
-      "os.$METHOD($MODE, \"$$$_\", [\"$$$_\",\"$$$_\",$$$_], $$$_)",
       "os.$METHOD($MODE, $BASH, \"-c\", $CMD,$$$_)",
       "os.$METHOD($MODE, $BASH, [\"-c\",$CMD,$$$_],$$$_)",
       "os.$METHOD($MODE, $CMD, $$$_)",
@@ -29,20 +34,20 @@
       "sys.argv",
       "sys.orig_argv"
     ])) as $all
-    | ( ((($all | of(["$CMD"])
-          | not_at($all | of(["os.$METHOD($MODE, \"$$$_\", $$$_)"]))
-          | within($all | of(["os.$METHOD($MODE, $CMD, $$$_)"]))
-          | where_capture("METHOD"; "^(?:(spawnl|spawnle|spawnlp|spawnlpe|spawnv|spawnve|spawnvp|spawnvp|spawnvpe|posix_spawn|posix_spawnp|startfile))"))
-          + ($all | of(["$CMD"])
-          | not_at($all | of(["os.$METHOD($MODE, \"$$$_\", [\"$$$_\",\"$$$_\",$$$_], $$$_)"]))
-          | within($all | of(["os.$METHOD($MODE, $BASH, [\"-c\",$CMD,$$$_],$$$_)"]))
+    | ( ($all | of(["os.$METHOD($MODE, $CMD, $$$_)"])
+          | where_capture("METHOD"; "^(?:(spawnl|spawnle|spawnlp|spawnlpe|spawnv|spawnve|spawnvp|spawnvp|spawnvpe|posix_spawn|posix_spawnp|startfile))")
+          | where_capture_not("CMD"; "^['\"]")
+          | focus("CMD"))
+        + ($all | of(["os.$METHOD($MODE, $BASH, [\"-c\",$CMD,$$$_],$$$_)"])
           | where_capture("METHOD"; "^(?:(spawnv|spawnve|spawnvp|spawnvp|spawnvpe|posix_spawn|posix_spawnp))")
-          | where_capture("BASH"; "^(?:(.*)(sh|bash|ksh|csh|tcsh|zsh))"))
-          + ($all | of(["$CMD"])
-          | not_at($all | of(["os.$METHOD($MODE, \"$$$_\", \"$$$_\", \"$$$_\", $$$_)"]))
-          | within($all | of(["os.$METHOD($MODE, $BASH, \"-c\", $CMD,$$$_)"]))
+          | where_capture("BASH"; "^(?:(.*)(sh|bash|ksh|csh|tcsh|zsh))")
+          | where_capture_not("CMD"; "^['\"]")
+          | focus("CMD"))
+        + ($all | of(["os.$METHOD($MODE, $BASH, \"-c\", $CMD,$$$_)"])
           | where_capture("METHOD"; "^(?:(spawnl|spawnle|spawnlp|spawnlpe))")
-          | where_capture("BASH"; "^(?:(.*)(sh|bash|ksh|csh|tcsh|zsh))"))))
+          | where_capture("BASH"; "^(?:(.*)(sh|bash|ksh|csh|tcsh|zsh))")
+          | where_capture_not("CMD"; "^['\"]")
+          | focus("CMD")) )
           | reaching(((($all | of(["os.environ","os.environ.get('$FOO', $$$_)","os.environb","os.environb.get('$FOO', $$$_)","os.getenv('$ANYTHING', $$$_)","os.getenvb('$ANYTHING', $$$_)"]))
           + (($all | of(["sys.argv","sys.orig_argv"]))
           + ($all | of(["$PWRQDEEP1"])
@@ -62,5 +67,6 @@
           + ($all | of(["$ARGS"]))))))));
               ([]))
         | finding("dangerous-spawn-process-tainted-env-args";
-            "Found user controlled content when spawning a process.") ) )
+            "Found user controlled content when spawning a process.") )
+| report
 | report

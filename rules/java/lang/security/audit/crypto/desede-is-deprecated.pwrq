@@ -1,13 +1,19 @@
 # rules: desede-is-deprecated
 # languages: java, kotlin
+# fixture: java/desede-is-deprecated.java
 # from: java/lang/security/audit/crypto/desede-is-deprecated.yaml
+#
+# The cipher branch was written Semgrep-style (`"=~/DESede.*/"`), a literal
+# string no file contains, so only the key-generator spelling fired. The
+# DESede name is asked as written beside it.
 
 . as $root
 | ( ($root | scan_ast(["*.java","*.kt"]; [
-      "$CIPHER.getInstance(\"=~/DESede.*/\")",
-      "$CRYPTO.KeyGenerator.getInstance(\"DES\")"
+      "$CIPHER.getInstance(\"DESede\")",
+      "$CRYPTO.KeyGenerator.getInstance(\"DES\")",
+      "$CRYPTO.KeyGenerator.getInstance(\"DESede\")"
     ])) as $all
-    | ( $all | of(["$CIPHER.getInstance(\"=~/DESede.*/\")","$CRYPTO.KeyGenerator.getInstance(\"DES\")"])
+    | ( $all | of(["$CIPHER.getInstance(\"DESede\")","$CRYPTO.KeyGenerator.getInstance(\"DES\")","$CRYPTO.KeyGenerator.getInstance(\"DESede\")"])
         | finding("desede-is-deprecated";
             "Triple DES (3DES or DESede) is considered deprecated.") ) )
 | report

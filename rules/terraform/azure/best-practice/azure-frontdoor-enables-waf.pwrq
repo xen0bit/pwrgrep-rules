@@ -1,5 +1,6 @@
 # rules: azure-frontdoor-enables-waf
 # languages: hcl
+# fixture: terraform/azure-frontdoor-enables-waf.tf
 # from: terraform/azure/best-practice/azure-frontdoor-enables-waf.yaml
 
 . as $root

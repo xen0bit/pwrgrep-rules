@@ -1,5 +1,6 @@
 # rules: hardcoded-jwt-key
 # languages: go
+# fixture: go/hardcoded-jwt-key.go
 # from: go/jwt-go/security/jwt.yaml
 
 . as $root

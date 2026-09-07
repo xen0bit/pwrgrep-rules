@@ -1,5 +1,6 @@
 # rules: aws-rds-iam-authentication-not-enabled
 # languages: hcl
+# fixture: terraform/aws-rds-iam-authentication-not-enabled.tf
 # from: terraform/aws/best-practice/aws-rds-iam-authentication-not-enabled.yaml
 
 . as $root

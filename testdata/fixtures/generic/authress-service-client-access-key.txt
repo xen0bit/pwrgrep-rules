@@ -1,0 +1,10 @@
+# Gitleaks authress-service-client-access-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: authress-service-client-access-key
+sc_abcde.fghi.acc-klmnopqrst.uvwxy0123456789+/_=-abcdefghij
+# ruleid: authress-service-client-access-key
+sc_lmnop.qrst.acc_vwxy012345.6789+/_=-abcdefghijklmnopqrstu
+# ok: authress-service-client-access-key
+sc = "example"
+# ok: authress-service-client-access-key
+sc = "placeholder"

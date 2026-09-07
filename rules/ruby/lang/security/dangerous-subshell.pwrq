@@ -1,17 +1,24 @@
 # rules: dangerous-subshell
 # languages: ruby
+# fixture: ruby/dangerous-subshell.rb
+#
+# The firing pattern is fine; both subtractions are not. The
+# literal-interpolation exclusion is written `` `...#{"..."}...` `` with
+# a `"$$$_"` that only ever matches an empty string, so it excluded far
+# more than literals — and the `$VAL = "..."` file test has the same
+# empty-string-only shape. Both literals are now named holes kept by a
+# leading-quote guard, which is what "is a string" means when captures
+# carry their quotes.
 # from: ruby/lang/security/dangerous-subshell.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.rb"]; [
-      "\"$$$_\"",
-      "$VAL = \"$$$_\"\n$$$_",
-      "`$$$_#{\"$$$_\"}$$$_`",
+      "$VAL = $S\n$$$_",
       "`$$$_#{$VAL}$$$_`"
     ])) as $all
     | ( $all | of(["`$$$_#{$VAL}$$$_`"])
-          | not_at($all | of(["`$$$_#{\"$$$_\"}$$$_`"]))
-          | in_files_without($all | of(["$VAL = \"$$$_\"\n$$$_","\"$$$_\""]))
+          | not_at($all | of(["`$$$_#{$VAL}$$$_`"]) | where_capture("VAL"; "^\""))
+          | in_files_without($all | of(["$VAL = $S\n$$$_"]) | where_capture("S"; "^[\"']")))
         | finding("dangerous-subshell";
-            "Detected non-static command inside `...`.") ) )
+            "Detected non-static command inside `...`.") )
 | report

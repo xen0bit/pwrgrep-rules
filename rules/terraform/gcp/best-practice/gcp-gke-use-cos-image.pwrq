@@ -1,5 +1,6 @@
 # rules: gcp-gke-use-cos-image
 # languages: hcl
+# fixture: terraform/gcp-gke-use-cos-image.tf
 # from: terraform/gcp/best-practice/gcp-gke-use-cos-image.yaml
 
 . as $root

@@ -1,9 +1,9 @@
 # rules: changes-with-when-never
 # languages: yaml
+# fixture: yaml/gitlab-changes-with-when-never.yaml
 # from: yaml/gitlab/correctness/changes-with-when-never.yaml
-
 . as $root
-| ( ($root | scan_ast(["*.yaml"]; [
+| ( ($root | scan_ast(["*.yaml","*.yml"]; [
       "- changes:\n  - $$$_\n  when: never"
     ])) as $all
     | ( $all | of(["- changes:\n  - $$$_\n  when: never"])

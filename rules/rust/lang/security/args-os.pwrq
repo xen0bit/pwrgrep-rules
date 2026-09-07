@@ -1,5 +1,6 @@
 # rules: args-os
 # languages: rust
+# fixture: rust/args-os.rs
 # from: rust/lang/security/args-os.yml
 
 . as $root

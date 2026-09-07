@@ -1,5 +1,6 @@
 # rules: gcp-compute-project-os-login
 # languages: hcl
+# fixture: terraform/gcp-compute-project-os-login.tf
 # from: terraform/gcp/security/gcp-compute-project-os-login.yaml
 
 . as $root

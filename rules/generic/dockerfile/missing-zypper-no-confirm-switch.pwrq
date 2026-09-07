@@ -1,16 +1,21 @@
 # rules: missing-zypper-no-confirm-switch
-# languages: dockerfile
+# fixture: generic/missing-zypper-no-confirm-switch.txt
+#
+# RUN-shell AST holes never fire (the shell line is one opaque literal in the
+# dockerfile grammar), so the original `RUN $$$ zypper install $$$` is
+# rewritten as a regex over the text, like missing-yum-clean-all. Globs
+# widened to cover *.dockerfile fixtures too.
 # from: generic/dockerfile/missing-zypper-no-confirm-switch.yaml
 
 . as $root
-| ( ($root | scan_ast(["Dockerfile*"]; [
-      "RUN $$$_ zypper install $$$_",
-      "RUN $$$_ zypper install $$$_ --no-confirm $$$_",
-      "RUN $$$_ zypper install $$$_ -y $$$_"
+| ( ($root | scan_regex(["*dockerfile*","*Dockerfile*"]; [
+      "zypper\\s+install\\s+[\\s\\S]*?\\s+-y",
+      "zypper\\s+install\\s+[\\s\\S]*?\\s+--no-confirm",
+      "zypper\\s+install"
     ])) as $all
-    | ( $all | of(["RUN $$$_ zypper install $$$_"])
-          | not_at($all | of(["RUN $$$_ zypper install $$$_ -y $$$_"]))
-          | not_at($all | of(["RUN $$$_ zypper install $$$_ --no-confirm $$$_"]))
+    | ( $all | of(["zypper\\s+install"])
+          | outside($all | of(["zypper\\s+install\\s+[\\s\\S]*?\\s+-y"]))
+          | outside($all | of(["zypper\\s+install\\s+[\\s\\S]*?\\s+--no-confirm"]))
         | finding("missing-zypper-no-confirm-switch";
             "This 'zypper install' is missing the '-y' switch.") ) )
 | report

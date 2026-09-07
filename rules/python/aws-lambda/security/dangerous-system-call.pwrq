@@ -1,5 +1,6 @@
 # rules: dangerous-system-call
 # languages: python
+# fixture: python/dangerous-system-call.py
 # from: python/aws-lambda/security/dangerous-system-call.yaml
 
 . as $root

@@ -1,4 +1,5 @@
 # rules: bash_reverse_shell
+# fixture: generic/bash-reverse-shell.txt
 # from: generic/ci/security/bash-reverse-shell.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: check-unscoped-find
 # languages: ruby
+# fixture: ruby/check-unscoped-find.rb
 # from: ruby/rails/security/brakeman/check-unscoped-find.yaml
 
 . as $root

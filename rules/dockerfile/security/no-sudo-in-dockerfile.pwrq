@@ -1,12 +1,18 @@
 # rules: no-sudo-in-dockerfile
 # languages: dockerfile
+# fixture: dockerfile/no-sudo-in-dockerfile.dockerfile
+#
+# RUN-shell AST holes never fire (the shell line is one opaque literal in the
+# dockerfile grammar), so the original `RUN sudo $$$` is rewritten as a
+# single-line regex over the text. Globs widened to cover *.dockerfile
+# fixtures too.
 # from: dockerfile/security/no-sudo-in-dockerfile.yaml
 
 . as $root
-| ( ($root | scan_ast(["Dockerfile*"]; [
-      "RUN sudo $$$_"
+| ( ($root | scan_regex(["Dockerfile*","*.dockerfile"]; [
+      "RUN\\s+sudo(\\s|$)"
     ])) as $all
-    | ( $all | of(["RUN sudo $$$_"])
+    | ( $all | of(["RUN\\s+sudo(\\s|$)"])
         | finding("no-sudo-in-dockerfile";
             "Avoid using sudo in Dockerfiles.") ) )
 | report

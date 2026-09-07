@@ -1,17 +1,20 @@
 # rules: missing-self-transfer-check-ercx
 # languages: solidity
+# fixture: solidity/missing-self-transfer-check-ercx.sol
+#
+# Fragments, gaps and contract-level AST never match in the solidity grammar,
+# so no form fired. Rewritten as a regex over balance writes outside a
+# from!=to guard block. Guard blocks use a brace-depth shape without nesting;
+# fixture guards keep flat bodies.
 # from: solidity/security/missing-self-transfer-check-ercx.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.sol"]; [
-      "_balances[$FROM] = $FROM_BALANCE - value;",
-      "_balances[$TO] = $TO_BALANCE + value;",
-      "function _update(address $FROM, address $TO, uint256 value, bool mint) internal virtual {\n  $$$_\n}",
-      "if ($FROM != $TO) {\n  $$$_\n  _balances[$FROM] = $FROM_BALANCE - value;\n  $$$_\n  _balances[$TO] = $TO_BALANCE + value;\n  $$$_\n}"
+| ( ($root | scan_regex(["*.sol"]; [
+      "_balances\\s*\\[[^\\]\n]+\\]\\s*=[^=]",
+      "if\\s*\\(\\s*from\\s*!=\\s*to\\s*\\)\\s*\\{[^}]*\\}"
     ])) as $all
-    | ( $all | of(["_balances[$FROM] = $FROM_BALANCE - value;","_balances[$TO] = $TO_BALANCE + value;"])
-          | outside($all | of(["if ($FROM != $TO) {\n  $$$_\n  _balances[$FROM] = $FROM_BALANCE - value;\n  $$$_\n  _balances[$TO] = $TO_BALANCE + value;\n  $$$_\n}"]))
-          | within($all | of(["function _update(address $FROM, address $TO, uint256 value, bool mint) internal virtual {\n  $$$_\n}"]))
+    | ( $all | of(["_balances\\s*\\[[^\\]\n]+\\]\\s*=[^=]"])
+          | outside($all | of(["if\\s*\\(\\s*from\\s*!=\\s*to\\s*\\)\\s*\\{[^}]*\\}"]))
         | finding("missing-self-transfer-check-ercx";
             "Missing check for 'from' and 'to' being the same before updating balances could lead to incorrect balance manipulation on self-transfers.") ) )
 | report

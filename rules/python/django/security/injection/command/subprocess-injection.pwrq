@@ -1,5 +1,6 @@
 # rules: subprocess-injection
 # languages: python
+# fixture: python/django-subprocess-injection.py
 # from: python/django/security/injection/command/subprocess-injection.yaml
 
 . as $root

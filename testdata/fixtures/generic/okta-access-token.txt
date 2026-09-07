@@ -1,0 +1,10 @@
+# Gitleaks okta-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: okta-access-token
+okta=abcdefghijklmnopqrstuvwxy0123456789=_-abcd
+# ruleid: okta-access-token
+okta=lmnopqrstuvwxy0123456789=_-abcdefghijklmno
+# ok: okta-access-token
+okta = "example"
+# ok: okta-access-token
+okta = "placeholder"

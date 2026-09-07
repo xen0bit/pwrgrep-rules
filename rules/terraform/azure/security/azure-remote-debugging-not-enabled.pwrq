@@ -1,5 +1,6 @@
 # rules: azure-remote-debugging-not-enabled
 # languages: hcl
+# fixture: terraform/azure-remote-debugging-not-enabled.tf
 # from: terraform/azure/security/azure-remote-debugging-not-enabled.yaml
 
 . as $root

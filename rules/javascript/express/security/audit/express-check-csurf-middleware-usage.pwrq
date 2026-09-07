@@ -1,5 +1,6 @@
 # rules: express-check-csurf-middleware-usage
 # languages: javascript, typescript
+# fixture: javascript/express-check-csurf-middleware-usage.js
 # from: javascript/express/security/audit/express-check-csurf-middleware-usage.yaml
 
 . as $root

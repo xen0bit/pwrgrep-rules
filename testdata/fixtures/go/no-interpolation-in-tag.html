@@ -1,0 +1,15 @@
+<!-- A template variable interpolated inside an HTML tag can break out of it.
+The rule is textual: the tag must open directly on `{{`, with whitespace
+before the closing `>`; plain tags and out-of-tag variables are fine. -->
+<!-- ok: no-interpolation-in-tag -->
+<p>static</p>
+<!-- ruleid: no-interpolation-in-tag -->
+<{{ .Name }}  >
+<!-- Merged into the previous match; left unmarked on purpose. -->
+<{{ .Title }}  >
+<!-- ruleid: no-interpolation-in-tag -->
+<{{ .Body }}  >
+<!-- ok: no-interpolation-in-tag -->
+<p>{{ .Name }}</p>
+<!-- ok: no-interpolation-in-tag -->
+<p>static</p>

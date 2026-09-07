@@ -1,4 +1,5 @@
 # rules: java-jwt-none-alg
+# fixture: java/jwt-none-alg.java
 # from: java/java-jwt/security/jwt-none-alg.yaml
 
 . as $root

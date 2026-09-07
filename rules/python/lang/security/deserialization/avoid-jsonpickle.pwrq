@@ -1,5 +1,6 @@
 # rules: avoid-jsonpickle
 # languages: python
+# fixture: python/avoid-jsonpickle.py
 # from: python/lang/security/deserialization/avoid-jsonpickle.yaml
 
 . as $root

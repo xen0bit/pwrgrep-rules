@@ -1,0 +1,30 @@
+openapi: 3.0.0
+info:
+  title: T
+  version: 1.0.0
+paths:
+  /items:
+    # ruleid: openai-consequential-action-false
+    post:
+      x-openai-isConsequential: false
+      responses:
+        '200':
+          description: ok
+    # ruleid: openai-consequential-action-false
+    put:
+      x-openai-isConsequential: false
+      responses:
+        '200':
+          description: ok
+    # ok: openai-consequential-action-false
+    get:
+      x-openai-isConsequential: false
+      responses:
+        '200':
+          description: ok
+    # ok: openai-consequential-action-false
+    post2:
+      x-openai-isConsequential: true
+      responses:
+        '200':
+          description: ok

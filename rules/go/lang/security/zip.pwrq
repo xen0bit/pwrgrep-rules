@@ -1,5 +1,6 @@
 # rules: path-traversal-inside-zip-extraction
 # languages: go
+# fixture: go/path-traversal-inside-zip-extraction.go
 # from: go/lang/security/zip.yaml
 
 . as $root

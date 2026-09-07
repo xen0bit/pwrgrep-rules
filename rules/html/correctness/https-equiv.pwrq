@@ -1,5 +1,6 @@
 # rules: https-equiv
 # languages: html
+# fixture: html/https-equiv.html
 # from: html/correctness/https-equiv.yaml
 
 . as $root

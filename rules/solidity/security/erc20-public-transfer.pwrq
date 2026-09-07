@@ -1,5 +1,6 @@
 # rules: erc20-public-transfer
 # languages: solidity
+# fixture: solidity/erc20-public-transfer.sol
 # from: solidity/security/erc20-public-transfer.yaml
 
 . as $root

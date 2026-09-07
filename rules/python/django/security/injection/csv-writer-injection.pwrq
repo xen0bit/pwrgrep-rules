@@ -1,5 +1,6 @@
 # rules: csv-writer-injection
 # languages: python
+# fixture: python/django-csv-writer-injection.py
 # from: python/django/security/injection/csv-writer-injection.yaml
 
 . as $root

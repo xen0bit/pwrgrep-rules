@@ -1,0 +1,10 @@
+# Gitleaks messagebird-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: messagebird-api-token
+messagebird=abcdefghijklmnopqrstuvwxy
+# ruleid: messagebird-api-token
+messagebird=lmnopqrstuvwxy0123456789a
+# ok: messagebird-api-token
+messagebird = "example"
+# ok: messagebird-api-token
+messagebird = "placeholder"

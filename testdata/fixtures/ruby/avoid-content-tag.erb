@@ -1,0 +1,12 @@
+<%# ruleid: avoid-content-tag %>
+<%= content_tag :p, @name %>
+<%# ruleid: avoid-content-tag %>
+<%= content_tag :div, @title %>
+<%# ruleid: avoid-content-tag %>
+<%= content_tag :span, @body %>
+<%# ok: avoid-content-tag %>
+<p>static markup</p>
+<%# ok: avoid-content-tag %>
+<%== @raw_html %>
+<%# ok: avoid-content-tag %>
+<% form_for @user do |f| %>

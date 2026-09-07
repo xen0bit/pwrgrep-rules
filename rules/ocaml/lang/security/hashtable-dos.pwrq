@@ -1,5 +1,6 @@
 # rules: ocamllint-hashtable-dos
 # languages: ocaml
+# fixture: ocaml/ocamllint-hashtable-dos.ml
 # from: ocaml/lang/security/hashtable-dos.yaml
 
 . as $root

@@ -1,28 +1,30 @@
 # rules: ruby-eval
 # languages: ruby
+# fixture: ruby/ruby-eval.rb
 # from: ruby/lang/security/no-eval.yaml
+#
+# The sinks used anonymous holes, so `reaching` never joined a source to a
+# sink and the rule never fired. They name the evaluated hole now and focus
+# it, the way the taint rules that fire do.
 
 . as $root
 | ( ($root | scan_ast(["*.rb"]; [
       "$M(\"$$$_\",$$$_)",
-      "$X.class_eval",
-      "$X.class_eval($$$_)",
-      "$X.eval",
-      "$X.eval($$$_)",
-      "$X.instance_eval",
-      "$X.instance_eval($$$_)",
-      "$X.module_eval",
-      "$X.module_eval($$$_)",
+      "$X.class_eval($CODE)",
+      "$X.eval($CODE)",
+      "$X.instance_eval($CODE)",
+      "$X.module_eval($CODE)",
       "RubyVM::InstructionSequence.compile(\"$$$_\")",
       "RubyVM::InstructionSequence.compile($$$_)",
-      "class_eval($$$_)",
+      "class_eval($CODE)",
       "cookies",
-      "eval($$$_)",
-      "instance_eval($$$_)",
-      "module_eval($$$_)",
+      "eval($CODE)",
+      "instance_eval($CODE)",
+      "module_eval($CODE)",
       "params"
     ])) as $all
-    | ( (($all | of(["$X.eval","$X.class_eval","$X.instance_eval","$X.module_eval","$X.eval($$$_)","$X.class_eval($$$_)","$X.instance_eval($$$_)","$X.module_eval($$$_)","eval($$$_)","class_eval($$$_)","module_eval($$$_)","instance_eval($$$_)"])
+    | ( (($all | of(["$X.eval($CODE)","$X.class_eval($CODE)","$X.instance_eval($CODE)","$X.module_eval($CODE)","eval($CODE)","class_eval($CODE)","module_eval($CODE)","instance_eval($CODE)"])
+          | focus("CODE")
           | not_at($all | of(["$M(\"$$$_\",$$$_)"]))))
           | reaching(((($all | of(["params"]))
           + ($all | of(["cookies"]))

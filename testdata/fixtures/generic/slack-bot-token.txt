@@ -1,0 +1,10 @@
+# Gitleaks slack-bot-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: slack-bot-token
+xoxb-0123456789-0123456789
+# ruleid: slack-bot-token
+xoxb-1234567890-1234567890
+# ok: slack-bot-token
+api_key = "example"
+# ok: slack-bot-token
+token = "placeholder"

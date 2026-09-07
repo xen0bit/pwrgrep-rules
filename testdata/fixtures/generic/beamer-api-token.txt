@@ -1,0 +1,10 @@
+# Gitleaks beamer-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: beamer-api-token
+beamer=b_abcdefghijklmnopqrstuvwxy0123456789=_-abcdef
+# ruleid: beamer-api-token
+beamer=b_lmnopqrstuvwxy0123456789=_-abcdefghijklmnopq
+# ok: beamer-api-token
+beamer = "example"
+# ok: beamer-api-token
+beamer = "placeholder"

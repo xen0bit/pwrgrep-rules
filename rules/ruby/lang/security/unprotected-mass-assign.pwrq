@@ -1,5 +1,6 @@
 # rules: mass-assignment-vuln
 # languages: ruby
+# fixture: ruby/mass-assignment-vuln.rb
 # from: ruby/lang/security/unprotected-mass-assign.yaml
 
 . as $root

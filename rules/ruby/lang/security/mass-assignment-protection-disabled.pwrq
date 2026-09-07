@@ -1,5 +1,6 @@
 # rules: mass-assignment-protection-disabled
 # languages: ruby
+# fixture: ruby/mass-assignment-protection-disabled.rb
 # from: ruby/lang/security/mass-assignment-protection-disabled.yaml
 
 . as $root

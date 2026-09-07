@@ -1,5 +1,6 @@
 # rules: unsigned-security-token
 # languages: c_sharp
+# fixture: csharp/unsigned-security-token.cs
 # from: csharp/lang/security/cryptography/unsigned-security-token.yaml
 
 . as $root

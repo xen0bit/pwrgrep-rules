@@ -1,21 +1,25 @@
 # rules: xmltextreader-unsafe-defaults
 # languages: c_sharp
+# fixture: csharp/xmltextreader-unsafe-defaults.cs
 # from: csharp/lang/security/xxe/xmltextreader-unsafe-defaults.yaml
+#
+# The translated sink had no statement position and the constructor plus the
+# method linchpin never matched - all dead. A reader method call is the sink
+# now, gated on an XmlTextReader construction without a Prohibit assignment
+# in the file, with the method parameter reaching the read stream. The
+# prohibition is file-level, so the fixture's safe case stays constant
+# rather than setting Prohibit beside the vulnerable ones.
 
-. as $root
-| ( ($root | scan_ast(["*.cs"]; [
-      "$READER.$METHOD($$$_)",
-      "$READER.DtdProcessing = DtdProcessing.Prohibit;\n$$$_",
-      "XmlTextReader $READER = new XmlTextReader($$$_);\n$$$_",
-      "public $T $M($$$_,string $ARG,$$$_){$$$_}"
-    ])) as $all
-    | ( (($all | of(["$READER.$METHOD($$$_)"])
-          | in_files_without($all | of(["$READER.DtdProcessing = DtdProcessing.Prohibit;\n$$$_"]))
-          | in_files_with($all | of(["XmlTextReader $READER = new XmlTextReader($$$_);\n$$$_"]))))
-          | reaching((($all
-          | focus("ARG")
-          | within($all | of(["public $T $M($$$_,string $ARG,$$$_){$$$_}"]))));
-              ([]))
-        | finding("xmltextreader-unsafe-defaults";
-            "XmlReaderSettings found with DtdProcessing.Parse on an XmlReader handling a string argument from a public method.") ) )
+["public $T $M($U $A) { $$$BODY }"] as $methods
+| ["$R.$METHOD($$$_);"] as $sinks
+| ["new XmlTextReader($$$_);"] as $ctor
+| ["$R.DtdProcessing = DtdProcessing.Prohibit;"] as $safe
+| scan_ast("*.cs"; $methods + $sinks + $ctor + $safe) as $all
+| ( ($all | of($sinks)
+      | where_capture("METHOD"; "^(?:Read)$"))
+      | reaching((($all | of($methods) | focus("A"))); ([]))
+      | in_files_with($all | of($ctor))
+      | in_files_without($all | of($safe))
+    | finding("xmltextreader-unsafe-defaults";
+        "XmlReaderSettings found with DtdProcessing.Parse on an XmlReader handling a string argument from a public method.") )
 | report

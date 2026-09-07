@@ -1,12 +1,17 @@
 # rules: wp-open-redirect-audit
 # languages: php
+# fixture: php/wp-open-redirect-audit.php
+#
+# The original call patterns used anonymous holes, which the PHP grammar
+# reads as inline HTML text instead of code, so the rule never fired.
+# Rewritten with a hole in function position plus a where_capture allowlist
+# of the audited names (the eval-use shape); see GUIDE.md.
 # from: php/wordpress-plugins/security/audit/wp-open-redirect-audit.yaml
 
-. as $root
-| ( ($root | scan_ast(["*.php"]; [
-      "wp_redirect($$$_)"
-    ])) as $all
-    | ( $all | of(["wp_redirect($$$_)"])
-        | finding("wp-open-redirect-audit";
-            "This function can be used to redirect to user supplied URLs.") ) )
+["$F($CODE)", "$F($CODE, $$$_)"] as $calls
+| scan_ast("*.php"; $calls) as $all
+| ($all | of(["$F($CODE)", "$F($CODE, $$$_)"]))
+| where_capture("F"; "^(?:wp_redirect)$")
+| finding("wp-open-redirect-audit";
+            "This function can be used to redirect to user supplied URLs.")
 | report

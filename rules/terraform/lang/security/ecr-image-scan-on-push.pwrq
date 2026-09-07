@@ -1,5 +1,6 @@
 # rules: ecr-image-scan-on-push
 # languages: hcl
+# fixture: terraform/ecr-image-scan-on-push.tf
 # from: terraform/lang/security/ecr-image-scan-on-push.yaml
 
 . as $root

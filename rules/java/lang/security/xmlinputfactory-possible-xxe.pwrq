@@ -1,5 +1,6 @@
 # rules: xmlinputfactory-possible-xxe
 # languages: java
+# fixture: java/xmlinputfactory-possible-xxe.java
 # from: java/lang/security/xmlinputfactory-possible-xxe.yaml
 
 . as $root

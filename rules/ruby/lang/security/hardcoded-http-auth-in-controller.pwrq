@@ -1,13 +1,21 @@
 # rules: hardcoded-http-auth-in-controller
 # languages: ruby
+# fixture: ruby/hardcoded-http-auth-in-controller.rb
 # from: ruby/lang/security/hardcoded-http-auth-in-controller.yaml
+#
+# `class $C < ApplicationController` compiles to a search for a class NAMED
+# ApplicationController, so no controller subclass ever matched, and the
+# `$$$_`-padded call matched no argument list either. The call is read with
+# explicit arities and the controller context is a file-level gate instead.
 
 . as $root
 | ( ($root | scan_ast(["*.rb"]; [
-      "class $CONTROLLER < ApplicationController\n  $$$_\n  http_basic_authenticate_with $$$_, :password => \"$SECRET\", $$$_\nend"
+      "ApplicationController",
+      "http_basic_authenticate_with($A, :password => \"$SECRET\")",
+      "http_basic_authenticate_with(:password => \"$SECRET\", $B)"
     ])) as $all
-    | ( $all
-          | within($all | of(["class $CONTROLLER < ApplicationController\n  $$$_\n  http_basic_authenticate_with $$$_, :password => \"$SECRET\", $$$_\nend"]))
+    | ( $all | of(["http_basic_authenticate_with($A, :password => \"$SECRET\")","http_basic_authenticate_with(:password => \"$SECRET\", $B)"])
+          | in_files_with($all | of(["ApplicationController"]))
           | focus("SECRET")
         | finding("hardcoded-http-auth-in-controller";
             "Detected hardcoded password used in basic authentication in a controller class.") ) )

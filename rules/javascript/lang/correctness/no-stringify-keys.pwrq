@@ -1,5 +1,6 @@
 # rules: no-stringify-keys
 # languages: javascript, typescript
+# fixture: javascript/no-stringify-keys.js
 # from: javascript/lang/correctness/no-stringify-keys.yaml
 
 . as $root

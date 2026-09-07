@@ -1,0 +1,18 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        # ruleid: spring-actuator-dangerous-endpoints-enabled-yaml
+        include: [health, metrics, env]
+        # ruleid: spring-actuator-dangerous-endpoints-enabled-yaml
+        include: [health, env, info]
+        # ruleid: spring-actuator-dangerous-endpoints-enabled-yaml
+        include: [info, beans, health]
+server:
+  # ok: spring-actuator-dangerous-endpoints-enabled-yaml
+  port: 8080
+logging:
+  # ok: spring-actuator-dangerous-endpoints-enabled-yaml
+  level: INFO
+# ok: spring-actuator-dangerous-endpoints-enabled-yaml
+top: value

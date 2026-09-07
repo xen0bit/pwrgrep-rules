@@ -1,4 +1,5 @@
 # rules: template-unquoted-attribute-var
+# fixture: python/template-unquoted-attribute-var.html
 # from: python/flask/security/xss/audit/template-unquoted-attribute-var.yaml
 
 . as $root

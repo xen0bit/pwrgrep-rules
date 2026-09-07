@@ -1,0 +1,10 @@
+# Gitleaks infracost-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: infracost-api-token
+ico-abcdefghijklmnopqrstuvwxyABCDEFG
+# ruleid: infracost-api-token
+ico-lmnopqrstuvwxyABCDEFGHIJKLMNOPQR
+# ok: infracost-api-token
+api_key = "example"
+# ok: infracost-api-token
+token = "placeholder"

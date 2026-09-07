@@ -1,4 +1,5 @@
 # rules: changed-semgrepignore
+# fixture: generic/changed-semgrepignore.txt
 # from: generic/ci/audit/changed-semgrepignore.yaml
 
 . as $root

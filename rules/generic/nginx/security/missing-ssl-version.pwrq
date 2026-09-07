@@ -1,4 +1,5 @@
 # rules: missing-ssl-version
+# fixture: generic/missing-ssl-version.txt
 # from: generic/nginx/security/missing-ssl-version.yaml
 
 . as $root

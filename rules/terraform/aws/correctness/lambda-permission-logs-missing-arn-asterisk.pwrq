@@ -1,5 +1,6 @@
 # rules: lambda-permission-logs-missing-arn-asterisk
 # languages: hcl
+# fixture: terraform/lambda-permission-logs-missing-arn-asterisk.tf
 # from: terraform/aws/correctness/lambda-permission-logs-missing-arn-asterisk.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: detect-apple-core-ml
 # languages: swift
+# fixture: ai/swift/detect-apple-core-ml.swift
 # from: ai/swift/detect-apple-core-ml.yaml
 
 . as $root

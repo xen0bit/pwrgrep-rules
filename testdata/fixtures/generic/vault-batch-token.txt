@@ -1,0 +1,10 @@
+# Gitleaks vault-batch-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: vault-batch-token
+hvb.abcdefghijklmnopqrstuvwxy0123456789_-abcdefghijklmnopqrstuvwxy0123456789_-abcdefghijklmnopqrstuvwxy0123456789_-abcdefghijklmnopqrstuvwxy01
+# ruleid: vault-batch-token
+hvb.lmnopqrstuvwxy0123456789_-abcdefghijklmnopqrstuvwxy0123456789_-abcdefghijklmnopqrstuvwxy0123456789_-abcdefghijklmnopqrstuvwxy0123456789_-a
+# ok: vault-batch-token
+api_key = "example"
+# ok: vault-batch-token
+token = "placeholder"

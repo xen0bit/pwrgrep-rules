@@ -1,0 +1,11 @@
+@* html-raw-json: serialized JSON inside Html.Raw breaks out on </script>,
+   so model strings become script. Encode it for the HTML context. *@
+@using Newtonsoft.Json
+<!-- ruleid: html-raw-json -->
+<script>var data = @Html.Raw(JsonConvert.SerializeObject(Model));</script>
+<!-- ruleid: html-raw-json -->
+<script>var data2 = @Html.Raw(Json.Encode(Model));</script>
+<!-- ok: html-raw-json -->
+<script>var data3 = @Html.Encode(JsonConvert.SerializeObject(Model));</script>
+<!-- ok: html-raw-json -->
+<p>@Model.Name</p>

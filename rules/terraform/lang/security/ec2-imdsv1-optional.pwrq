@@ -1,5 +1,6 @@
 # rules: ec2-imdsv1-optional
 # languages: hcl
+# fixture: terraform/ec2-imdsv1-optional.tf
 # from: terraform/lang/security/ec2-imdsv1-optional.yaml
 
 . as $root

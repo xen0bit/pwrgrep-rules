@@ -1,14 +1,19 @@
 # rules: insecure-losformatter-deserialization
 # languages: c_sharp
+#
+# The `using` file condition ended in a `\n$$$` gap, which matches nothing -
+# `new X();` must also stand as its own statement, since a declaration is not
+# an assignment. The fixture writes both accordingly.
+# fixture: csharp/los-formatter.cs
 # from: csharp/lang/security/insecure-deserialization/los-formatter.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.cs"]; [
       "new LosFormatter();",
-      "using System.Web.UI;\n$$$_"
+      "using System.Web.UI;"
     ])) as $all
     | ( $all | of(["new LosFormatter();"])
-          | in_files_with($all | of(["using System.Web.UI;\n$$$_"]))
+          | in_files_with($all | of(["using System.Web.UI;"]))
         | finding("insecure-losformatter-deserialization";
             "The LosFormatter type is dangerous and is not recommended for data processing.") ) )
 | report

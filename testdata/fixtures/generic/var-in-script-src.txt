@@ -1,0 +1,14 @@
+# A template variable as a script source loads attacker-chosen code.
+# ruleid: var-in-script-src
+<script src="{{ cdnUrl }}">
+</script>
+# ruleid: var-in-script-src
+<script src='{{ themeUrl }}'>
+</script>
+# ok: var-in-script-src
+<script src = "https://cdn.example.com/app.js" >
+</script>
+# ok: var-in-script-src
+<script nonce = "abc123" >
+var x = 1;
+</script>

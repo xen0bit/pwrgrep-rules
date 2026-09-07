@@ -1,5 +1,6 @@
 # rules: azure-appservice-auth
 # languages: hcl
+# fixture: terraform/azure-appservice-auth.tf
 # from: terraform/azure/security/appservice/azure-appservice-auth.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: unquoted-variable-expansion-in-command, unquoted-command-substitution-in-command
 # languages: bash
+# fixture: bash/unquoted-expansion.sh
 # from: bash/lang/correctness/unquoted-expansion.yaml
 
 . as $root

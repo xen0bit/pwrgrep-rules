@@ -1,5 +1,6 @@
 # rules: storage-default-action-deny
 # languages: hcl
+# fixture: terraform/storage-default-action-deny.tf
 # from: terraform/azure/security/storage/storage-default-action-deny.yaml
 
 . as $root

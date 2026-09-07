@@ -1,4 +1,5 @@
 # rules: use-custom-error-not-require
+# fixture: solidity/use-custom-error-not-require.sol
 # from: solidity/performance/use-custom-error-not-require.yaml
 
 . as $root

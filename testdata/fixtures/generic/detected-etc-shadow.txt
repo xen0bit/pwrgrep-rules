@@ -1,0 +1,9 @@
+# CWE-798: leaked /etc/shadow lines.
+# ruleid: detected-etc-shadow
+root:x:0:0:root:/root:/bin/bash
+# ruleid: detected-etc-shadow
+root:*:0:0:root:/root:/bin/sh
+# ok: detected-etc-shadow
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+# ok: detected-etc-shadow
+# no shadow entries are stored in this file

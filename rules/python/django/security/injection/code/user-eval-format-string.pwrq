@@ -1,5 +1,6 @@
 # rules: user-eval-format-string
 # languages: python
+# fixture: python/django-user-eval-format-string.py
 # from: python/django/security/injection/code/user-eval-format-string.yaml
 
 . as $root

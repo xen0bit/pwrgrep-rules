@@ -1,5 +1,6 @@
 # rules: path-traversal-open
 # languages: python
+# fixture: python/flask-path-traversal-open.py
 # from: python/flask/security/injection/path-traversal-open.yaml
 
 . as $root

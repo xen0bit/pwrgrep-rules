@@ -1,4 +1,5 @@
 # rules: apex-csrf-static-constructor
+# fixture: apex/apex-csrf-static-constructor.cls
 # from: apex/lang/security/ncino/dml/ApexCSRFStaticConstructor.yaml
 
 . as $root

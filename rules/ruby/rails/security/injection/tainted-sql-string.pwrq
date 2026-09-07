@@ -1,5 +1,6 @@
 # rules: tainted-sql-string
 # languages: ruby
+# fixture: ruby/tainted-sql-string.rb
 # from: ruby/rails/security/injection/tainted-sql-string.yaml
 
 . as $root

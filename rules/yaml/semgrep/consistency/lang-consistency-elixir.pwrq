@@ -1,14 +1,26 @@
 # rules: lang-consistency-elixir
+# languages: yaml
+# fixture: yaml/semgrep-lang-consistency-elixir.yaml
+#
+# The bare token never equals a bracketed or listed language, so the rule
+# never fired. The guard now accepts bracket, comma and space boundaries.
+# A `rules:` key at column zero is what says the file is a Semgrep rule and
+# not something else that spells a key the same way: `metadata:` is every
+# Kubernetes manifest, `- id:` is any list of records, and `message: |` is
+# any workflow that writes more than a line.
 # from: yaml/semgrep/consistency/lang-consistency-elixir.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml"]; [
+| ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^rules:[^\\S\n]*$"
+    ])) as $semgrep
+| ( (($root | scan_regex(["*.yaml","*.yml"]; [
       "(?P<X>\\S+)",
-      "languages:\\s+[\\s\\S]*?"
-    ])) as $all
+      "languages:\\s+[^\\n]*"
+    ])) | in_files_with($semgrep)) as $all
     | ( $all | of(["(?P<X>\\S+)"])
-          | within($all | of(["languages:\\s+[\\s\\S]*?"]))
-          | where_capture("X"; "^(ex)$")
+          | within($all | of(["languages:\\s+[^\\n]*"]))
+          | where_capture("X"; "(?:\\[|,| )(ex)(?:\\]|,| |$)")
         | finding("lang-consistency-elixir";
             "Found '$X' in language config which diverges from semgrep.dev normalization.") ) )
 | report

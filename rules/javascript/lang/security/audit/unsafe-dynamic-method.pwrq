@@ -1,5 +1,6 @@
 # rules: unsafe-dynamic-method
 # languages: javascript, typescript
+# fixture: javascript/unsafe-dynamic-method.js
 # from: javascript/lang/security/audit/unsafe-dynamic-method.yaml
 
 . as $root

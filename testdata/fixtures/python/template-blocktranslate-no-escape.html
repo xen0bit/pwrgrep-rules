@@ -1,0 +1,17 @@
+{# Django blocktranslate without escaping. #}
+{# Translated strings render raw unless passed through force_escape. #}
+{# Note: the rule's force_escape carve-out matches nothing as written #}
+{# (it needs far more whitespace than any template carries), so the oks #}
+{# below are other tags rather than the escaped fix. #}
+{# ruleid: template-blocktranslate-no-escape #}
+{% blocktranslate %}Hello, {{ name }}{% endblocktranslate %}
+{# ruleid: template-blocktranslate-no-escape #}
+{% blocktrans %}Bye, {{ name }}{% endblocktrans %}
+{# ruleid: template-blocktranslate-no-escape #}
+<p>{% blocktranslate %}Hi{% endblocktranslate %}</p>
+{# ok: template-blocktranslate-no-escape #}
+{% trans "Hello" %}
+{# ok: template-blocktranslate-no-escape #}
+<p>{{ name }}</p>
+{# ok: template-blocktranslate-no-escape #}
+{% if name %}{{ name }}{% endif %}

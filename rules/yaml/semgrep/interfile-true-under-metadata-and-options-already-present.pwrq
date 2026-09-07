@@ -1,20 +1,28 @@
 # rules: interfile-true-under-metadata-and-options-already-present
 # languages: yaml
+# fixture: yaml/semgrep-interfile-true-under-metadata-and-options-already-present.yaml
+#
+# Rule-start-anchored spans never line up, so the form never fired. Rewritten
+# as a metadata-block match with an interfile guard, in files that do carry
+# an options section. Whether options already repeats the key is out of
+# scope. Fixed four/six-space indent.
+# A `rules:` key at column zero is what says the file is a Semgrep rule and
+# not something else that spells a key the same way: `metadata:` is every
+# Kubernetes manifest, `- id:` is any list of records, and `message: |` is
+# any workflow that writes more than a line.
 # from: yaml/semgrep/interfile-true-under-metadata-and-options-already-present.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.yaml"]; [
-      "rules:\n  - id: $ID\n    $$$_\n    $METADATA:\n      $$$_\n      $INTERFILE: true\n      $$$_\n    $$$_",
-      "rules:\n  - id: $ID\n    $$$_\n    $OPTIONS:\n      $$$_\n      interfile: true\n      $$$_\n    $$$_",
-      "rules:\n  - id: $ID\n    $$$_\n    $OPTIONS:\n      $FIRST_OPT: $VAL\n      $$$_\n    $$$_"
-    ])) as $all
-    | ( $all | of(["rules:\n  - id: $ID\n    $$$_\n    $METADATA:\n      $$$_\n      $INTERFILE: true\n      $$$_\n    $$$_"])
-          | within($all | of(["rules:\n  - id: $ID\n    $$$_\n    $OPTIONS:\n      $FIRST_OPT: $VAL\n      $$$_\n    $$$_"]))
-          | outside($all | of(["rules:\n  - id: $ID\n    $$$_\n    $OPTIONS:\n      $$$_\n      interfile: true\n      $$$_\n    $$$_"]))
-          | where_capture("INTERFILE"; "^(?:interfile)")
-          | where_capture("METADATA"; "^(?:metadata)")
-          | where_capture("OPTIONS"; "^(?:options)")
-          | focus("FIRST_OPT")
+| ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^rules:[^\\S\n]*$"
+    ])) as $semgrep
+| ( (($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^    metadata:[^\\S\n]*\n((?:      [^\n]*\n?)*)",
+      "(?m)^    options:"
+    ])) | in_files_with($semgrep)) as $all
+    | ( $all | of(["(?m)^    metadata:[^\\S\n]*\n((?:      [^\n]*\n?)*)"])
+          | where_text("interfile:\\s*true")
+          | in_files_with($all | of(["(?m)^    options:"]))
         | finding("interfile-true-under-metadata-and-options-already-present";
             "`interfile: true` should be under the `options` field, not the `metadata` field.") ) )
 | report

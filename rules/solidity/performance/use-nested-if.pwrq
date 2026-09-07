@@ -1,13 +1,19 @@
 # rules: use-nested-if
 # languages: solidity
+# fixture: solidity/use-nested-if.sol
+#
+# Statement and expression fragments never match in the solidity grammar
+# - only whole functions (and regex) do - so the original AST pattern could
+# never fire. Rewritten as a regex over the text.
+# The &&-in-condition shape the where_capture_ast check looked for is
+# matched textually instead.
 # from: solidity/performance/use-nested-if.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.sol"]; [
-      "if ($PWRQDEEP1) {\n  $$$_\n}"
+| ( ($root | scan_regex(["*.sol"]; [
+      "if\\s*\\([\\s\\S]*?&&[\\s\\S]*?\\)"
     ])) as $all
-    | ( $all | of(["if ($PWRQDEEP1) {\n  $$$_\n}"])
-          | where_capture_ast("PWRQDEEP1"; "$X && $Y")
+    | ( $all | of(["if\\s*\\([\\s\\S]*?&&[\\s\\S]*?\\)"])
         | finding("use-nested-if";
             "Using nested is cheaper than using && multiple check combinations.") ) )
 | report

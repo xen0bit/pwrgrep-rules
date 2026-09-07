@@ -1,0 +1,31 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- ruleid: exported_activity -->
+        <activity android:name=".MainActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+        <!-- ruleid: exported_activity -->
+        <activity android:name=".ShareActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+            </intent-filter>
+        </activity>
+        <!-- ruleid: exported_activity -->
+        <activity android:name=".ViewActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+            </intent-filter>
+        </activity>
+        <!-- ok: exported_activity -->
+        <activity android:name=".SafeActivity" android:exported="false">
+        </activity>
+        <!-- ok: exported_activity -->
+        <activity android:name=".InternalActivity" android:exported="false">
+        </activity>
+        <!-- ok: exported_activity -->
+        <service android:name=".SyncService" android:exported="false">
+        </service>
+    </application>
+</manifest>

@@ -1,5 +1,6 @@
 # rules: azure-ad-used-auth-service-fabric
 # languages: hcl
+# fixture: terraform/azure-ad-used-auth-service-fabric.tf
 # from: terraform/azure/best-practice/azure-ad-used-auth-service-fabric.yaml
 
 . as $root

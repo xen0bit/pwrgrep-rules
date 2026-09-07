@@ -1,0 +1,10 @@
+# Gitleaks gitlab-ptt: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: gitlab-ptt
+glptt-0123456789abcdef0123456789abcdef01234567
+# ruleid: gitlab-ptt
+glptt-bcdef0123456789abcdef0123456789abcdef012
+# ok: gitlab-ptt
+api_key = "example"
+# ok: gitlab-ptt
+token = "placeholder"

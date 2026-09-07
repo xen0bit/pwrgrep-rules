@@ -1,0 +1,11 @@
+# Bidi control characters can reorder displayed source text.
+# ruleid: contains-bidirectional-characters
+# ruleid: contains-bidirectional-characters
+const reviewer = "‮alice⁩";
+# ruleid: contains-bidirectional-characters
+# ruleid: contains-bidirectional-characters
+const path = "‭/tmp/x⁩";
+# ok: contains-bidirectional-characters
+const total = 42;
+# ok: contains-bidirectional-characters
+const name = "alice";

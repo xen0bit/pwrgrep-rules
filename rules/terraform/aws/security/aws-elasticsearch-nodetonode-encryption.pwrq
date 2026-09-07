@@ -1,5 +1,6 @@
 # rules: aws-elasticsearch-nodetonode-encryption-not-enabled
 # languages: hcl
+# fixture: terraform/aws-elasticsearch-nodetonode-encryption-not-enabled.tf
 # from: terraform/aws/security/aws-elasticsearch-nodetonode-encryption.yaml
 
 . as $root

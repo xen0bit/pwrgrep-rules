@@ -1,0 +1,10 @@
+# Gitleaks kraken-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: kraken-access-token
+kraken=abcdefghijklmnopqrstuvwxy0123456789/=_+-abcdefghijklmnopqrstuvwxy0123456789/=_+-
+# ruleid: kraken-access-token
+kraken=lmnopqrstuvwxy0123456789/=_+-abcdefghijklmnopqrstuvwxy0123456789/=_+-abcdefghijk
+# ok: kraken-access-token
+kraken = "example"
+# ok: kraken-access-token
+kraken = "placeholder"

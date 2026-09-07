@@ -1,0 +1,10 @@
+# Gitleaks telegram-bot-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: telegram-bot-api-token
+telegr=01234:Afghijklmnopqrstuvwxy0123456789_-ab
+# ruleid: telegram-bot-api-token
+telegr=12345:Aqrstuvwxy0123456789_-abcdefghijklm
+# ok: telegram-bot-api-token
+telegr = "example"
+# ok: telegram-bot-api-token
+telegr = "placeholder"

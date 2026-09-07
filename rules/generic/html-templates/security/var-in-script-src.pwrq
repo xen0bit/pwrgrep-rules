@@ -1,4 +1,5 @@
 # rules: var-in-script-src
+# fixture: generic/var-in-script-src.txt
 # from: generic/html-templates/security/var-in-script-src.yaml
 
 . as $root

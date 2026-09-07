@@ -1,5 +1,6 @@
 # rules: azure-search-publicnetwork-access-disabled
 # languages: hcl
+# fixture: terraform/azure-search-publicnetwork-access-disabled.tf
 # from: terraform/azure/security/azure-search-publicnetwork-access-disabled.yaml
 
 . as $root

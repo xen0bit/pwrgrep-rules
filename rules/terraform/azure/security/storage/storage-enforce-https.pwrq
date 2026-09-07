@@ -1,5 +1,6 @@
 # rules: storage-enforce-https
 # languages: hcl
+# fixture: terraform/storage-enforce-https.tf
 # from: terraform/azure/security/storage/storage-enforce-https.yaml
 
 . as $root

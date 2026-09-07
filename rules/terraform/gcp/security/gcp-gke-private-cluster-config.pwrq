@@ -1,5 +1,6 @@
 # rules: gcp-gke-private-cluster-config
 # languages: hcl
+# fixture: terraform/gcp-gke-private-cluster-config.tf
 # from: terraform/gcp/security/gcp-gke-private-cluster-config.yaml
 
 . as $root

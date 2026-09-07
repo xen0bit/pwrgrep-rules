@@ -1,5 +1,6 @@
 # rules: lazy-load-module
 # languages: javascript, typescript
+# fixture: javascript/lazy-load-module.js
 # from: javascript/lang/best-practice/lazy-load-module.yaml
 
 . as $root

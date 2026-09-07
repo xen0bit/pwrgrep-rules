@@ -1,5 +1,6 @@
 # rules: azure-dataexplorer-double-encryption-enabled
 # languages: hcl
+# fixture: terraform/azure-dataexplorer-double-encryption-enabled.tf
 # from: terraform/azure/security/azure-dataexplorer-double-encryption-enabled.yaml
 
 . as $root

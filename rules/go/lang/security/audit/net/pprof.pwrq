@@ -1,4 +1,5 @@
 # rules: pprof-debug-exposure
+# fixture: go/pprof-debug-exposure.go
 # from: go/lang/security/audit/net/pprof.yaml
 
 . as $root

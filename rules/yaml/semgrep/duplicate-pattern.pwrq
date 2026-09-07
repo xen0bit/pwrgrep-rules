@@ -1,15 +1,26 @@
 # rules: duplicate-pattern
+# languages: yaml
+# fixture: yaml/semgrep-duplicate-pattern.yaml
+#
+# Duplicate detection needs value equality across two matches, which the
+# ported scaffolding (reusing one capture name for both) never established.
+# Rewritten as one regex over a pattern pair with where_same.
+# A `rules:` key at column zero is what says the file is a Semgrep rule and
+# not something else that spells a key the same way: `metadata:` is every
+# Kubernetes manifest, `- id:` is any list of records, and `message: |` is
+# any workflow that writes more than a line.
 # from: yaml/semgrep/duplicate-pattern.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml"]; [
-      "\\-\\s+pattern:\\s+(?P<X>\\S+)\\s+[\\s\\S]*?\\s+\\-\\s+pattern:\\s+(?P<X>\\S+)\\s+[\\s\\S]*?",
-      "pattern:\\s+(?P<X>\\S+)",
-      "rules:\\s+\\[[\\s\\S]*?,\\s+(?P<RULE>\\S+),\\s+[\\s\\S]*?\\]"
-    ])) as $all
-    | ( $all | of(["pattern:\\s+(?P<X>\\S+)"])
-          | within($all | of(["rules:\\s+\\[[\\s\\S]*?,\\s+(?P<RULE>\\S+),\\s+[\\s\\S]*?\\]"]))
-          | in_files_with($all | of(["\\-\\s+pattern:\\s+(?P<X>\\S+)\\s+[\\s\\S]*?\\s+\\-\\s+pattern:\\s+(?P<X>\\S+)\\s+[\\s\\S]*?"]))
+| ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^rules:[^\\S\n]*$"
+    ])) as $semgrep
+| ( (($root | scan_regex(["*.yaml","*.yml"]; [
+      "-\\s+pattern:\\s+(?P<A>\\S+)[\\s\\S]*?-\\s+pattern:\\s+(?P<B>\\S+)"
+    ])) | in_files_with($semgrep)) as $all
+    | ( $all | of(["-\\s+pattern:\\s+(?P<A>\\S+)[\\s\\S]*?-\\s+pattern:\\s+(?P<B>\\S+)"])
+          | where_same("A"; "B")
+          | focus("A")
         | finding("duplicate-pattern";
             "Two identical pattern clauses were detected.") ) )
 | report

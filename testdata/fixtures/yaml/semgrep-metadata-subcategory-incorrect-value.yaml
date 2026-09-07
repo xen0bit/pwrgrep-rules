@@ -1,0 +1,41 @@
+rules:
+  - id: subv-bad
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      # ruleid: metadata-subcategory-incorrect-value
+      subcategory:
+        - weird
+    pattern: foo($X)
+  - id: subv-bad2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      # ruleid: metadata-subcategory-incorrect-value
+      subcategory:
+        - info
+    pattern: foo2($X)
+  - id: subv-good
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      # ok: metadata-subcategory-incorrect-value
+      subcategory:
+        - vuln
+    pattern: bar($X)
+  - id: subv-good2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      # ok: metadata-subcategory-incorrect-value
+      subcategory:
+        - audit
+    pattern: bar2($X)

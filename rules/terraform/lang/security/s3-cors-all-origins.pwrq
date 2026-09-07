@@ -1,5 +1,6 @@
 # rules: all-origins-allowed
 # languages: hcl
+# fixture: terraform/all-origins-allowed.tf
 # from: terraform/lang/security/s3-cors-all-origins.yaml
 
 . as $root

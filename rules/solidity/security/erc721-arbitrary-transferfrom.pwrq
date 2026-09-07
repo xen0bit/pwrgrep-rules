@@ -1,4 +1,5 @@
 # rules: erc721-arbitrary-transferfrom
+# fixture: solidity/erc721-arbitrary-transferfrom.sol
 # from: solidity/security/erc721-arbitrary-transferfrom.yaml
 
 . as $root

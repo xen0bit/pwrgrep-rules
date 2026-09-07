@@ -1,0 +1,12 @@
+# URL parameters rendered unescaped are XSS; escape or encode them.
+<apex:page>
+# ruleid: xss-from-unescaped-url-param
+# ruleid: xss-from-unescaped-url-param
+<apex:outputText escape="false" value="{!$CurrentPage.parameters.userId}"/>
+# ruleid: xss-from-unescaped-url-param
+<apex:outputText escape="false" value="{!$CurrentPage.parameters.acctId}"/>
+# ok: xss-from-unescaped-url-param
+<apex:outputText value="{!$CurrentPage.parameters.q}"/>
+# ok: xss-from-unescaped-url-param
+<apex:outputText value="{!account.Name}"/>
+</apex:page>

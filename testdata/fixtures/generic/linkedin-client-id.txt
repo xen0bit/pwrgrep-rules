@@ -1,0 +1,10 @@
+# Gitleaks linkedin-client-id: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: linkedin-client-id
+linkedin=abcdefghijklmn
+# ruleid: linkedin-client-id
+linkedin=lmnopqrstuvwxy
+# ok: linkedin-client-id
+linkedin = "example"
+# ok: linkedin-client-id
+linkedin = "placeholder"

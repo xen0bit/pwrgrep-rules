@@ -1,0 +1,10 @@
+# Gitleaks jwt-base64: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: jwt-base64
+ZXlKaGJHY2lPaUabcdefghijklmnopqrstuvwxyABCDEFGHIJKLMNO
+# ruleid: jwt-base64
+ZXlKaGJHY2lPaUlmnopqrstuvwxyABCDEFGHIJKLMNOPQRSTUVWXY0
+# ok: jwt-base64
+api_key = "example"
+# ok: jwt-base64
+token = "placeholder"

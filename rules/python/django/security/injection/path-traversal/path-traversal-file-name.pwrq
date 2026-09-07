@@ -1,5 +1,6 @@
 # rules: path-traversal-file-name
 # languages: python
+# fixture: python/path-traversal-file-name.py
 # from: python/django/security/injection/path-traversal/path-traversal-file-name.yaml
 
 . as $root

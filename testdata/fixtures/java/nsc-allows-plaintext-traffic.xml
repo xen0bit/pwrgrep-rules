@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- ruleid: nsc-allows-plaintext-traffic -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    <!-- ruleid: nsc-allows-plaintext-traffic -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    <!-- ruleid: nsc-allows-plaintext-traffic -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    <!-- ok: nsc-allows-plaintext-traffic -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    <!-- ok: nsc-allows-plaintext-traffic -->
+    <base-config>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    <!-- ok: nsc-allows-plaintext-traffic -->
+    <domain-config>
+        <domain>example.com</domain>
+    </domain-config>
+</network-security-config>

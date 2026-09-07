@@ -1,4 +1,5 @@
 # rules: dynamic-proxy-scheme
+# fixture: generic/dynamic-proxy-scheme.txt
 # from: generic/nginx/security/dynamic-proxy-scheme.yaml
 
 . as $root

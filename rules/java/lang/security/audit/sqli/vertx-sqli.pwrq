@@ -1,5 +1,6 @@
 # rules: vertx-sqli
 # languages: java
+# fixture: java/vertx-sqli.java
 # from: java/lang/security/audit/sqli/vertx-sqli.yaml
 
 . as $root

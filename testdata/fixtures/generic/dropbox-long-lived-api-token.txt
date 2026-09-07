@@ -1,0 +1,10 @@
+# Gitleaks dropbox-long-lived-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: dropbox-long-lived-api-token
+dropbox=abcdefghijkAAAAAAAAAAlmnopqrstuvwxy0123456789-_=abcdefghijklmnop
+# ruleid: dropbox-long-lived-api-token
+dropbox=lmnopqrstuvAAAAAAAAAAwxy0123456789-_=abcdefghijklmnopqrstuvwxy01
+# ok: dropbox-long-lived-api-token
+dropbox = "example"
+# ok: dropbox-long-lived-api-token
+dropbox = "placeholder"

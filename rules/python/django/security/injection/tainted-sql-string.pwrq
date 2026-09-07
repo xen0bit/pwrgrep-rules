@@ -1,5 +1,6 @@
 # rules: tainted-sql-string
 # languages: python
+# fixture: python/django-tainted-sql-string.py
 # from: python/django/security/injection/tainted-sql-string.yaml
 
 . as $root

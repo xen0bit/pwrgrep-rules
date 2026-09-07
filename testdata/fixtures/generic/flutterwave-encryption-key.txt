@@ -1,0 +1,10 @@
+# Gitleaks flutterwave-encryption-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: flutterwave-encryption-key
+FLWSECK_TEST-abcdefgh0123
+# ruleid: flutterwave-encryption-key
+FLWSECK_TEST-3456789abcde
+# ok: flutterwave-encryption-key
+api_key = "example"
+# ok: flutterwave-encryption-key
+token = "placeholder"

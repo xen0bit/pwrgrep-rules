@@ -1,16 +1,25 @@
 # rules: metadata-deepsemgrep
+# languages: yaml
+# fixture: yaml/semgrep-metadata-deepsemgrep.yaml
+#
+# The within scaffolding spans never enclose the key, so the rule never
+# fired. Rewritten as a direct key match with focus.
+# A `rules:` key at column zero is what says the file is a Semgrep rule and
+# not something else that spells a key the same way: `metadata:` is every
+# Kubernetes manifest, `- id:` is any list of records, and `message: |` is
+# any workflow that writes more than a line.
 # from: yaml/semgrep/metadata-deepsemgrep.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml"]; [
-      "metadata:\\s+[\\s\\S]*?\\s+(?P<DEEPSEMGREP>\\S+):\\s+true\\s+[\\s\\S]*?",
-      "rules:\\s+[\\s\\S]*?"
-    ])) as $all
-    | ( $all
-          | within($all | of(["rules:\\s+[\\s\\S]*?"]))
-          | within($all | of(["metadata:\\s+[\\s\\S]*?\\s+(?P<DEEPSEMGREP>\\S+):\\s+true\\s+[\\s\\S]*?"]))
-          | focus("DEEPSEMGREP")
-          | where_capture("DEEPSEMGREP"; "^(deepsemgrep)$")
+| ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^rules:[^\\S\n]*$"
+    ])) as $semgrep
+| ( (($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?P<D>\\S+):\\s+true"
+    ])) | in_files_with($semgrep)) as $all
+    | ( $all | of(["(?P<D>\\S+):\\s+true"])
+          | where_capture("D"; "^deepsemgrep$")
+          | focus("D")
         | finding("metadata-deepsemgrep";
             "We no longer support `deepsemgrep: true`, please use `interfile:true`") ) )
 | report

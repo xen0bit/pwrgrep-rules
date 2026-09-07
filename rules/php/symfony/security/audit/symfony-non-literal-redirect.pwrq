@@ -1,16 +1,22 @@
 # rules: symfony-non-literal-redirect
 # languages: php
+# fixture: php/symfony-non-literal-redirect.php
+#
+# The literal and empty-argument exclusions used anonymous holes, which
+# the grammar reads as inline HTML text, so neither half ever matched. The
+# positive half did fire - on literals too. Rewritten with a named $URL hole
+# plus where_capture_not guards for quoted literals.
 # from: php/symfony/security/audit/symfony-non-literal-redirect.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.php"]; [
-      "$this->redirect(\"$$$_\")",
-      "$this->redirect($$$_)",
+      "$this->redirect($URL)",
       "$this->redirect()"
     ])) as $all
-    | ( $all | of(["$this->redirect($$$_)"])
-          | not_at($all | of(["$this->redirect(\"$$$_\")"]))
+    | ( $all | of(["$this->redirect($URL)"])
           | not_at($all | of(["$this->redirect()"]))
+          | where_capture_not("URL"; "^\"")
+          | where_capture_not("URL"; "^'")
         | finding("symfony-non-literal-redirect";
             "The `redirect()` method does not check its destination in any way.") ) )
 | report

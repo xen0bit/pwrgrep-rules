@@ -1,4 +1,5 @@
 # rules: use-absolute-workdir
+# fixture: generic/use-absolute-workdir.txt
 # from: generic/dockerfile/best-practice/use-absolute-workdir.yaml
 
 . as $root

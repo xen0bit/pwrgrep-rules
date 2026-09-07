@@ -1,5 +1,6 @@
 # rules: turbine-sqli
 # languages: java
+# fixture: java/turbine-sqli.java
 # from: java/lang/security/audit/sqli/turbine-sqli.yaml
 
 . as $root

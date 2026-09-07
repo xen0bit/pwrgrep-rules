@@ -1,4 +1,5 @@
 # rules: insecure-module-used
+# fixture: go/insecure-module-used.go
 # from: go/lang/security/audit/crypto/bad_imports.yaml
 
 . as $root

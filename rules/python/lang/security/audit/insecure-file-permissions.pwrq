@@ -1,5 +1,6 @@
 # rules: insecure-file-permissions
 # languages: python
+# fixture: python/insecure-file-permissions.py
 # from: python/lang/security/audit/insecure-file-permissions.yaml
 
 . as $root

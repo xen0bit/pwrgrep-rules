@@ -1,18 +1,21 @@
 # rules: laravel-cookie-null-domain
-# languages: php
+# languages:
+# fixture: php/laravel-cookie-null-domain.php
+#
+# The array patterns only ever match a single item, so the within/outside
+# guards comparing whole-array spans could never subtract anything: every
+# session array with a cookie entry was flagged. Rewritten as one regex over
+# the config array with where_text_not guards for the remediated keys (flat
+# arrays only). `# languages:` is empty because the query is text-only.
 # from: php/laravel/security/laravel-cookie-null-domain.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.php"]; [
-      "'cookie'",
-      "return [\n  $$$_,\n  'cookie' => env($$$_),\n  $$$_\n];",
-      "return [\n  $$$_,\n  'domain' => env('$NAME', $DEFAULT),\n  $$$_\n];",
-      "return [\n  $$$_,\n  'domain' => null,\n  $$$_\n];"
+| ( ($root | scan_regex(["*.php"]; [
+      "return\\s+\\[[\\s\\S]*?'cookie'\\s*=>\\s*env\\([\\s\\S]*?\\]"
     ])) as $all
-    | ( $all | of(["'cookie'"])
-          | within($all | of(["return [\n  $$$_,\n  'cookie' => env($$$_),\n  $$$_\n];"]))
-          | outside($all | of(["return [\n  $$$_,\n  'domain' => null,\n  $$$_\n];"]))
-          | outside($all | of(["return [\n  $$$_,\n  'domain' => env('$NAME', $DEFAULT),\n  $$$_\n];"]))
+    | ( $all | of(["return\\s+\\[[\\s\\S]*?'cookie'\\s*=>\\s*env\\([\\s\\S]*?\\]"])
+          | where_text_not("'domain'\\s*=>\\s*null")
+          | where_text_not("'domain'\\s*=>\\s*env\\(")
         | finding("laravel-cookie-null-domain";
             "Found a configuration file where the domain attribute is not set to null.") ) )
 | report

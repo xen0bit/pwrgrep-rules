@@ -1,5 +1,6 @@
 # rules: gcp-gke-has-labels
 # languages: hcl
+# fixture: terraform/gcp-gke-has-labels.tf
 # from: terraform/gcp/best-practice/gcp-gke-has-labels.yaml
 
 . as $root

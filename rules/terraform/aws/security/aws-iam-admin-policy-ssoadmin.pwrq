@@ -1,5 +1,6 @@
 # rules: aws-iam-admin-policy-ssoadmin
 # languages: hcl
+# fixture: terraform/aws-iam-admin-policy-ssoadmin.tf
 # from: terraform/aws/security/aws-iam-admin-policy-ssoadmin.yaml
 
 . as $root

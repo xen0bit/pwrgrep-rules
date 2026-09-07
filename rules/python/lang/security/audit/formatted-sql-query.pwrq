@@ -1,5 +1,6 @@
 # rules: formatted-sql-query
 # languages: python
+# fixture: python/formatted-sql-query.py
 # from: python/lang/security/audit/formatted-sql-query.yaml
 
 . as $root

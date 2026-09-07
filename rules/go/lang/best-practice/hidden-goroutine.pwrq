@@ -1,5 +1,6 @@
 # rules: hidden-goroutine
 # languages: go
+# fixture: go/hidden-goroutine.go
 # from: go/lang/best-practice/hidden-goroutine.yaml
 
 . as $root

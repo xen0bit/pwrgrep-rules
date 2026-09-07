@@ -1,5 +1,6 @@
 # rules: gcp-datafusion-private-instance
 # languages: hcl
+# fixture: terraform/gcp-datafusion-private-instance.tf
 # from: terraform/gcp/security/gcp-datafusion-private-instance.yaml
 
 . as $root

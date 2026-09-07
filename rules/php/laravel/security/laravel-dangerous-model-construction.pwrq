@@ -1,6 +1,6 @@
 # rules: laravel-dangerous-model-construction
+# fixture: php/laravel-dangerous-model-construction.php
 # from: php/laravel/security/laravel-dangerous-model-construction.yaml
-
 . as $root
 | ( ($root | scan_regex(["*.php"]; [
       "\\$guarded\\s+=\\s+\\[\\];",

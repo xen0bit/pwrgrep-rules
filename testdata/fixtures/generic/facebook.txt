@@ -1,0 +1,10 @@
+# Gitleaks facebook: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: facebook
+facebook=abcdef0123456789abcdef0123456789
+# ruleid: facebook
+facebook=56789abcdef0123456789abcdef01234
+# ok: facebook
+facebook = "example"
+# ok: facebook
+facebook = "placeholder"

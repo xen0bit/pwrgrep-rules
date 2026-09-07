@@ -1,5 +1,6 @@
 # rules: insufficient-postmessage-origin-validation
 # languages: javascript, typescript
+# fixture: javascript/insufficient-postmessage-origin-validation.js
 # from: javascript/browser/security/insufficient-postmessage-origin-validation.yaml
 
 . as $root

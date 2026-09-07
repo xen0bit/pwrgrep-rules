@@ -1,4 +1,5 @@
 # rules: xmlinputfactory-external-entities-enabled
+# fixture: java/xmlinputfactory-external-entities-enabled.java
 # from: java/lang/security/xmlinputfactory-external-entities-enabled.yaml
 
 . as $root

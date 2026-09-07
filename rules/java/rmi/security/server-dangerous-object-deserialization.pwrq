@@ -1,5 +1,6 @@
 # rules: server-dangerous-object-deserialization
 # languages: java
+# fixture: java/server-dangerous-object-deserialization.java
 # from: java/rmi/security/server-dangerous-object-deserialization.yaml
 
 . as $root

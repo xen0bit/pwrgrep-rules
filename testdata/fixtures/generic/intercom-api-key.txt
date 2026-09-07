@@ -1,0 +1,10 @@
+# Gitleaks intercom-api-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: intercom-api-key
+intercom=abcdefghijklmnopqrstuvwxy0123456789=_-abcdefghijklmnopqrstuv
+# ruleid: intercom-api-key
+intercom=lmnopqrstuvwxy0123456789=_-abcdefghijklmnopqrstuvwxy01234567
+# ok: intercom-api-key
+intercom = "example"
+# ok: intercom-api-key
+intercom = "placeholder"

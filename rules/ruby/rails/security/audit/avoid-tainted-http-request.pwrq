@@ -1,5 +1,6 @@
 # rules: avoid-tainted-http-request
 # languages: ruby
+# fixture: ruby/avoid-tainted-http-request.rb
 # from: ruby/rails/security/audit/avoid-tainted-http-request.yaml
 
 . as $root

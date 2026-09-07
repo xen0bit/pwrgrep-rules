@@ -1,5 +1,6 @@
 # rules: gcp-dataproc-cluster-encrypted-with-cmk
 # languages: hcl
+# fixture: terraform/gcp-dataproc-cluster-encrypted-with-cmk.tf
 # from: terraform/gcp/security/gcp-dataproc-cluster-encrypted-with-cmk.yaml
 
 . as $root

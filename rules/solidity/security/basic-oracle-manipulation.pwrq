@@ -1,17 +1,22 @@
 # rules: basic-oracle-manipulation
 # languages: solidity
+# fixture: solidity/basic-oracle-manipulation.sol
+#
+# Fragments never match in the solidity grammar, so no form fired. Rewritten
+# as a regex over divisions by a totalSupply value inside a *Price function
+# span. Fixture functions keep a flat statement list so the lazy span covers
+# the body.
 # from: solidity/security/basic-oracle-manipulation.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.sol"]; [
-      "$X / $Y",
-      "$X.div($Y)",
-      "function $F($$$_) {\n    $$$_\n}"
+| ( ($root | scan_regex(["*.sol"]; [
+      "/\\s*(?P<Y>[^;)\\s]*totalSupply[^;)\\s]*)",
+      "\\.div\\s*\\(\\s*(?P<Y2>[^,)]*totalSupply[^,)]*)",
+      "function\\s+\\w*[Pp]rice\\w*\\s*\\([\\s\\S]*?\\)\\s*[^{]*\\{[^}]*\\}"
     ])) as $all
-    | ( $all | of(["$X.div($Y)","$X / $Y"])
-          | within($all | of(["function $F($$$_) {\n    $$$_\n}"]))
-          | where_capture("F"; "^(?:(?i)get([a-z0-9_])*price)")
-          | where_capture("Y"; "^(?:.*totalSupply.*)")
+    | ( (($all | of(["/\\s*(?P<Y>[^;)\\s]*totalSupply[^;)\\s]*)"]) | where_capture("Y"; "totalSupply"))
+          + ($all | of(["\\.div\\s*\\(\\s*(?P<Y2>[^,)]*totalSupply[^,)]*)"]) | where_capture("Y2"; "totalSupply"))
+          | within($all | of(["function\\s+\\w*[Pp]rice\\w*\\s*\\([\\s\\S]*?\\)\\s*[^{]*\\{[^}]*\\}"]))
         | finding("basic-oracle-manipulation";
-            "Price oracle can be manipulated via flashloan") ) )
+            "Price oracle can be manipulated via flashloan") ) ) )
 | report

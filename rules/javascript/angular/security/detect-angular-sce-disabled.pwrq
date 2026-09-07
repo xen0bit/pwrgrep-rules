@@ -1,5 +1,6 @@
 # rules: detect-angular-sce-disabled
 # languages: javascript, typescript
+# fixture: javascript/detect-angular-sce-disabled.js
 # from: javascript/angular/security/detect-angular-sce-disabled.yaml
 
 . as $root

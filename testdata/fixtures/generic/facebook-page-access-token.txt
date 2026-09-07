@@ -1,0 +1,10 @@
+# Gitleaks facebook-page-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: facebook-page-access-token
+EAAMbcdefghijklmnopqrstu
+# ruleid: facebook-page-access-token
+EAACmnopqrstuvwxy0123456
+# ok: facebook-page-access-token
+api_key = "example"
+# ok: facebook-page-access-token
+token = "placeholder"

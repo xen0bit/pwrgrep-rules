@@ -1,5 +1,6 @@
 # rules: azure-monitor-log-profile-categories
 # languages: hcl
+# fixture: terraform/azure-monitor-log-profile-categories.tf
 # from: terraform/azure/best-practice/azure-monitor-log-profile-categories.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: azure-service-fabric-cluster-protection-level
 # languages: hcl
+# fixture: terraform/azure-service-fabric-cluster-protection-level.tf
 # from: terraform/azure/security/azure-service-fabric-cluster-protection-level.yaml
 
 . as $root

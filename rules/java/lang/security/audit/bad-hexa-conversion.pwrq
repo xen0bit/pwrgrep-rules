@@ -1,12 +1,21 @@
 # rules: bad-hexa-conversion
 # languages: java
+# fixture: java/bad-hexa-conversion.java
+#
+# The translated rule was one method scaffold holding five statements
+# with gaps, but statement sequences do not compose in Java, so it never
+# matched. The finding is a value question — digest bytes reaching
+# Integer.toHexString — asked the way the corpus asks it: the hex call
+# kept when a MessageDigest.digest call reaches it.
 # from: java/lang/security/audit/bad-hexa-conversion.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.java"]; [
-      "$X $METHOD($$$_) {\n  $$$_\n  MessageDigest $MD = $$$_;\n  $$$_\n  $MD.digest($$$_);\n  $$$_\n  Integer.toHexString($$$_);\n}"
+      "$MD.digest($$$_)",
+      "Integer.toHexString($$$_)"
     ])) as $all
-    | ( $all | of(["$X $METHOD($$$_) {\n  $$$_\n  MessageDigest $MD = $$$_;\n  $$$_\n  $MD.digest($$$_);\n  $$$_\n  Integer.toHexString($$$_);\n}"])
-        | finding("bad-hexa-conversion";
-            "'Integer.toHexString()' strips leading zeroes from each byte if read byte-by-byte.") ) )
+    | ( ($all | of(["Integer.toHexString($$$_)"])
+        | reaching($all | of(["$MD.digest($$$_)"]); [])) )
+    | finding("bad-hexa-conversion";
+        "'Integer.toHexString()' strips leading zeroes from each byte if read byte-by-byte.") )
 | report

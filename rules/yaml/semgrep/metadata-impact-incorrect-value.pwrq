@@ -1,21 +1,27 @@
 # rules: metadata-impact-incorrect-value
+# languages: yaml
+# fixture: yaml/metadata-impact-incorrect-value.yaml
+#
+# Multi-line within spans never enclose their targets, so the value check
+# never ran. Rewritten as a direct value match with an allowlist guard;
+# the security-category scope is file-level.
+# A `rules:` key at column zero is what says the file is a Semgrep rule and
+# not something else that spells a key the same way: `metadata:` is every
+# Kubernetes manifest, `- id:` is any list of records, and `message: |` is
+# any workflow that writes more than a line.
 # from: yaml/semgrep/metadata-impact-incorrect-value.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml"]; [
+| ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^rules:[^\\S\n]*$"
+    ])) as $semgrep
+| ( (($root | scan_regex(["*.yaml","*.yml"]; [
       "impact:\\s+(?P<VALUE>\\S+)",
-      "impact:\\s+HIGH",
-      "impact:\\s+LOW",
-      "impact:\\s+MEDIUM",
-      "metadata:\\s+[\\s\\S]*?\\s+category:\\s+security\\s+[\\s\\S]*?",
-      "rules:\\s+[\\s\\S]*?"
-    ])) as $all
+      "metadata:\\s+[\\s\\S]*?\\s+category:\\s+security"
+    ])) | in_files_with($semgrep)) as $all
     | ( $all | of(["impact:\\s+(?P<VALUE>\\S+)"])
-          | within($all | of(["rules:\\s+[\\s\\S]*?"]))
-          | within($all | of(["metadata:\\s+[\\s\\S]*?\\s+category:\\s+security\\s+[\\s\\S]*?"]))
-          | not_at($all | of(["impact:\\s+LOW"]))
-          | not_at($all | of(["impact:\\s+MEDIUM"]))
-          | not_at($all | of(["impact:\\s+HIGH"]))
+          | where_capture_not("VALUE"; "^(?:LOW|MEDIUM|HIGH)$")
+          | in_files_with($all | of(["metadata:\\s+[\\s\\S]*?\\s+category:\\s+security"]))
         | finding("metadata-impact-incorrect-value";
             "Semgrep rule impact: $VALUE detected, but the value must be LOW, MEDIUM, or HIGH.") ) )
 | report

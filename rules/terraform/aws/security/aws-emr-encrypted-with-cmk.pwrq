@@ -1,5 +1,6 @@
 # rules: aws-emr-encrypted-with-cmk
 # languages: hcl
+# fixture: terraform/aws-emr-encrypted-with-cmk.tf
 # from: terraform/aws/security/aws-emr-encrypted-with-cmk.yaml
 
 . as $root

@@ -1,0 +1,10 @@
+# Gitleaks atlassian-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: atlassian-api-token
+atlassian=abcdefghijklmnopqrstuvwx
+# ruleid: atlassian-api-token
+atlassian=lmnopqrstuvwxy0123456789
+# ok: atlassian-api-token
+atlassian = "example"
+# ok: atlassian-api-token
+atlassian = "placeholder"

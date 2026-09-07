@@ -1,5 +1,6 @@
 # rules: gcp-run-private-service-iam-member
 # languages: hcl
+# fixture: terraform/gcp-run-private-service-iam-member.tf
 # from: terraform/gcp/security/gcp-run-private-service-iam-member.yaml
 
 . as $root

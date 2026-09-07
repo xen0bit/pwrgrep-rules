@@ -1,5 +1,6 @@
 # rules: missing-api-gateway-cache-cluster
 # languages: hcl
+# fixture: terraform/missing-api-gateway-cache-cluster.tf
 # from: terraform/aws/best-practice/missing-api-gateway-cache-cluster.yaml
 
 . as $root

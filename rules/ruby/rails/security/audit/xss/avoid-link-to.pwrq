@@ -1,5 +1,6 @@
 # rules: avoid-link-to
 # languages: ruby
+# fixture: ruby/avoid-link-to.rb
 # from: ruby/rails/security/audit/xss/avoid-link-to.yaml
 
 . as $root

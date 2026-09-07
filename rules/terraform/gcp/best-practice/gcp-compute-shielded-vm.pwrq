@@ -1,5 +1,6 @@
 # rules: gcp-compute-shielded-vm
 # languages: hcl
+# fixture: terraform/gcp-compute-shielded-vm.tf
 # from: terraform/gcp/best-practice/gcp-compute-shielded-vm.yaml
 
 . as $root

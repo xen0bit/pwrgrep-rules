@@ -1,5 +1,6 @@
 # rules: angular-bypasssecuritytrust
 # languages: typescript
+# fixture: typescript/angular-domsanitizer.ts
 # from: typescript/angular/security/audit/angular-domsanitizer.yaml
 
 . as $root

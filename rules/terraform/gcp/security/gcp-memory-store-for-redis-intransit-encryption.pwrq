@@ -1,5 +1,6 @@
 # rules: gcp-memory-store-for-redis-intransit-encryption
 # languages: hcl
+# fixture: terraform/gcp-memory-store-for-redis-intransit-encryption.tf
 # from: terraform/gcp/security/gcp-memory-store-for-redis-intransit-encryption.yaml
 
 . as $root

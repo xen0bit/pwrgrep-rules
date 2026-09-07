@@ -1,5 +1,6 @@
 # rules: weak-hashes-md5
 # languages: ruby
+# fixture: ruby/weak-hashes-md5.rb
 # from: ruby/lang/security/weak-hashes-md5.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: azure-securitycenter-contact-phone
 # languages: hcl
+# fixture: terraform/azure-securitycenter-contact-phone.tf
 # from: terraform/azure/best-practice/azure-securitycenter-contact-phone.yaml
 
 . as $root

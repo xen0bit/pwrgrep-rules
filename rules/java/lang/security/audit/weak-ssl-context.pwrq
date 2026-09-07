@@ -1,5 +1,6 @@
 # rules: weak-ssl-context
 # languages: java
+# fixture: java/weak-ssl-context.java
 # from: java/lang/security/audit/weak-ssl-context.yaml
 
 . as $root

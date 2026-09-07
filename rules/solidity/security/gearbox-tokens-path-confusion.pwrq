@@ -1,12 +1,17 @@
 # rules: gearbox-tokens-path-confusion
 # languages: solidity
+# fixture: solidity/gearbox-tokens-path-confusion.sol
+#
+# Statement and expression fragments never match in the solidity grammar
+# - only whole functions (and regex) do - so the original AST pattern could
+# never fire. Rewritten as a regex over the text.
 # from: solidity/security/gearbox-tokens-path-confusion.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.sol"]; [
-      "$PATH.toAddress($PATH.length - $ADDR_SIZE);"
+| ( ($root | scan_regex(["*.sol"]; [
+      "\\.toAddress\\s*\\("
     ])) as $all
-    | ( $all | of(["$PATH.toAddress($PATH.length - $ADDR_SIZE);"])
+    | ( $all | of(["\\.toAddress\\s*\\("])
         | finding("gearbox-tokens-path-confusion";
             "UniswapV3 adapter implemented incorrect extraction of path parameters") ) )
 | report

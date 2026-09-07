@@ -1,0 +1,10 @@
+# Gitleaks rapidapi-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: rapidapi-access-token
+rapidapi=abcdefghijklmnopqrstuvwxy0123456789_-abcdefghijklm
+# ruleid: rapidapi-access-token
+rapidapi=lmnopqrstuvwxy0123456789_-abcdefghijklmnopqrstuvwx
+# ok: rapidapi-access-token
+rapidapi = "example"
+# ok: rapidapi-access-token
+rapidapi = "placeholder"

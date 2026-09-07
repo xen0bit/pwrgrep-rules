@@ -1,0 +1,12 @@
+# Gitleaks huggingface-organization-api-token: invented provider-shaped
+# values. Fixtures are excluded from secret scanning, so shapes stay
+# realistic. The token must be followed by a quote, space or end of text, so
+# values are quoted.
+# ruleid: huggingface-organization-api-token
+token = "api_org_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefgh"
+# ruleid: huggingface-organization-api-token
+token = "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"
+# ok: huggingface-organization-api-token
+token = "example"
+# ok: huggingface-organization-api-token
+token = "placeholder"

@@ -1,5 +1,6 @@
 # rules: gcp-insecure-load-balancer-tls-version
 # languages: hcl
+# fixture: terraform/gcp-insecure-load-balancer-tls-version.tf
 # from: terraform/gcp/security/gcp-insecure-load-balancer-tls-version.yaml
 
 . as $root

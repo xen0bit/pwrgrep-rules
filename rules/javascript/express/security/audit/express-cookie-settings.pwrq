@@ -1,6 +1,16 @@
 # rules: express-cookie-session-default-name, express-cookie-session-no-secure, express-cookie-session-no-httponly, express-cookie-session-no-domain, express-cookie-session-no-path, express-cookie-session-no-expires
 # languages: javascript, typescript
+# fixture: javascript/express-cookie-settings.js
 # from: javascript/express/security/audit/express-cookie-settings.yaml
+#
+# Repair: dead as written. Each branch piped the `require` gate matches into
+# `at_same_place($SESSION($$$_))`, but a require span never coincides with a
+# session-call span, so every branch was empty. The branches now select the
+# `$SESSION(...)` calls first and filter those by file-level require gates
+# (bare `$X = require()` missed const/let/var, now covered). The lone-hole
+# sink matched every call in the file, so the callee is pinned to `session`;
+# the option guards use one-argument text guards, since bare `$$$` never
+# matches and the object-ast guards only match exact option shapes.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
@@ -20,14 +30,19 @@
       "$OPTS = $PWRQDEEP1;\n$$$_\n$SESSION($OPTS,$$$_);",
       "$SESSION = require('cookie-session');\n$$$_",
       "$SESSION = require('express-session');\n$$$_",
-      "$SESSION($$$_)",
+      "const $SESSION = require('cookie-session')",
+      "const $SESSION = require('express-session')",
+      "let $SESSION = require('cookie-session')",
+      "let $SESSION = require('express-session')",
+      "var $SESSION = require('cookie-session')",
+      "var $SESSION = require('express-session')",
+      "$SESSION($GUARD)",
       "$SESSION($PWRQDEEP1,$$$_)"
     ])) as $all
-    | ( ($all
-          | in_files_with($all | of(["$SESSION = require('cookie-session');\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["$SESSION = require('express-session');\n$$$_"])))
-          | at_same_place(($all | of(["$SESSION($$$_)"])))
+    | ( ($all | of(["$SESSION($GUARD)"])
+          | in_files_with(($all | of(["$SESSION = require('cookie-session');\n$$$_", "const $SESSION = require('cookie-session')", "let $SESSION = require('cookie-session')", "var $SESSION = require('cookie-session')"])) + ($all | of(["$SESSION = require('express-session');\n$$$_", "const $SESSION = require('express-session')", "let $SESSION = require('express-session')", "var $SESSION = require('express-session')"]))))
+          | outside(($all | of(["$SESSION($GUARD)"]) | where_capture("GUARD"; "\\bname\\s*:")))
+          | where_capture("SESSION"; "^(session)$")
           | outside($all | of(["$SESSION($PWRQDEEP1,$$$_)"])
           | where_capture_ast("PWRQDEEP1"; "{name:$$$_}"))
           | outside($all | of(["$OPTS = $PWRQDEEP1;\n$$$_\n$SESSION($OPTS,$$$_);"])
@@ -35,11 +50,10 @@
           | outside($all | of(["$OPTS = $$$_;\n$$$_\n$OPTS.name = $$$_;\n$$$_\n$SESSION($OPTS,$$$_);"]))
         | finding("express-cookie-session-default-name";
             "Don’t use the default session cookie name Using the default session cookie name can open your app to attacks.") )
-      + ( ($all
-          | in_files_with($all | of(["$SESSION = require('cookie-session');\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["$SESSION = require('express-session');\n$$$_"])))
-          | at_same_place(($all | of(["$SESSION($$$_)"])))
+      + ( ($all | of(["$SESSION($GUARD)"])
+          | in_files_with(($all | of(["$SESSION = require('cookie-session');\n$$$_", "const $SESSION = require('cookie-session')", "let $SESSION = require('cookie-session')", "var $SESSION = require('cookie-session')"])) + ($all | of(["$SESSION = require('express-session');\n$$$_", "const $SESSION = require('express-session')", "let $SESSION = require('express-session')", "var $SESSION = require('express-session')"]))))
+          | outside(($all | of(["$SESSION($GUARD)"]) | where_capture("GUARD"; "\\bsecure\\s*:\\s*true")))
+          | where_capture("SESSION"; "^(session)$")
           | outside($all | of(["$SESSION($PWRQDEEP1,$$$_)"])
           | where_capture_ast("PWRQDEEP1"; "{cookie:{secure:true}}"))
           | outside($all | of(["$OPTS = $PWRQDEEP1;\n$$$_\n$SESSION($OPTS,$$$_);"])
@@ -52,11 +66,10 @@
           | outside($all | of(["$OPTS = $$$_;\n$$$_\n$OPTS.cookie.secure = true;\n$$$_\n$SESSION($OPTS,$$$_);"]))
         | finding("express-cookie-session-no-secure";
             "Default session middleware settings: `secure` not set.") )
-      + ( ($all
-          | in_files_with($all | of(["$SESSION = require('cookie-session');\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["$SESSION = require('express-session');\n$$$_"])))
-          | at_same_place(($all | of(["$SESSION($$$_)"])))
+      + ( ($all | of(["$SESSION($GUARD)"])
+          | in_files_with(($all | of(["$SESSION = require('cookie-session');\n$$$_", "const $SESSION = require('cookie-session')", "let $SESSION = require('cookie-session')", "var $SESSION = require('cookie-session')"])) + ($all | of(["$SESSION = require('express-session');\n$$$_", "const $SESSION = require('express-session')", "let $SESSION = require('express-session')", "var $SESSION = require('express-session')"]))))
+          | outside(($all | of(["$SESSION($GUARD)"]) | where_capture("GUARD"; "(?i)\\bhttponly\\s*:\\s*true")))
+          | where_capture("SESSION"; "^(session)$")
           | outside($all | of(["$SESSION($PWRQDEEP1,$$$_)"])
           | where_capture_ast("PWRQDEEP1"; "{cookie:{httpOnly:true}}"))
           | outside($all | of(["$OPTS = $PWRQDEEP1;\n$$$_\n$SESSION($OPTS,$$$_);"])
@@ -69,11 +82,10 @@
           | outside($all | of(["$OPTS = $$$_;\n$$$_\n$OPTS.cookie.httpOnly = true;\n$$$_\n$SESSION($OPTS,$$$_);"]))
         | finding("express-cookie-session-no-httponly";
             "Default session middleware settings: `httpOnly` not set.") )
-      + ( ($all
-          | in_files_with($all | of(["$SESSION = require('cookie-session');\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["$SESSION = require('express-session');\n$$$_"])))
-          | at_same_place(($all | of(["$SESSION($$$_)"])))
+      + ( ($all | of(["$SESSION($GUARD)"])
+          | in_files_with(($all | of(["$SESSION = require('cookie-session');\n$$$_", "const $SESSION = require('cookie-session')", "let $SESSION = require('cookie-session')", "var $SESSION = require('cookie-session')"])) + ($all | of(["$SESSION = require('express-session');\n$$$_", "const $SESSION = require('express-session')", "let $SESSION = require('express-session')", "var $SESSION = require('express-session')"]))))
+          | outside(($all | of(["$SESSION($GUARD)"]) | where_capture("GUARD"; "\\bdomain\\s*:")))
+          | where_capture("SESSION"; "^(session)$")
           | outside($all | of(["$SESSION($PWRQDEEP1,$$$_)"])
           | where_capture_ast("PWRQDEEP1"; "{cookie:{domain:$$$_}}"))
           | outside($all | of(["$OPTS = $PWRQDEEP1;\n$$$_\n$SESSION($OPTS,$$$_);"])
@@ -86,11 +98,10 @@
           | outside($all | of(["$OPTS = $$$_;\n$$$_\n$OPTS.cookie.domain = $$$_;\n$$$_\n$SESSION($OPTS,$$$_);"]))
         | finding("express-cookie-session-no-domain";
             "Default session middleware settings: `domain` not set.") )
-      + ( ($all
-          | in_files_with($all | of(["$SESSION = require('cookie-session');\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["$SESSION = require('express-session');\n$$$_"])))
-          | at_same_place(($all | of(["$SESSION($$$_)"])))
+      + ( ($all | of(["$SESSION($GUARD)"])
+          | in_files_with(($all | of(["$SESSION = require('cookie-session');\n$$$_", "const $SESSION = require('cookie-session')", "let $SESSION = require('cookie-session')", "var $SESSION = require('cookie-session')"])) + ($all | of(["$SESSION = require('express-session');\n$$$_", "const $SESSION = require('express-session')", "let $SESSION = require('express-session')", "var $SESSION = require('express-session')"]))))
+          | outside(($all | of(["$SESSION($GUARD)"]) | where_capture("GUARD"; "\\bpath\\s*:")))
+          | where_capture("SESSION"; "^(session)$")
           | outside($all | of(["$SESSION($PWRQDEEP1,$$$_)"])
           | where_capture_ast("PWRQDEEP1"; "{cookie:{path:$$$_}}"))
           | outside($all | of(["$OPTS = $PWRQDEEP1;\n$$$_\n$SESSION($OPTS,$$$_);"])
@@ -103,11 +114,10 @@
           | outside($all | of(["$OPTS = $$$_;\n$$$_\n$OPTS.cookie.path = $$$_;\n$$$_\n$SESSION($OPTS,$$$_);"]))
         | finding("express-cookie-session-no-path";
             "Default session middleware settings: `path` not set.") )
-      + ( ($all
-          | in_files_with($all | of(["$SESSION = require('cookie-session');\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["$SESSION = require('express-session');\n$$$_"])))
-          | at_same_place(($all | of(["$SESSION($$$_)"])))
+      + ( ($all | of(["$SESSION($GUARD)"])
+          | in_files_with(($all | of(["$SESSION = require('cookie-session');\n$$$_", "const $SESSION = require('cookie-session')", "let $SESSION = require('cookie-session')", "var $SESSION = require('cookie-session')"])) + ($all | of(["$SESSION = require('express-session');\n$$$_", "const $SESSION = require('express-session')", "let $SESSION = require('express-session')", "var $SESSION = require('express-session')"]))))
+          | outside(($all | of(["$SESSION($GUARD)"]) | where_capture("GUARD"; "\\bexpires\\s*:")))
+          | where_capture("SESSION"; "^(session)$")
           | outside($all | of(["$SESSION($PWRQDEEP1,$$$_)"])
           | where_capture_ast("PWRQDEEP1"; "{cookie:{expires:$$$_}}"))
           | outside($all | of(["$OPTS = $PWRQDEEP1;\n$$$_\n$SESSION($OPTS,$$$_);"])

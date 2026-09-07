@@ -1,5 +1,6 @@
 # rules: aws-qldb-inadequate-ledger-permissions-mode
 # languages: hcl
+# fixture: terraform/aws-qldb-inadequate-ledger-permissions-mode.tf
 # from: terraform/aws/best-practice/aws-qldb-inadequate-ledger-permissions-mode.yaml
 
 . as $root

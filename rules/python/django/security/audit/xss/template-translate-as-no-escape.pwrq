@@ -1,20 +1,19 @@
 # rules: template-translate-as-no-escape
+# fixture: html/template-translate-as-no-escape.html
+#
+# Every translated pattern names (?P<TRANS>...) twice in one regex, and
+# RE2 rejects duplicate capture names, so all six alternatives matched
+# nothing, silently. The rule is now three small patterns joined in jq:
+# a trans/translate-as definition, a later use of the same name without
+# the escape filter and outside any filter block.
 # from: python/django/security/audit/xss/template-translate-as-no-escape.yaml
 
 . as $root
-| ( ($root | scan_regex(["*"]; [
-      "\\{%\\s+trans\\s+[\\s\\S]*?\\s+as\\s+(?P<TRANS>\\S+)\\s+[\\s\\S]*?\\s+%\\}\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+\\{%\\s+filter\\s+force_escape\\s+%\\}\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+\\{\\{\\s+[\\s\\S]*?\\s+(?P<TRANS>\\S+)\\s+[\\s\\S]*?\\s+\\}\\}",
-      "\\{%\\s+trans\\s+[\\s\\S]*?\\s+as\\s+(?P<TRANS>\\S+)\\s+[\\s\\S]*?\\s+%\\}\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+\\{\\{\\s+[\\s\\S]*?\\s+(?P<TRANS>\\S+)\\s+[\\s\\S]*?\\s+\\|\\s+[\\s\\S]*?\\s+force_escape\\s+[\\s\\S]*?\\s+\\}\\}",
-      "\\{%\\s+trans\\s+[\\s\\S]*?\\s+as\\s+(?P<TRANS>\\S+)\\s+[\\s\\S]*?\\s+%\\}\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+\\{\\{\\s+[\\s\\S]*?\\s+(?P<TRANS>\\S+)\\s+[\\s\\S]*?\\s+\\}\\}",
-      "\\{%\\s+translate\\s+[\\s\\S]*?\\s+as\\s+(?P<TRANS>\\S+)\\s+[\\s\\S]*?\\s+%\\}\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+\\{%\\s+filter\\s+force_escape\\s+%\\}\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+\\{\\{\\s+[\\s\\S]*?\\s+(?P<TRANS>\\S+)\\s+[\\s\\S]*?\\s+\\}\\}",
-      "\\{%\\s+translate\\s+[\\s\\S]*?\\s+as\\s+(?P<TRANS>\\S+)\\s+[\\s\\S]*?\\s+%\\}\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+\\{\\{\\s+[\\s\\S]*?\\s+(?P<TRANS>\\S+)\\s+[\\s\\S]*?\\s+\\|\\s+[\\s\\S]*?\\s+force_escape\\s+[\\s\\S]*?\\s+\\}\\}",
-      "\\{%\\s+translate\\s+[\\s\\S]*?\\s+as\\s+(?P<TRANS>\\S+)\\s+[\\s\\S]*?\\s+%\\}\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+\\{\\{\\s+[\\s\\S]*?\\s+(?P<TRANS>\\S+)\\s+[\\s\\S]*?\\s+\\}\\}"
-    ])) as $all
-    | ( $all | of(["\\{%\\s+translate\\s+[\\s\\S]*?\\s+as\\s+(?P<TRANS>\\S+)\\s+[\\s\\S]*?\\s+%\\}\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+\\{\\{\\s+[\\s\\S]*?\\s+(?P<TRANS>\\S+)\\s+[\\s\\S]*?\\s+\\}\\}","\\{%\\s+trans\\s+[\\s\\S]*?\\s+as\\s+(?P<TRANS>\\S+)\\s+[\\s\\S]*?\\s+%\\}\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+\\{\\{\\s+[\\s\\S]*?\\s+(?P<TRANS>\\S+)\\s+[\\s\\S]*?\\s+\\}\\}"])
-          | not_at($all | of(["\\{%\\s+translate\\s+[\\s\\S]*?\\s+as\\s+(?P<TRANS>\\S+)\\s+[\\s\\S]*?\\s+%\\}\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+\\{\\{\\s+[\\s\\S]*?\\s+(?P<TRANS>\\S+)\\s+[\\s\\S]*?\\s+\\|\\s+[\\s\\S]*?\\s+force_escape\\s+[\\s\\S]*?\\s+\\}\\}"]))
-          | not_at($all | of(["\\{%\\s+trans\\s+[\\s\\S]*?\\s+as\\s+(?P<TRANS>\\S+)\\s+[\\s\\S]*?\\s+%\\}\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+\\{\\{\\s+[\\s\\S]*?\\s+(?P<TRANS>\\S+)\\s+[\\s\\S]*?\\s+\\|\\s+[\\s\\S]*?\\s+force_escape\\s+[\\s\\S]*?\\s+\\}\\}"]))
-          | not_at($all | of(["\\{%\\s+translate\\s+[\\s\\S]*?\\s+as\\s+(?P<TRANS>\\S+)\\s+[\\s\\S]*?\\s+%\\}\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+\\{%\\s+filter\\s+force_escape\\s+%\\}\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+\\{\\{\\s+[\\s\\S]*?\\s+(?P<TRANS>\\S+)\\s+[\\s\\S]*?\\s+\\}\\}"]))
-          | not_at($all | of(["\\{%\\s+trans\\s+[\\s\\S]*?\\s+as\\s+(?P<TRANS>\\S+)\\s+[\\s\\S]*?\\s+%\\}\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+\\{%\\s+filter\\s+force_escape\\s+%\\}\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+\\{\\{\\s+[\\s\\S]*?\\s+(?P<TRANS>\\S+)\\s+[\\s\\S]*?\\s+\\}\\}"]))
-        | finding("template-translate-as-no-escape";
-            "Translated strings will not be escaped when rendered in a template.") ) )
+| ( ($root | scan_regex(["*"]; ["\\{%\\s+(?:trans|translate)\\s+[\\s\\S]*?\\s+as\\s+(?P<TR>[\\w]+)\\s+%\\}", "\\{\\{\\s*(?P<USED>[\\w.]+)\\s*(\\|\\s*(?P<FILTER>[\\w\\s|]+))?\\s*\\}\\}", "\\{%\\s+filter\\s+force_escape\\s+%\\}[\\s\\S]*?\\{%\\s+endfilter\\s+%\\}"])) as $all
+    | (($all | of(["\\{\\{\\s*(?P<USED>[\\w.]+)\\s*(\\|\\s*(?P<FILTER>[\\w\\s|]+))?\\s*\\}\\}"])) as $uses
+      | (($all | of(["\\{%\\s+filter\\s+force_escape\\s+%\\}[\\s\\S]*?\\{%\\s+endfilter\\s+%\\}"])) as $fbs
+        | ($all | of(["\\{%\\s+(?:trans|translate)\\s+[\\s\\S]*?\\s+as\\s+(?P<TR>[\\w]+)\\s+%\\}"])
+          | map(. as $tr | select((($uses | map(. as $uu | select($uu.LineNumber > $tr.LineNumber and ((($uu.Captures.USED | split(".")) | .[0]) == $tr.Captures.TR) and (((($uu.Captures.FILTER // "") | contains("force_escape"))) | not) and ((($fbs | map(select(.LineNumber <= $uu.LineNumber and .EndLineNumber >= $uu.LineNumber))) | length == 0)))) | length > 0)))))) )
+    | finding("template-translate-as-no-escape";
+        "Translated strings will not be escaped when rendered in a template.") )
 | report

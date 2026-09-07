@@ -1,4 +1,5 @@
 # rules: aws-insecure-api-gateway-tls-version
+# fixture: terraform/aws-insecure-api-gateway-tls-version.tf
 # from: terraform/aws/security/aws-insecure-api-gateway-tls-version.yaml
 
 . as $root

@@ -1,0 +1,22 @@
+<!-- template-translate-as-no-escape: translated var rendered unescaped.
+
+A translated name rendered without the escape filter is reported; the
+filtered form and the filter-block form are not.
+-->
+<!-- ruleid: template-translate-as-no-escape -->
+{% trans "hello" as greeting %}
+<p>Welcome</p>
+{{ greeting }}
+<!-- ruleid: template-translate-as-no-escape -->
+{% translate "bye" as farewell %}
+<p>See you</p>
+{{ farewell }}
+{% trans "hi" as safe %}
+<p>Safe</p>
+<!-- ok: template-translate-as-no-escape -->
+{{ safe|force_escape }}
+{% translate "yo" as blocked %}
+{% filter force_escape %}
+<!-- ok: template-translate-as-no-escape -->
+{{ blocked }}
+{% endfilter %}

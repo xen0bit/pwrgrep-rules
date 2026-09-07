@@ -1,5 +1,6 @@
 # rules: tainted-sql-string
 # languages: python
+# fixture: python/lambda-tainted-sql-string.py
 # from: python/aws-lambda/security/tainted-sql-string.yaml
 
 . as $root

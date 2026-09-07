@@ -1,0 +1,41 @@
+rules:
+  - id: inter-with-opt
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ruleid: interfile-true-under-metadata-and-options-already-present
+    metadata:
+      interfile: true
+    pattern: foo($X)
+    options:
+      generic_engine: true
+  - id: inter-with-opt2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ruleid: interfile-true-under-metadata-and-options-already-present
+    metadata:
+      interfile: true
+    pattern: foo2($X)
+    options:
+      symbolic_propagation: true
+  - id: opts-ok
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ok: interfile-true-under-metadata-and-options-already-present
+    metadata:
+      category: security
+    pattern: bar($X)
+    options:
+      interfile: true
+  - id: opts-ok2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ok: interfile-true-under-metadata-and-options-already-present
+    metadata:
+      category: security
+    pattern: bar2($X)
+    options:
+      generic_engine: true

@@ -1,0 +1,31 @@
+rules:
+  - id: r1
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    patterns:
+      # ruleid: duplicate-pattern
+      - pattern: foo($X)
+      - pattern: foo($X)
+  - id: r2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    patterns:
+      # ruleid: duplicate-pattern
+      - pattern: bar($X)
+      - pattern: bar($X)
+  - id: r3
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    patterns:
+      # ok: duplicate-pattern
+      - pattern: baz($X)
+      - pattern: qux($X)
+  - id: r4
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ok: duplicate-pattern
+    pattern: single($X)

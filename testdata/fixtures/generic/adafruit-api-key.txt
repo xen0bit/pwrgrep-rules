@@ -1,0 +1,10 @@
+# Gitleaks adafruit-api-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: adafruit-api-key
+adafruit=abcdefghijklmnopqrstuvwxy0123456
+# ruleid: adafruit-api-key
+adafruit=lmnopqrstuvwxy0123456789_-abcdef
+# ok: adafruit-api-key
+adafruit = "example"
+# ok: adafruit-api-key
+adafruit = "placeholder"

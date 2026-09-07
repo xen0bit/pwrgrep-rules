@@ -1,17 +1,17 @@
 # rules: var-in-script-tag
 # from: javascript/express/security/audit/xss/ejs/var-in-script-tag.yaml
+# fixture: javascript/var-in-script-tag-ejs.js
+#
+# Repair: dead as written. `<%\s+` never matched `<%=`, `\s+` needed spaces
+# minified output omits, and the span operators needed exact coincidence
+# between nested matches. The rule now uses one combined regex for an EJS
+# variable inside a single-line script element.
 
 . as $root
 | ( ($root | scan_regex(["*.ejs","*.html"]; [
-      "<%\\s+[\\s\\S]*?\\s+>",
-      "<script\\s+[\\s\\S]*?>\\s+[\\s\\S]*?\\s+<\\/script>",
-      "<script\\s+[\\s\\S]*?\\s+(?P<ATTR>\\S+)\\s+=\\s+\"[\\s\\S]*?\"\\s+[\\s\\S]*?>",
-      "<script\\s+[\\s\\S]*?\\s+(?P<ATTR>\\S+)\\s+=\\s+'[\\s\\S]*?'\\s+[\\s\\S]*?>"
+      "<script[^>]*?>.*?<%.*?%>.*?</script>"
     ])) as $all
-    | ( $all | of(["<%\\s+[\\s\\S]*?\\s+>"])
-          | within($all | of(["<script\\s+[\\s\\S]*?>\\s+[\\s\\S]*?\\s+<\\/script>"]))
-          | outside($all | of(["<script\\s+[\\s\\S]*?\\s+(?P<ATTR>\\S+)\\s+=\\s+\"[\\s\\S]*?\"\\s+[\\s\\S]*?>"]))
-          | outside($all | of(["<script\\s+[\\s\\S]*?\\s+(?P<ATTR>\\S+)\\s+=\\s+'[\\s\\S]*?'\\s+[\\s\\S]*?>"]))
+    | ( $all | of(["<script[^>]*?>.*?<%.*?%>.*?</script>"])
         | finding("var-in-script-tag";
             "Detected a template variable used in a script tag.") ) )
 | report

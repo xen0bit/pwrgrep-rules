@@ -1,4 +1,5 @@
 # rules: template-blocktranslate-no-escape
+# fixture: python/template-blocktranslate-no-escape.html
 # from: python/django/security/audit/xss/template-blocktranslate-no-escape.yaml
 
 . as $root

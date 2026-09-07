@@ -1,0 +1,36 @@
+rules:
+  - id: imp-miss
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ruleid: metadata-impact
+    metadata:
+      category: security
+      confidence: HIGH
+    pattern: foo($X)
+  - id: imp-miss2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ruleid: metadata-impact
+    metadata:
+      category: security
+      likelihood: LOW
+    pattern: foo2($X)
+  - id: imp-have
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ok: metadata-impact
+    metadata:
+      category: security
+      impact: MEDIUM
+    pattern: bar($X)
+  - id: imp-other-cat
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ok: metadata-impact
+    metadata:
+      category: correctness
+    pattern: bar2($X)

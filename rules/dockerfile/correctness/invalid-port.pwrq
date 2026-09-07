@@ -1,4 +1,5 @@
 # rules: invalid-port
+# fixture: dockerfile/invalid-port.dockerfile
 # from: dockerfile/correctness/invalid-port.yaml
 
 . as $root

@@ -1,12 +1,19 @@
 # rules: wp-csrf-audit
 # languages: php
+# fixture: php/wp-csrf-audit.php
+#
+# Anonymous holes in call patterns are read as inline HTML text instead
+# of code, so the rule never fired. Rewritten with named holes (the eval-use
+# shape); see GUIDE.md.
+# The message names false and 0 alike, so both spellings are covered.
 # from: php/wordpress-plugins/security/audit/wp-csrf-audit.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.php"]; [
-      "check_ajax_referer($$$_,$$$_,false)"
+      "check_ajax_referer($A,$B,false)",
+      "check_ajax_referer($A,$B,0)"
     ])) as $all
-    | ( $all | of(["check_ajax_referer($$$_,$$$_,false)"])
+    | ( $all | of(["check_ajax_referer($A,$B,false)", "check_ajax_referer($A,$B,0)"])
         | finding("wp-csrf-audit";
             "Passing false or 0 as the third argument to this function will not cause the script to die, making the check useless.") ) )
 | report

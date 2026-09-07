@@ -1,17 +1,28 @@
 # rules: missing-message-field
+# languages: yaml
+# fixture: yaml/semgrep-missing-message-field.yaml
+#
+# Rule-list spans never enclose per-rule matches, so the form never fired.
+# Rewritten as a greedy rule block (id line plus following four-space lines,
+# which ends at the next rule) with text guards.
+# Extract-mode rules are excluded by guard; join-mode is out of scope.
+# A `rules:` key at column zero is what says the file is a Semgrep rule and
+# not something else that spells a key the same way: `metadata:` is every
+# Kubernetes manifest, `- id:` is any list of records, and `message: |` is
+# any workflow that writes more than a line.
 # from: yaml/semgrep/missing-message-field.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml"]; [
-      "\\-\\s+[\\s\\S]*?\\s+message:\\s+[\\s\\S]*?",
-      "\\-\\s+[\\s\\S]*?\\s+mode:\\s+extract",
-      "id:\\s+(?P<RULEID>\\S+)",
-      "rules:\\s+\\[[\\s\\S]*?,\\s+(?P<RULE>\\S+),\\s+[\\s\\S]*?\\]"
-    ])) as $all
-    | ( $all | of(["id:\\s+(?P<RULEID>\\S+)"])
-          | within($all | of(["rules:\\s+\\[[\\s\\S]*?,\\s+(?P<RULE>\\S+),\\s+[\\s\\S]*?\\]"]))
-          | outside($all | of(["\\-\\s+[\\s\\S]*?\\s+message:\\s+[\\s\\S]*?"]))
-          | outside($all | of(["\\-\\s+[\\s\\S]*?\\s+mode:\\s+extract"]))
+| ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^rules:[^\\S\n]*$"
+    ])) as $semgrep
+| ( (($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^  - id:\\s*(?P<RULEID>\\S+)[^\n]*\n((?:    [^\n]*\n?)*)"
+    ])) | in_files_with($semgrep)) as $all
+    | ( $all | of(["(?m)^  - id:\\s*(?P<RULEID>\\S+)[^\n]*\n((?:    [^\n]*\n?)*)"])
+          | where_text_not("\n    message:")
+          | where_text_not("mode:\\s*extract")
+          | focus("RULEID")
         | finding("missing-message-field";
             "This rule does not have a message.") ) )
 | report

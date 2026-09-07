@@ -1,20 +1,22 @@
 # rules: django-no-csrf-token
+# fixture: html/django-no-csrf-token.html
+#
+# The translated method patterns read `<form\s+...\s+method="..."`,
+# which needs two whitespace runs before `method` — `<form method=`
+# has one, so no method ever matched and the whole conjunction was
+# empty. The rule is now one whole-form pattern in the shape the
+# corpus's `python-csrf-django` uses: the method rides along as a
+# named group, state-changing methods are kept by guard, and either
+# csrf_token spelling is excluded by a negative text test.
 # from: python/django/security/django-no-csrf-token.yaml
 
 . as $root
 | ( ($root | scan_regex(["*.html"]; [
-      "<form[\\s\\S]*?>[\\s\\S]*?<\\/form>",
-      "<form[\\s\\S]*?>[\\s\\S]*?\\{%\\s+csrf_token\\s+%\\}[\\s\\S]*?<\\/form>",
-      "<form[\\s\\S]*?>[\\s\\S]*?\\{\\{\\s+(?P<VAR>\\S+)\\.csrf_token\\s+\\}\\}[\\s\\S]*?<\\/form>",
-      "<form\\s+[\\s\\S]*?\\s+method=\"(?P<METHOD>\\S+)\"\\s+[\\s\\S]*?>[\\s\\S]*?<\\/form>",
-      "<form\\s+[\\s\\S]*?\\s+method='(?P<METHOD>\\S+)'\\s+[\\s\\S]*?>[\\s\\S]*?<\\/form>",
-      "<form\\s+[\\s\\S]*?\\s+method=(?P<METHOD>\\S+)\\s+[\\s\\S]*?>[\\s\\S]*?<\\/form>"
+      "<form\\b[^>]*\\bmethod\\s*=\\s*[\"']?(?P<METHOD>[A-Za-z]+)[\"']?[^>]*>[\\s\\S]*?</form>"
     ])) as $all
-    | ( $all | of(["<form[\\s\\S]*?>[\\s\\S]*?<\\/form>"])
-          | at_same_place(($all | of(["<form\\s+[\\s\\S]*?\\s+method=\"(?P<METHOD>\\S+)\"\\s+[\\s\\S]*?>[\\s\\S]*?<\\/form>","<form\\s+[\\s\\S]*?\\s+method='(?P<METHOD>\\S+)'\\s+[\\s\\S]*?>[\\s\\S]*?<\\/form>","<form\\s+[\\s\\S]*?\\s+method=(?P<METHOD>\\S+)\\s+[\\s\\S]*?>[\\s\\S]*?<\\/form>"])))
-          | where_capture("METHOD"; "^(?:(?i)(post|put|delete|patch))")
-          | outside($all | of(["<form[\\s\\S]*?>[\\s\\S]*?\\{%\\s+csrf_token\\s+%\\}[\\s\\S]*?<\\/form>"]))
-          | outside($all | of(["<form[\\s\\S]*?>[\\s\\S]*?\\{\\{\\s+(?P<VAR>\\S+)\\.csrf_token\\s+\\}\\}[\\s\\S]*?<\\/form>"]))
+    | ( ($all | of(["<form\\b[^>]*\\bmethod\\s*=\\s*[\"']?(?P<METHOD>[A-Za-z]+)[\"']?[^>]*>[\\s\\S]*?</form>"])
+        | where_capture("METHOD"; "(?i)^(post|put|delete|patch)$")
+        | where_text_not("csrf_token"))
         | finding("django-no-csrf-token";
             "Manually-created forms in django templates should specify a csrf_token to prevent CSRF attacks.") ) )
 | report

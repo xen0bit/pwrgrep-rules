@@ -1,25 +1,39 @@
 # rules: sandbox-code-injection
 # languages: javascript, typescript
+# fixture: javascript/sandbox-code-injection.js
 # from: javascript/sandbox/security/audit/sandbox-code-injection.yaml
+#
+# Repair: the file gates fed require matches into `at_same_place`, `in_files_without("..."` dropped every file with a string, and the literal exclusions read holes as anything. Sinks are selected first with file-level gates and function-argument sources.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "\"$$$_\"",
-      "$CODE = \"$$$_\";\n$$$_",
-      "$S = new $SANDBOX($$$_);\n$$$_",
-      "$S = new $SANDBOX($$$_);\n$$$_\n$S.run(\"$$$_\",$$$_);",
-      "$S.run($CODE,$$$_);",
-      "$SANDBOX = require('sandbox');\n$$$_",
-      "new $SANDBOX($$$_).run(\"$$$_\",$$$_);",
-      "new $SANDBOX($$$_).run($CODE,$$$_);"
+      "($$$_, $FUNC, $$$_) => {$$$_}",
+      "($FUNC) => {$$$_}",
+      "$SBX.run($CODE)",
+      "new $BOX($OPTS).run($CODE)",
+      "new $BOX().run($CODE)",
+      "$SBX = new $BOX($$$_)",
+      "const $SBX = new $BOX($$$_)",
+      "$SBXLIB = require('sandbox')",
+      "const $SBXLIB = require('sandbox')",
+      "child_process.spawnSync($CMD, $$$_)",
+      "const $SBX = new $BOX($$$_)",
+      "function ($$$_, $FUNC, $$$_) {$$$_}",
+      "function $F($$$_, $FUNC, $$$_) {$$$_}",
+      "import $SBXLIB from 'sandbox'\n$$$_",
+      "import * as $SBXLIB from 'sandbox'\n$$$_",
+      "$SBXLIB = require('sandbox')",
+      "const $SBXLIB = require('sandbox')",
+      "$SBX = new $BOX($$$_)"
     ])) as $all
-    | ( ($all | of(["$S.run($CODE,$$$_);"])
-          | in_files_with($all | of(["$S = new $SANDBOX($$$_);\n$$$_"])))
-          + ($all | of(["new $SANDBOX($$$_).run($CODE,$$$_);"]))
-          | in_files_with($all | of(["$SANDBOX = require('sandbox');\n$$$_"]))
-          | in_files_without($all | of(["$CODE = \"$$$_\";\n$$$_","\"$$$_\""]))
-          | outside($all | of(["$S = new $SANDBOX($$$_);\n$$$_\n$S.run(\"$$$_\",$$$_);"]))
-          | outside($all | of(["new $SANDBOX($$$_).run(\"$$$_\",$$$_);"]))
+    | ( (($all | of(["$SBX.run($CODE)", "new $BOX($OPTS).run($CODE)", "new $BOX().run($CODE)"])
+          | not_at(($all | of(["$SBX.run($CODE)", "new $BOX($OPTS).run($CODE)", "new $BOX().run($CODE)"]) | where_capture("CODE"; "^[\"'].*[\"']$")))
+          | focus("CODE"))
+          | in_files_with(($all | of(["$SBX = new $BOX($$$_)", "const $SBX = new $BOX($$$_)", "$SBXLIB = require('sandbox')", "const $SBXLIB = require('sandbox')"])) + ($all | of([])))
+          | reaching(((($all | of(["function ($$$_, $FUNC, $$$_) {$$$_}","function $F($$$_, $FUNC, $$$_) {$$$_}"]))
+          + ($all | of(["($FUNC) => {$$$_}","($$$_, $FUNC, $$$_) => {$$$_}"]))
+          | focus("FUNC")));
+              ([]))
         | finding("sandbox-code-injection";
-            "Make sure that unverified user data can not reach `sandbox`.") ) )
+            "Make sure that unverified user data can not reach `sandbox`.") ) ))
 | report

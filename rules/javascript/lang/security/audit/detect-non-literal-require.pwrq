@@ -1,15 +1,24 @@
 # rules: detect-non-literal-require
 # languages: javascript, typescript
+# fixture: javascript/detect-non-literal-require.js
 # from: javascript/lang/security/audit/detect-non-literal-require.yaml
+#
+# Repair: the `function $$$_ (...)` wrapper only matched named declarations,
+# so Rosa-like arrow callbacks never counted as sources. The wrappers now
+# name the anon (expression) and named (declaration) shapes separately and
+# cover one- and multi-argument arrows.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "function $$$_ ($$$_, $ARG,$$$_) {$$$_}",
+      "($$$_, $ARG, $$$_) => {$$$_}",
+      "($ARG) => {$$$_}",
+      "function ($$$_, $ARG, $$$_) {$$$_}",
+      "function $FUNC($$$_, $ARG, $$$_) {$$$_}",
       "require($$$_)"
     ])) as $all
     | ( (($all | of(["require($$$_)"])))
-          | reaching((($all
-          | within($all | of(["function $$$_ ($$$_, $ARG,$$$_) {$$$_}"]))
+          | reaching(((($all | of(["function ($$$_, $ARG, $$$_) {$$$_}","function $FUNC($$$_, $ARG, $$$_) {$$$_}"]))
+          + ($all | of(["($ARG) => {$$$_}","($$$_, $ARG, $$$_) => {$$$_}"]))
           | focus("ARG")));
               ([]))
         | finding("detect-non-literal-require";

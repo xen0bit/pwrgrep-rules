@@ -4,20 +4,20 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 @Controller
 public class RedirectController {
-    @RequestMapping("/go")
     // ruleid: spring-unvalidated-redirect
+    @RequestMapping("/go")
     public String go(String url) {
         return "redirect:" + url;
     }
 
-    @RequestMapping("/away")
     // ruleid: spring-unvalidated-redirect
+    @RequestMapping("/away")
     public String away(String dest) {
         return "redirect:" + dest;
     }
 
-    @RequestMapping("/out")
     // ruleid: spring-unvalidated-redirect
+    @RequestMapping("/out")
     public String out(String target) {
         return "redirect:" + target;
     }

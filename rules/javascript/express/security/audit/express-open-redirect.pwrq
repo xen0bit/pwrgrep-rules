@@ -1,80 +1,51 @@
 # rules: express-open-redirect
-# languages: typescript
+# languages: javascript, typescript
+# fixture: javascript/express-open-redirect.js
 # from: javascript/express/security/audit/express-open-redirect.yaml
+#
+# Repair: dead as written. Three defects, all verified with probes:
+# `function $$$_ (...)` matches only named declarations and
+# `$APP.$METHOD(..., function $FUNC...)` only named callbacks, so anonymous
+# route handlers never counted as sources (now split into anon-expression
+# and named-declaration shapes); `at_same_place` needs exact span
+# coincidence, so a sink call could never coincide with the source inside it
+# (gates dropped in favour of `reaching`, sources taken `within` handlers);
+# and the 20 overlapping sink spellings suppressed each other in one scan
+# (only the `$ASSIGN` catch-all ever matched), so the sinks are a single
+# `$DST` hole over the one- and two-argument shapes. Globs cover *.js too.
 
 . as $root
-| ( ($root | scan_ast(["*.ts"]; [
+| ( ($root | scan_ast(["*.js","*.ts"]; [
       "$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})",
       "$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})",
-      "$ASSIGN = $REQ. $$$_ .$VALUE\n$$$_",
-      "$ASSIGN = $REQ. $$$_ .$VALUE + $$$A\n$$$_",
-      "$ASSIGN = $REQ.$VALUE['$$$_']\n$$$_",
-      "$ASSIGN = $REQ.$VALUE['$$$_'] + $$$A\n$$$_",
-      "$ASSIGN = `${$REQ. $$$_ .$VALUE}$$$_`\n$$$_",
-      "$ASSIGN = `${$REQ.$VALUE['$$$_']}$$$_`\n$$$_",
-      "$REQ. $$$_ .$VALUE",
-      "$REQ.$VALUE",
+      "$APP.$METHOD($$$_, function ($REQ, $RES) {$$$_})",
+      "$APP.$METHOD($$$_, function ($REQ, $RES, $NEXT) {$$$_})",
       "$REQ.body",
       "$REQ.cookies",
       "$REQ.headers",
       "$REQ.params",
       "$REQ.query",
-      "$RES.redirect(\"$HTTP\"+$REQ. $$$_ .$VALUE + $$$A)",
-      "$RES.redirect(\"$HTTP\"+$REQ. $$$_ .$VALUE)",
-      "$RES.redirect(\"$HTTP\"+$REQ.$VALUE[$$$_] + $$$A)",
-      "$RES.redirect(\"$HTTP\"+$REQ.$VALUE[$$$_])",
-      "$RES.redirect($ASSIGN + $$$FOO)",
-      "$RES.redirect($ASSIGN)",
-      "$RES.redirect($REQ. $$$_ .$VALUE + $$$A)",
-      "$RES.redirect($REQ. $$$_ .$VALUE)",
-      "$RES.redirect($REQ.$VALUE['$$$_'] + $$$A)",
-      "$RES.redirect($REQ.$VALUE['$$$_'])",
-      "$RES.redirect(`$HTTP${$REQ. $$$_ .$VALUE}$$$_`)",
-      "$RES.redirect(`$HTTP${$REQ.$VALUE[$$$_]}$$$_`)",
-      "$RES.redirect(`${$ASSIGN}$$$_`)",
-      "$RES.redirect(`${$REQ. $$$_ .$VALUE}$$$_`)",
-      "$RES.redirect(`${$REQ.$VALUE['$$$_']}$$$_`)",
+      "$RES.redirect($DST)",
+      "$RES.redirect($STA, $DST)",
       "({ $REQ }: Request,$RES: Response) => {$$$_}",
       "({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) =>\n{$$$_}",
       "body",
       "cookies",
-      "function $$$_ ($REQ, $RES) {$$$_}",
-      "function $$$_ ($REQ, $RES, $NEXT) {$$$_}",
+      "function ($REQ, $RES) {$$$_}",
+      "function $FUNC($REQ, $RES) {$$$_}",
+      "function ($REQ, $RES, $NEXT) {$$$_}",
+      "function $FUNC($REQ, $RES, $NEXT) {$$$_}",
       "headers",
       "params",
       "query"
     ])) as $all
-    | ( (($all | of(["$RES.redirect(\"$HTTP\"+$REQ. $$$_ .$VALUE)","$RES.redirect(\"$HTTP\"+$REQ. $$$_ .$VALUE + $$$A)","$RES.redirect(`$HTTP${$REQ. $$$_ .$VALUE}$$$_`)","$RES.redirect(\"$HTTP\"+$REQ.$VALUE[$$$_])","$RES.redirect(\"$HTTP\"+$REQ.$VALUE[$$$_] + $$$A)","$RES.redirect(`$HTTP${$REQ.$VALUE[$$$_]}$$$_`)"])
-          | at_same_place(($all | of(["$REQ. $$$_ .$VALUE"])))
-          | where_capture("HTTP"; "^https?:\\/\\/$"))
-              + ($all | of(["$RES.redirect($REQ. $$$_ .$VALUE)","$RES.redirect($REQ. $$$_ .$VALUE + $$$A)","$RES.redirect(`${$REQ. $$$_ .$VALUE}$$$_`)"])
-          | at_same_place(($all | of(["$REQ. $$$_ .$VALUE"]))))
-              + ($all | of(["$RES.redirect($REQ.$VALUE['$$$_'])","$RES.redirect($REQ.$VALUE['$$$_'] + $$$A)","$RES.redirect(`${$REQ.$VALUE['$$$_']}$$$_`)"])
-          | at_same_place(($all | of(["$REQ.$VALUE"]))))
-              + (($all
-          | in_files_with($all | of(["$ASSIGN = $REQ. $$$_ .$VALUE\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["$ASSIGN = $REQ.$VALUE['$$$_']\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["$ASSIGN = $REQ. $$$_ .$VALUE + $$$A\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["$ASSIGN = $REQ.$VALUE['$$$_'] + $$$A\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["$ASSIGN = `${$REQ. $$$_ .$VALUE}$$$_`\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["$ASSIGN = `${$REQ.$VALUE['$$$_']}$$$_`\n$$$_"])))
-          | at_same_place(($all | of(["$RES.redirect($ASSIGN)","$RES.redirect($ASSIGN + $$$FOO)","$RES.redirect(`${$ASSIGN}$$$_`)"])))
-          | focus("ASSIGN")))
-          | reaching(((($all
-          | within($all | of(["function $$$_ ($REQ, $RES) {$$$_}"])))
-          + ($all
-          | within($all | of(["function $$$_ ($REQ, $RES, $NEXT) {$$$_}"])))
-          + (($all
-          | within($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})"])))
-          + ($all
-          | within($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})"])))
-          | where_capture("METHOD"; "^(get|post|put|head|delete|options)$"))
-          | at_same_place(($all | of(["$REQ.query","$REQ.body","$REQ.params","$REQ.cookies","$REQ.headers"]))))
+    | ( (($all | of(["$RES.redirect($DST)","$RES.redirect($STA, $DST)"])
+          | focus("DST")))
+          | reaching(((($all | of(["$REQ.query","$REQ.body","$REQ.params","$REQ.cookies","$REQ.headers"]))
+          | within((($all | of(["function ($REQ, $RES) {$$$_}","function $FUNC($REQ, $RES) {$$$_}","function ($REQ, $RES, $NEXT) {$$$_}","function $FUNC($REQ, $RES, $NEXT) {$$$_}"]))
+          + ((($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})","$APP.$METHOD($$$_, function ($REQ, $RES) {$$$_})"]))
+          + ($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})","$APP.$METHOD($$$_, function ($REQ, $RES, $NEXT) {$$$_})"])))
+          | where_capture("METHOD"; "^(get|post|put|head|delete|options)$")))))
               + (($all
           | within($all | of(["({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) =>\n{$$$_}"])))
           + ($all
@@ -83,5 +54,5 @@
           | focus("REQ")));
               ([]))
         | finding("express-open-redirect";
-            "The application redirects to a URL specified by user-supplied input `$REQ` that is not validated.") ) )
+            "The application redirects to a URL specified by user-supplied input that is not validated.") ) )
 | report

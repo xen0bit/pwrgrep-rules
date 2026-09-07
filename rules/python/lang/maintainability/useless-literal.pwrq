@@ -1,14 +1,22 @@
 # rules: useless-literal
 # languages: python
+# fixture: python/useless-literal.py
+#
+# The translated patterns wrapped each pair run in `$$$_` ellipses
+# (`{$$$_, $X: $A, ...}`), and an ellipsis among mapping pairs never
+# matches, so both alternatives were empty. A mapping display is matched
+# with the two duplicate pairs adjacent; anything wider has no reading
+# here, which the fixture respects. focus("X") is unchanged.
 # from: python/lang/maintainability/useless-literal.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.py"]; [
-      "dict($$$_, ($X, $A), $$$_, ($X, $B), $$$_)",
-      "{$$$_, $X: $A, $$$_, $X: $B, $$$_}"
+      "dict(($X, $A), ($X, $B))",
+      "dict((($X, $A), ($X, $B)))",
+      "{$X: $A, $X: $B}"
     ])) as $all
-    | ( $all | of(["{$$$_, $X: $A, $$$_, $X: $B, $$$_}","dict($$$_, ($X, $A), $$$_, ($X, $B), $$$_)"])
-          | focus("X")
+    | ( ($all | of(["dict(($X, $A), ($X, $B))", "dict((($X, $A), ($X, $B)))", "{$X: $A, $X: $B}"])
+          | focus("X"))
         | finding("useless-literal";
             "key `$X` is uselessly assigned twice") ) )
 | report

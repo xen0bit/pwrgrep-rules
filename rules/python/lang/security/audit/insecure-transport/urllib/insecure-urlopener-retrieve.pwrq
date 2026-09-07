@@ -1,28 +1,28 @@
 # rules: insecure-urlopener-retrieve
 # languages: python
+# fixture: python/insecure-urlopener-retrieve.py
+#
+# The translated patterns embedded a Semgrep `=~/.../` regex inside a string literal, where the matcher reads it as literal text, so the rule could never fire. Each literal is now a $P hole guarded by where_capture with the same character class; the finding set is unchanged.
 # from: python/lang/security/audit/insecure-transport/urllib/insecure-urlopener-retrieve.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.py"]; [
       "$OPENERDIRECTOR = urllib.request.URLopener($$$_)\n$$$_",
-      "$OPENERDIRECTOR.retrieve(\"=~/[Hh][Tt][Tt][Pp]://.*/\", $$$_)",
+      "$OPENERDIRECTOR.retrieve($P, $$$_)",
       "$OPENERDIRECTOR.retrieve($URL, $$$_)",
-      "$URL = \"=~/[Hh][Tt][Tt][Pp]://.*/\"\n$$$_\n$OPENERDIRECTOR.retrieve($URL, $$$_)",
-      "$URL = \"=~/[Hh][Tt][Tt][Pp]://.*/\"\n$$$_\nurllib.request.URLopener($$$_).retrieve($URL, $$$_)",
-      "def $FUNC($$$_, $URL = \"=~/[Hh][Tt][Tt][Pp]://.*/\", $$$_):\n  $$$_",
-      "urllib.request.URLopener($$$_).retrieve(\"=~/[Hh][Tt][Tt][Pp]://.*/\", $$$_)",
+      "$URL = $P\n$$$_\n$OPENERDIRECTOR.retrieve($URL, $$$_)",
+      "$URL = $P\n$$$_\nurllib.request.URLopener($$$_).retrieve($URL, $$$_)",
+      "def $FUNC($$$_, $URL = $P, $$$_):\n  $$$_BODY",
+      "urllib.request.URLopener($$$_).retrieve($P, $$$_)",
       "urllib.request.URLopener($$$_).retrieve($URL, $$$_)"
     ])) as $all
-    | ( ($all | of(["urllib.request.URLopener($$$_).retrieve(\"=~/[Hh][Tt][Tt][Pp]://.*/\", $$$_)"]))
-          + ($all | of(["$OPENERDIRECTOR.retrieve(\"=~/[Hh][Tt][Tt][Pp]://.*/\", $$$_)"])
-          | in_files_with($all | of(["$OPENERDIRECTOR = urllib.request.URLopener($$$_)\n$$$_"])))
-          + ($all | of(["$URL = \"=~/[Hh][Tt][Tt][Pp]://.*/\"\n$$$_\n$OPENERDIRECTOR.retrieve($URL, $$$_)"])
-          | in_files_with($all | of(["$OPENERDIRECTOR = urllib.request.URLopener($$$_)\n$$$_"])))
-          + ($all | of(["$URL = \"=~/[Hh][Tt][Tt][Pp]://.*/\"\n$$$_\nurllib.request.URLopener($$$_).retrieve($URL, $$$_)"]))
-          + (($all | of(["urllib.request.URLopener($$$_).retrieve($URL, $$$_)"]))
-          + ($all | of(["$OPENERDIRECTOR.retrieve($URL, $$$_)"])
-          | in_files_with($all | of(["$OPENERDIRECTOR = urllib.request.URLopener($$$_)\n$$$_"])))
-          | within($all | of(["def $FUNC($$$_, $URL = \"=~/[Hh][Tt][Tt][Pp]://.*/\", $$$_):\n  $$$_"])))
+    | ( ($all | of(["urllib.request.URLopener($$$_).retrieve($P, $$$_)"]) | where_capture("P"; "[Hh][Tt][Tt][Pp]://"))
+        + ($all | of(["$OPENERDIRECTOR.retrieve($P, $$$_)"]) | in_files_with($all | of(["$OPENERDIRECTOR = urllib.request.URLopener($$$_)\n$$$_"])) | where_capture("P"; "[Hh][Tt][Tt][Pp]://"))
+        + ($all | of(["$URL = $P\n$$$_\n$OPENERDIRECTOR.retrieve($URL, $$$_)"]) | in_files_with($all | of(["$OPENERDIRECTOR = urllib.request.URLopener($$$_)\n$$$_"])) | where_capture("P"; "[Hh][Tt][Tt][Pp]://"))
+        + ($all | of(["$URL = $P\n$$$_\nurllib.request.URLopener($$$_).retrieve($URL, $$$_)"]) | where_capture("P"; "[Hh][Tt][Tt][Pp]://"))
+        + ($all | of(["urllib.request.URLopener($$$_).retrieve($URL, $$$_)"]) | within($all | of(["def $FUNC($$$_, $URL = $P, $$$_):\n  $$$_BODY"]) | where_capture("P"; "[Hh][Tt][Tt][Pp]://")))
+        + ($all | of(["$OPENERDIRECTOR.retrieve($URL, $$$_)"]) | in_files_with($all | of(["$OPENERDIRECTOR = urllib.request.URLopener($$$_)\n$$$_"])) | within($all | of(["def $FUNC($$$_, $URL = $P, $$$_):\n  $$$_BODY"]) | where_capture("P"; "[Hh][Tt][Tt][Pp]://"))) )
         | finding("insecure-urlopener-retrieve";
-            "Detected an unsecured transmission channel.") ) )
+            "Detected an unsecured transmission channel.") )
+| report
 | report

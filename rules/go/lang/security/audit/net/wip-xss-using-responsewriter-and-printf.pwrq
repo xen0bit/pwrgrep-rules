@@ -1,18 +1,25 @@
 # rules: wip-xss-using-responsewriter-and-printf
 # languages: go
+# fixture: go/wip-xss-using-responsewriter-and-printf.go
+#
+# Two silent failures: three legs read `$PARAMS := r.URL.Query()` with
+# `=`, but Go assigns it with `:=`, so they never matched; and the
+# handler container collides an anonymous body ellipsis with standalone
+# gap ellipses (the Go gotcha), so it never matched either. The
+# assignments use `:=`, and the container is a named-body func pattern (a typed middle parameter like `$W http.ResponseWriter` has no reading, and a body hole binds no text for a guard, so the container only scopes to functions and the legs carry the finding).
 # from: go/lang/security/audit/net/wip-xss-using-responsewriter-and-printf.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.go"]; [
-      "$DATA, $ERR := r.URL.Query()[$$$_]\n$$$_\n$INTERM = $ANYTHING($$$_, $DATA, $$$_)\n$$$_\n$W.Write([]byte(fmt.$PRINTF($$$_, $INTERM, $$$_)))",
-      "$DATA, $ERR := r.URL.Query()[$$$_]\n$$$_\n$INTERM = $DATA[$$$_]\n$$$_\n$W.Write([]byte(fmt.$PRINTF($$$_, $INTERM, $$$_)))",
-      "$PARAMS = r.URL.Query()\n$$$_\n$DATA, $ERR := $PARAMS[$$$_]\n$$$_\n$INTERM = $ANYTHING($$$_, $DATA, $$$_)\n$$$_\n$W.Write([]byte(fmt.$PRINTF($$$_, $INTERM, $$$_)))",
-      "$PARAMS = r.URL.Query()\n$$$_\n$DATA, $ERR := $PARAMS[$$$_]\n$$$_\n$INTERM = $DATA[$$$_]\n$$$_\n$W.Write([]byte(fmt.$PRINTF($$$_, $INTERM, $$$_)))",
-      "$PARAMS = r.URL.Query()\n$$$_\n$DATA, $ERR := $PARAMS[$$$_]\n$$$_\n$W.Write([]byte(fmt.$PRINTF($$$_, $DATA, $$$_)))",
-      "func $FUNC($$$_, $W http.ResponseWriter, $$$_) {\n  $$$_\n  var $TEMPLATE = \"$$$_\"\n  $$$_\n  $W.Write([]byte(fmt.$PRINTF($TEMPLATE, $$$_)), $$$_)\n  $$$_\n}"
+      "$DATA, $ERR := r.URL.Query()[$$$_]\n$$$_\n$INTERM := $ANYTHING($$$_, $DATA, $$$_)\n$$$_\n$W.Write([]byte(fmt.$PRINTF($$$_, $INTERM, $$$_)))",
+      "$DATA, $ERR := r.URL.Query()[$$$_]\n$$$_\n$INTERM := $DATA[$$$_]\n$$$_\n$W.Write([]byte(fmt.$PRINTF($$$_, $INTERM, $$$_)))",
+      "$PARAMS := r.URL.Query()\n$$$_\n$DATA, $ERR := $PARAMS[$$$_]\n$$$_\n$INTERM := $ANYTHING($$$_, $DATA, $$$_)\n$$$_\n$W.Write([]byte(fmt.$PRINTF($$$_, $INTERM, $$$_)))",
+      "$PARAMS := r.URL.Query()\n$$$_\n$DATA, $ERR := $PARAMS[$$$_]\n$$$_\n$INTERM := $DATA[$$$_]\n$$$_\n$W.Write([]byte(fmt.$PRINTF($$$_, $INTERM, $$$_)))",
+      "$PARAMS := r.URL.Query()\n$$$_\n$DATA, $ERR := $PARAMS[$$$_]\n$$$_\n$W.Write([]byte(fmt.$PRINTF($$$_, $DATA, $$$_)))",
+      "func $FUNC($$$_) {\n  $$$_BODY}"
     ])) as $all
-    | ( $all | of(["$PARAMS = r.URL.Query()\n$$$_\n$DATA, $ERR := $PARAMS[$$$_]\n$$$_\n$INTERM = $ANYTHING($$$_, $DATA, $$$_)\n$$$_\n$W.Write([]byte(fmt.$PRINTF($$$_, $INTERM, $$$_)))","$PARAMS = r.URL.Query()\n$$$_\n$DATA, $ERR := $PARAMS[$$$_]\n$$$_\n$INTERM = $DATA[$$$_]\n$$$_\n$W.Write([]byte(fmt.$PRINTF($$$_, $INTERM, $$$_)))","$DATA, $ERR := r.URL.Query()[$$$_]\n$$$_\n$INTERM = $DATA[$$$_]\n$$$_\n$W.Write([]byte(fmt.$PRINTF($$$_, $INTERM, $$$_)))","$DATA, $ERR := r.URL.Query()[$$$_]\n$$$_\n$INTERM = $ANYTHING($$$_, $DATA, $$$_)\n$$$_\n$W.Write([]byte(fmt.$PRINTF($$$_, $INTERM, $$$_)))","$PARAMS = r.URL.Query()\n$$$_\n$DATA, $ERR := $PARAMS[$$$_]\n$$$_\n$W.Write([]byte(fmt.$PRINTF($$$_, $DATA, $$$_)))"])
-          | within($all | of(["func $FUNC($$$_, $W http.ResponseWriter, $$$_) {\n  $$$_\n  var $TEMPLATE = \"$$$_\"\n  $$$_\n  $W.Write([]byte(fmt.$PRINTF($TEMPLATE, $$$_)), $$$_)\n  $$$_\n}"]))
+    | ( $all | of(["$DATA, $ERR := r.URL.Query()[$$$_]\n$$$_\n$INTERM := $ANYTHING($$$_, $DATA, $$$_)\n$$$_\n$W.Write([]byte(fmt.$PRINTF($$$_, $INTERM, $$$_)))", "$DATA, $ERR := r.URL.Query()[$$$_]\n$$$_\n$INTERM := $DATA[$$$_]\n$$$_\n$W.Write([]byte(fmt.$PRINTF($$$_, $INTERM, $$$_)))", "$PARAMS := r.URL.Query()\n$$$_\n$DATA, $ERR := $PARAMS[$$$_]\n$$$_\n$INTERM := $ANYTHING($$$_, $DATA, $$$_)\n$$$_\n$W.Write([]byte(fmt.$PRINTF($$$_, $INTERM, $$$_)))", "$PARAMS := r.URL.Query()\n$$$_\n$DATA, $ERR := $PARAMS[$$$_]\n$$$_\n$INTERM := $DATA[$$$_]\n$$$_\n$W.Write([]byte(fmt.$PRINTF($$$_, $INTERM, $$$_)))", "$PARAMS := r.URL.Query()\n$$$_\n$DATA, $ERR := $PARAMS[$$$_]\n$$$_\n$W.Write([]byte(fmt.$PRINTF($$$_, $DATA, $$$_)))"])
+          | within($all | of(["func $FUNC($$$_) {\n  $$$_BODY}"])) ) | focus("W")
         | finding("wip-xss-using-responsewriter-and-printf";
-            "Found data going from url query parameters into formatted data written to ResponseWriter.") ) )
+            "Found data going from url query parameters into formatted data written to ResponseWriter.") )
 | report

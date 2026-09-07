@@ -1,14 +1,19 @@
 # rules: insecure-request-object-ftp
 # languages: python
+# fixture: python/insecure-request-object-ftp.py
+#
+# The translated patterns embedded a Semgrep `=~/.../` regex inside a string literal, where the matcher reads it as literal text, so the rule could never fire. Each literal is now a $P hole guarded by where_capture with the same character class (quote-anchored, since captures carry their quotes); the finding set is unchanged.
 # from: python/lang/security/audit/insecure-transport/urllib/insecure-request-object-ftp.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.py"]; [
-      "$URL = \"=~/^[Ff][Tt][Pp]://.*/\"\n$$$_\nurllib.request.Request($URL, $$$_)",
-      "def $FUNC($$$_, $URL = \"=~/^[Ff][Tt][Pp]://.*/\", $$$_):\n  $$$_\n  urllib.request.Request($URL, $$$_)",
-      "urllib.request.Request(\"=~/^[Ff][Tt][Pp]://.*/\", $$$_)"
+      "urllib.request.Request($P, $$$_)",
+      "$URL = $P\n$$$_\nurllib.request.Request($URL, $$$_)",
+      "def $FUNC($$$_, $URL = $P, $$$_):\n  $$$_BODY",
+      "urllib.request.Request($URL, $$$_)"
     ])) as $all
-    | ( $all | of(["urllib.request.Request(\"=~/^[Ff][Tt][Pp]://.*/\", $$$_)","$URL = \"=~/^[Ff][Tt][Pp]://.*/\"\n$$$_\nurllib.request.Request($URL, $$$_)","def $FUNC($$$_, $URL = \"=~/^[Ff][Tt][Pp]://.*/\", $$$_):\n  $$$_\n  urllib.request.Request($URL, $$$_)"])
-        | finding("insecure-request-object-ftp";
-            "Detected a 'urllib.request.Request()' object using an insecure transport protocol, 'ftp://'.") ) )
+    | ( ($all | of(["urllib.request.Request($P, $$$_)","$URL = $P\n$$$_\nurllib.request.Request($URL, $$$_)"]) | where_capture("P"; "^['\"][Ff][Tt][Pp]://"))
+        + ($all | of(["urllib.request.Request($URL, $$$_)"]) | within($all | of(["def $FUNC($$$_, $URL = $P, $$$_):\n  $$$_BODY"]) | where_capture("P"; "^['\"][Ff][Tt][Pp]://"))) )
+    | finding("insecure-request-object-ftp";
+        "Detected a 'urllib.request.Request()' object using an insecure transport protocol, 'ftp://'.") )
 | report

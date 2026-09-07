@@ -1,19 +1,40 @@
 # rules: wkhtmltopdf-injection
 # languages: javascript, typescript
+# fixture: javascript/wkhtmltopdf-injection.js
 # from: javascript/wkhtmltopdf/security/audit/wkhtmltopdf-injection.yaml
+#
+# Repair: the file gates fed require matches into `at_same_place`, `in_files_without("..."` dropped every file with a string, and the literal exclusions read holes as anything. Sinks are selected first with file-level gates and function-argument sources.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "\"$$$_\"",
-      "$WK = require('wkhtmltopdf');\n$$$_",
-      "$WK(\"$$$_\",$$$_)",
-      "$WK($INPUT,$$$_)",
-      "var $INPUT = \"$$$_\";\n$$$_"
+      "($$$_, $FUNC, $$$_) => {$$$_}",
+      "($FUNC) => {$$$_}",
+      "$WK($INPUT, $$$_)",
+      "$WK = require('wkhtmltopdf')",
+      "const $WK = require('wkhtmltopdf')",
+      "$CP.spawnSync($CMD, $$$_)",
+      "child_process.exec($CMD, $$$_)",
+      "child_process.execSync($CMD, $$$_)",
+      "child_process.spawn($CMD, $$$_)",
+      "child_process.spawnSync($CMD, $$$_)",
+      "const $WK = require('wkhtmltopdf')",
+      "function ($$$_, $FUNC, $$$_) {$$$_}",
+      "function $F($$$_, $FUNC, $$$_) {$$$_}",
+      "import $CP from 'child_process'\n$$$",
+      "import * as $CP from 'child_process'\n$$$",
+      "let $CP = require('child_process')",
+      "var $CP = require('child_process')",
+      "$WK = require('wkhtmltopdf')"
     ])) as $all
-    | ( $all | of(["$WK($INPUT,$$$_)"])
-          | in_files_with($all | of(["$WK = require('wkhtmltopdf');\n$$$_"]))
-          | in_files_without($all | of(["var $INPUT = \"$$$_\";\n$$$_","\"$$$_\""]))
-          | not_at($all | of(["$WK(\"$$$_\",$$$_)"]))
+    | ( (($all | of(["$WK($INPUT, $$$_)"])
+          | where_capture("WK"; "(?i)wkhtml")
+          | not_at(($all | of(["$WK($INPUT, $$$_)"]) | where_capture("INPUT"; "^[\"'].*[\"']$")))
+          | focus("INPUT"))
+          | in_files_with(($all | of(["$WK = require('wkhtmltopdf')", "const $WK = require('wkhtmltopdf')"])) + ($all | of([])))
+          | reaching(((($all | of(["function ($$$_, $FUNC, $$$_) {$$$_}","function $F($$$_, $FUNC, $$$_) {$$$_}"]))
+          + ($all | of(["($FUNC) => {$$$_}","($$$_, $FUNC, $$$_) => {$$$_}"]))
+          | focus("FUNC")));
+              ([]))
         | finding("wkhtmltopdf-injection";
-            "If unverified user data can reach the `wkhtmltopdf` it can result in Server-Side Request Forgery vulnerabilities") ) )
+            "If unverified user data can reach the `wkhtmltopdf` it can result in Server-Side Request Forgery vulnerabilities") ) ))
 | report

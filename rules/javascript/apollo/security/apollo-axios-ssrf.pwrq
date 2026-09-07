@@ -1,14 +1,25 @@
 # rules: apollo-axios-ssrf
 # languages: javascript
+# fixture: javascript/apollo-axios-ssrf.js
 # from: javascript/apollo/security/apollo-axios-ssrf.yaml
+#
+# Repair: dead as written. The whole-resolver statement sequence needed an
+# exact `Query/{...}/async function/return` nesting that never matched real
+# resolvers. The rule now matches `axios` request shapes whose URL flows from
+# an Apollo `args` field, with a file-level `axios` gate.
 
 . as $root
 | ( ($root | scan_ast(["*.js"]; [
-      "Query: {\n  $METHOD(parent, args, context, info) {\n    $$$_\n    $DATA = args.$DATAVAL\n    $$$_\n    async function $INNERFUNC($$$_,$INNERARG,$$$_){\n      $$$_\n    }\n    $$$_\n    return $INNERFUNC($$$_,$DATA,$$$_)\n    }\n  }",
-      "const $RESPONSE = await axios.request($INNERARG,$$$_)"
+      "$AXIOS = require('axios')\n$$$",
+      "args.$FIELD",
+      "axios.get($URL, $$$_)",
+      "axios.post($URL, $$$_)",
+      "axios.request($URL, $$$_)",
+      "const $AXIOS = require('axios')"
     ])) as $all
-    | ( $all | of(["const $RESPONSE = await axios.request($INNERARG,$$$_)"])
-          | within($all | of(["Query: {\n  $METHOD(parent, args, context, info) {\n    $$$_\n    $DATA = args.$DATAVAL\n    $$$_\n    async function $INNERFUNC($$$_,$INNERARG,$$$_){\n      $$$_\n    }\n    $$$_\n    return $INNERFUNC($$$_,$DATA,$$$_)\n    }\n  }"]))
+    | ( (($all | of(["axios.request($URL, $$$_)","axios.get($URL, $$$_)","axios.post($URL, $$$_)"]))
+          | in_files_with(($all | of(["$AXIOS = require('axios')\n$$$", "const $AXIOS = require('axios')"])))
+          | reaching((($all | of(["args.$FIELD"])));([]))
         | finding("apollo-axios-ssrf";
-            "User-controllable argument $DATAVAL to $METHOD passed to Axios via internal handler $INNERFUNC.") ) )
+            "User-controllable Apollo argument passed to Axios, which can lead to Server-Side Request Forgery (SSRF).") ) ))
 | report

@@ -1,15 +1,24 @@
 # rules: useless-assignment
 # languages: javascript, typescript
+# fixture: javascript/useless-assign.js
 # from: javascript/lang/correctness/useless-assign.yaml
+#
+# Repair: dead as written. The self-assignment guard filtered by
+# `where_capture_ast("PWRQDEEP1"; "$X")`, but a lone `$X` matches anything,
+# so every double assignment was subtracted. The guard now compares the two
+# right-hand sides by text with `where_same`. Bare `$X = ...` never matches a
+# `let`/`var`/`const` declaration, so those spellings are listed too.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "$X = $Y;\n$X = $PWRQDEEP1;",
-      "$X = $Y;\n$X = $Z;"
+      "$X = $Y;\n$X = $Z;",
+      "const $X = $Y;\n$X = $Z;",
+      "let $X = $Y;\n$X = $Z;",
+      "var $X = $Y;\n$X = $Z;"
     ])) as $all
-    | ( $all | of(["$X = $Y;\n$X = $Z;"])
-          | not_at($all | of(["$X = $Y;\n$X = $PWRQDEEP1;"])
-          | where_capture_ast("PWRQDEEP1"; "$X"))
+    | ( $all | of(["$X = $Y;\n$X = $Z;","const $X = $Y;\n$X = $Z;","let $X = $Y;\n$X = $Z;","var $X = $Y;\n$X = $Z;"])
+          | not_at($all | of(["$X = $Y;\n$X = $Z;","const $X = $Y;\n$X = $Z;","let $X = $Y;\n$X = $Z;","var $X = $Y;\n$X = $Z;"])
+          | where_same("Z"; "X"))
         | finding("useless-assignment";
             "`$X` is assigned twice; the first assignment is useless") ) )
 | report

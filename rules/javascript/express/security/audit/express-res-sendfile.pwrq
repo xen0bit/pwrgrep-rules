@@ -1,51 +1,47 @@
 # rules: express-res-sendfile
-# languages: typescript
+# languages: javascript, typescript
+# fixture: javascript/express-res-sendfile.js
 # from: javascript/express/security/audit/express-res-sendfile.yaml
+#
+# Repair: `function $$$_ (...)` matched only named declarations, route callbacks had to be named, `at_same_place` needed exact span coincidence, and the overlapping sink spellings suppressed each other in one scan; wrappers now cover anon and named shapes, gates use `reaching`, and the sinks are one `$PATH` hole. Globs cover *.js as well as *.ts.
 
 . as $root
-| ( ($root | scan_ast(["*.ts"]; [
+| ( ($root | scan_ast(["*.js","*.ts"]; [
       "$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})",
       "$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})",
+      "$APP.$METHOD($$$_, function ($REQ, $RES) {$$$_})",
+      "$APP.$METHOD($$$_, function ($REQ, $RES, $NEXT) {$$$_})",
+      "$REQ.query",
       "$REQ.body",
+      "$REQ.params",
       "$REQ.cookies",
       "$REQ.headers",
-      "$REQ.params",
-      "$REQ.query",
-      "$RES.$METH($QUERY,$$$_)",
-      "$RES.$METH($QUERY,$OPTIONS)",
+      "$RES.sendFile($PATH)",
+      "$RES.sendfile($PATH)",
       "({ $REQ }: Request,$RES: Response) => {$$$_}",
       "({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) =>\n{$$$_}",
       "body",
       "cookies",
-      "function $$$_ ($$$_,$REQ: $TYPE, $$$_) {$$$_}",
-      "function $$$_ ($REQ, $RES) {$$$_}",
-      "function $$$_ ($REQ, $RES, $NEXT) {$$$_}",
       "headers",
       "params",
-      "query"
+      "query",
+      "function ($REQ, $RES) {$$$_}",
+      "function $FUNC($REQ, $RES) {$$$_}",
+      "function ($REQ, $RES, $NEXT) {$$$_}",
+      "function $FUNC($REQ, $RES, $NEXT) {$$$_}"
     ])) as $all
-    | ( (($all | of(["$RES.$METH($QUERY,$$$_)"])
-          | outside($all | of(["$RES.$METH($QUERY,$OPTIONS)"]))
-          | where_capture("METH"; "^(sendfile|sendFile)$")
-          | focus("QUERY")))
-          | reaching(((($all
-          | within($all | of(["function $$$_ ($REQ, $RES) {$$$_}"])))
-          + ($all
-          | within($all | of(["function $$$_ ($REQ, $RES, $NEXT) {$$$_}"])))
-          + (($all
-          | within($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})"])))
-          + ($all
-          | within($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})"])))
-          | where_capture("METHOD"; "^(get|post|put|head|delete|options)$"))
-          | at_same_place(($all | of(["$REQ.query","$REQ.body","$REQ.params","$REQ.cookies","$REQ.headers"]))))
+    | ( (($all | of(["$RES.sendFile($PATH)", "$RES.sendfile($PATH)"])
+          | focus("PATH"))
+          )
+          | reaching(((($all | of(["$REQ.query", "$REQ.body", "$REQ.params", "$REQ.cookies", "$REQ.headers"]))
+          | within((($all | of(["function ($REQ, $RES) {$$$_}", "function $FUNC($REQ, $RES) {$$$_}", "function ($REQ, $RES, $NEXT) {$$$_}", "function $FUNC($REQ, $RES, $NEXT) {$$$_}"])))
+          + ((($all | of(["$REQ.query", "$REQ.body", "$REQ.params", "$REQ.cookies", "$REQ.headers"])) | within((($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})", "$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})"])) + ($all | of(["$APP.$METHOD($$$_, function ($REQ, $RES) {$$$_})", "$APP.$METHOD($$$_, function ($REQ, $RES, $NEXT) {$$$_})"])))) | where_capture("METHOD"; "^(get|post|put|head|delete|options)$")))))
               + (($all
           | within($all | of(["({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) =>\n{$$$_}"])))
           + ($all
           | within($all | of(["({ $REQ }: Request,$RES: Response) => {$$$_}"])))
-          | at_same_place(($all | of(["params","query","cookies","headers","body"]))))
-              + ((($all
-          | within($all | of(["function $$$_ ($$$_,$REQ: $TYPE, $$$_) {$$$_}"])))
-          | where_capture("TYPE"; "^(string|String)"))));
+          | at_same_place(($all | of(["params","query","cookies","headers","body"])))
+          | focus("REQ")));
               ([]))
         | finding("express-res-sendfile";
             "The application processes user-input, this is passed to res.sendFile which can allow an attacker to arbitrarily read files on the system through path traversal.") ) )

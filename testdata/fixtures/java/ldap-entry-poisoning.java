@@ -2,14 +2,14 @@ import javax.naming.directory.SearchControls;
 
 public class LdapEntryPoison {
     public void vuln() {
-        SearchControls sc = new SearchControls();
         // ruleid: ldap-entry-poisoning
+        SearchControls sc = new SearchControls();
         sc.setReturningObjFlag(true);
     }
 
     public void vulnAgain() {
-        SearchControls sc = new SearchControls();
         // ruleid: ldap-entry-poisoning
+        SearchControls sc = new SearchControls();
         sc.setReturningObjFlag(true);
     }
 

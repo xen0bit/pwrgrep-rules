@@ -1,14 +1,19 @@
 # rules: insecure-hostname-verifier
 # fixture: java/insecure-hostname-verifier.java
 # from: java/lang/security/audit/crypto/ssl/insecure-hostname-verifier.yaml
+#
+# RE2 treats a lazy star sandwiched between two greedy \s+ as long: the
+# class pattern below swallowed neighbouring classes and reported one
+# finding for three. The gap is written bare ([\s\S]*? covers whitespace)
+# so each class reports on its own line.
 
 . as $root
 | ( ($root | scan_regex(["*.java"]; [
-      "class\\s+(?P<CLASS>\\S+)\\s+implements\\s+HostnameVerifier\\s+\\{\\s+[\\s\\S]*?\\s+public\\s+boolean\\s+verify\\([\\s\\S]*?\\)\\s+\\{\\s+return\\s+true;\\s+\\}\\s+\\}",
+      "class\\s+(?P<CLASS>\\S+)\\s+implements\\s+HostnameVerifier\\s+\\{[\\s\\S]*?public\\s+boolean\\s+verify\\([\\s\\S]*?\\)\\s+\\{\\s+return\\s+true;\\s+\\}\\s+\\}",
       "import\\s+org\\.apache\\.http\\.conn\\.ssl\\.NoopHostnameVerifier;",
       "new\\s+HostnameVerifier\\([\\s\\S]*?\\)\\{\\s+public\\s+boolean\\s+verify\\([\\s\\S]*?\\)\\s+\\{\\s+return\\s+true;\\s+\\}\\s+\\}"
     ])) as $all
-    | ( $all | of(["class\\s+(?P<CLASS>\\S+)\\s+implements\\s+HostnameVerifier\\s+\\{\\s+[\\s\\S]*?\\s+public\\s+boolean\\s+verify\\([\\s\\S]*?\\)\\s+\\{\\s+return\\s+true;\\s+\\}\\s+\\}","new\\s+HostnameVerifier\\([\\s\\S]*?\\)\\{\\s+public\\s+boolean\\s+verify\\([\\s\\S]*?\\)\\s+\\{\\s+return\\s+true;\\s+\\}\\s+\\}","import\\s+org\\.apache\\.http\\.conn\\.ssl\\.NoopHostnameVerifier;"])
+    | ( $all | of(["class\\s+(?P<CLASS>\\S+)\\s+implements\\s+HostnameVerifier\\s+\\{[\\s\\S]*?public\\s+boolean\\s+verify\\([\\s\\S]*?\\)\\s+\\{\\s+return\\s+true;\\s+\\}\\s+\\}","new\\s+HostnameVerifier\\([\\s\\S]*?\\)\\{\\s+public\\s+boolean\\s+verify\\([\\s\\S]*?\\)\\s+\\{\\s+return\\s+true;\\s+\\}\\s+\\}","import\\s+org\\.apache\\.http\\.conn\\.ssl\\.NoopHostnameVerifier;"])
         | finding("insecure-hostname-verifier";
             "Insecure HostnameVerifier implementation detected.") ) )
 | report

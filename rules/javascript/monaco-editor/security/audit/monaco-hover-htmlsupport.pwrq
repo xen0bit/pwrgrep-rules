@@ -1,24 +1,25 @@
 # rules: monaco-hover-htmlsupport
 # languages: javascript, typescript
+# fixture: javascript/monaco-hover-htmlsupport.js
 # from: javascript/monaco-editor/security/audit/monaco-hover-htmlsupport.yaml
+#
+# Repair: dead as written. The file gates fed require matches into
+# `at_same_place`, but a require span never coincides with the options
+# object, and the literal-value exclusion read its hole as any value. The
+# option objects are now selected first with file-level gates.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "\"monaco-editor\"",
-      "import \"monaco-editor\"\n$$$_",
-      "require(\"monaco-editor\")\n$$$_",
-      "{value: \"$$$_\", $$$_}",
       "{range: $R, contents: [$$$_]}",
       "{value: $VAL, isTrusted: true}",
-      "{value: $VAL, supportHtml: true}"
+      "{value: $VAL, supportHtml: true}",
+      "const $M = require('monaco-editor')",
+      "import 'monaco-editor'",
+      "require('monaco-editor')"
     ])) as $all
-    | ( ($all
-          | in_files_with($all | of(["import \"monaco-editor\"\n$$$_","\"monaco-editor\""])))
-          + ($all
-          | in_files_with($all | of(["require(\"monaco-editor\")\n$$$_","\"monaco-editor\""])))
-          | at_same_place(($all | of(["{value: $VAL, supportHtml: true}","{value: $VAL, isTrusted: true}"])))
-          | within($all | of(["{range: $R, contents: [$$$_]}"]))
-          | not_at($all | of(["{value: \"$$$_\", $$$_}"]))
+    | ( (($all | of(["{value: $VAL, supportHtml: true}","{value: $VAL, isTrusted: true}"]))
+          | within(($all | of(["{range: $R, contents: [$$$_]}"]))))
+          | in_files_with(($all | of(["require('monaco-editor')", "const $M = require('monaco-editor')", "import 'monaco-editor'"])))
         | finding("monaco-hover-htmlsupport";
             "If user input reaches `HoverProvider` while `supportHml` is set to `true` it may introduce an XSS vulnerability.") ) )
 | report

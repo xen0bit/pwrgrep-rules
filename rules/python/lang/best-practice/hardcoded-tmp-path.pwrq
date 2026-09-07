@@ -1,12 +1,19 @@
 # rules: hardcoded-tmp-path
 # languages: python
+# fixture: python/hardcoded-tmp-path.py
+#
+# The translated pattern baked a Semgrep `=~/.../` regex into the string
+# literal, where the matcher reads it as literal text, so the rule could
+# never fire. The path is now a $P hole guarded by where_capture with the
+# same `^/tmp` anchor (quote-anchored, since captures carry their quotes).
 # from: python/lang/best-practice/hardcoded-tmp-path.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.py"]; [
-      "open(\"=~/^\\/tmp.*/\", $$$_)"
+      "open($P, $$$_)"
     ])) as $all
-    | ( $all | of(["open(\"=~/^\\/tmp.*/\", $$$_)"])
+    | ( ($all | of(["open($P, $$$_)"])
+        | where_capture("P"; "^['\"]/tmp"))
         | finding("hardcoded-tmp-path";
             "Detected hardcoded temp directory.") ) )
 | report

@@ -1,18 +1,25 @@
 # rules: jwt-decode-without-verify
 # languages: javascript, typescript
+# fixture: javascript/jwt-decode-without-verify.js
 # from: javascript/jsonwebtoken/security/audit/jwt-decode-without-verify.yaml
+#
+# Repair: dead as written. `in_files_without("if ...")` dropped every file
+# containing an `if`, and bare `$X = require()` missed const/let/var, so a
+# decode beside any guarded verify never counted. The `if` gate is gone and
+# the require gate covers all declaration forms; the verify gate stays.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
       "$$$_\n$JWT.verify($TOKEN, $$$_)\n$$$_",
-      "$$$_\nif ($PWRQDEEP1) { $$$_ }\n$$$_",
       "$JWT = require('jsonwebtoken');\n$$$_",
-      "$JWT.decode($TOKEN, $$$_)"
+      "$JWT.decode($TOKEN, $$$_)",
+      "const $JWT = require('jsonwebtoken')",
+      "let $JWT = require('jsonwebtoken')",
+      "var $JWT = require('jsonwebtoken')"
     ])) as $all
     | ( $all | of(["$JWT.decode($TOKEN, $$$_)"])
-          | in_files_with($all | of(["$JWT = require('jsonwebtoken');\n$$$_"]))
+          | in_files_with(($all | of(["$JWT = require('jsonwebtoken');\n$$$_", "const $JWT = require('jsonwebtoken')", "let $JWT = require('jsonwebtoken')", "var $JWT = require('jsonwebtoken')"])))
           | in_files_without($all | of(["$$$_\n$JWT.verify($TOKEN, $$$_)\n$$$_"]))
-          | in_files_without($all | of(["$$$_\nif ($PWRQDEEP1) { $$$_ }\n$$$_"]))
         | finding("jwt-decode-without-verify";
             "Detected the decoding of a JWT token without a verify step.") ) )
 | report

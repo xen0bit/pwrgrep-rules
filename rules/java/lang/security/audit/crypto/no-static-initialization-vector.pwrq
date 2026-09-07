@@ -1,13 +1,23 @@
 # rules: no-static-initialization-vector
 # languages: java
+# fixture: java/no-static-initialization-vector.java
+#
+# The translated rule was two multi-statement scaffolds, but statement
+# sequences do not compose in Java, so neither matched. The finding is
+# a value question — a constant array reaching IvParameterSpec — asked
+# the way the corpus asks it: declarations focused onto their value
+# and kept when the value is a brace initializer, then followed to the
+# IvParameterSpec call. Field-held IVs flow the same way, which a
+# scaffold could never say.
 # from: java/lang/security/audit/crypto/no-static-initialization-vector.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.java"]; [
-      "byte[] $IV = {\n    $$$_\n};\n$$$_\nnew IvParameterSpec($IV, $$$_);",
-      "class $CLASS {\n    byte[] $IV = {\n        $$$_\n    };\n    $$$_\n    $METHOD($$$_) {\n        $$$_\n        new IvParameterSpec($IV, $$$_);\n        $$$_\n    }\n}"
+      "byte[] $IV = $V;",
+      "new IvParameterSpec($IV, $$$_)"
     ])) as $all
-    | ( $all | of(["byte[] $IV = {\n    $$$_\n};\n$$$_\nnew IvParameterSpec($IV, $$$_);","class $CLASS {\n    byte[] $IV = {\n        $$$_\n    };\n    $$$_\n    $METHOD($$$_) {\n        $$$_\n        new IvParameterSpec($IV, $$$_);\n        $$$_\n    }\n}"])
-        | finding("no-static-initialization-vector";
-            "Initialization Vectors (IVs) for block ciphers should be randomly generated each time they are used.") ) )
+    | ( ($all | of(["new IvParameterSpec($IV, $$$_)"])
+        | reaching($all | of(["byte[] $IV = $V;"]) | focus("V") | where_capture("V"; "^\\{"); [])) )
+    | finding("no-static-initialization-vector";
+        "Initialization Vectors (IVs) for block ciphers should be randomly generated each time they are used.") )
 | report

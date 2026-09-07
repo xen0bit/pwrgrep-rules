@@ -1,4 +1,7 @@
 # rules: azure-mssql-service-mintls-version
+# fixture: terraform/azure-mssql-service-mintls-version.tf
+#
+# The `minimum_tls_version\s+=\s+[\s\S]*?` container matches with an empty tail, ending at the `=`, so the `"1.0"` literal after it is never `within` it. The tail now swallows the quoted value, which is the only change.
 # from: terraform/azure/security/azure-mssql-service-mintls-version.yaml
 
 . as $root
@@ -6,10 +9,10 @@
       "\"1\\.0\"",
       "\"1\\.1\"",
       "(?P<RESOURCE>\\S+)\\s+\"azurerm_mssql_server\"\\s+\"[\\s\\S]*?\"\\s+\\{\\s+[\\s\\S]*?\\s+\\}",
-      "minimum_tls_version\\s+=\\s+[\\s\\S]*?"
+      "minimum_tls_version\\s*=\\s*\"[^\"]*\""
     ])) as $all
     | ( $all | of(["\"1\\.0\"","\"1\\.1\""])
-          | within($all | of(["minimum_tls_version\\s+=\\s+[\\s\\S]*?"]))
+          | within($all | of(["minimum_tls_version\\s*=\\s*\"[^\"]*\""]))
           | within($all | of(["(?P<RESOURCE>\\S+)\\s+\"azurerm_mssql_server\"\\s+\"[\\s\\S]*?\"\\s+\\{\\s+[\\s\\S]*?\\s+\\}"]))
         | finding("azure-mssql-service-mintls-version";
             "Ensure MSSQL is using the latest version of TLS encryption") ) )

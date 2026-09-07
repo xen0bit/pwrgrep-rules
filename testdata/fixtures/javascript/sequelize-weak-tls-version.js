@@ -39,7 +39,7 @@ const safe = new Sequelize({
   database: 'app',
   dialect: 'postgres',
   dialectOptions:
-    // ruleid: sequelize-weak-tls-version
+    // ok: sequelize-weak-tls-version
     { ssl: {
       minVersion: 'TLSv1.2'
     } }

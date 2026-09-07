@@ -1,12 +1,12 @@
 def send_index
+  # ruleid: bad-send
   m = params[:method]
-  # ruleid: bad-send
   res = obj.send(m.foo)
+  # ruleid: bad-send
   n = params[:other]
-  # ruleid: bad-send
   res2 = obj.public_send(n.bar)
-  p = params[:third]
   # ruleid: bad-send
+  p = params[:third]
   res3 = obj.try(p.baz)
 end
 

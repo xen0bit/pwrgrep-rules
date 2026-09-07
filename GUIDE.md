@@ -1761,6 +1761,25 @@ you meant. Check which case you are in by reading the capture back:
 $PWRQ -n -c '$d | [scan_ast("*.go"; [$p]) | .[] | {l: .LineNumber, t: .Captures.CMD}]'
 ```
 
+## A lazy star between two greedy whitespace runs goes long
+
+RE2 honours `*?` — `class[\s\S]*?public` stops at the first class — until
+the star is sandwiched between two greedy `\s+`:
+
+```
+class\s+\S+\s+implements\s+HostnameVerifier\s+\{\s+[\s\S]*?\s+public\s+boolean
+```
+
+Over a file with three such classes that pattern reports one finding, on
+the first class's line, spanning all three. The same file with either
+`\s+` dropped reports all three. `(?s).*?` in the same sandwich does it
+too, so it is the sandwich and not the spelling: never write
+`\s+<lazy>\s+`. The lazy star already covers whitespace, so write it bare
+— `\{[\s\S]*?public` — and let it do both jobs. A fixture with one
+vulnerable block cannot tell the two apart; this is caught only by a
+fixture with two or more, which is one more reason the second `ruleid:`
+is load-bearing.
+
 ## A fixture for a secret detector looks exactly like a secret
 
 A rule that finds a leaked credential needs a fixture with a credential-shaped

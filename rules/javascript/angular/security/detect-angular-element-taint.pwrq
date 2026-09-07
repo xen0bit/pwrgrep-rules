@@ -1,17 +1,24 @@
 # rules: detect-angular-element-taint
 # languages: javascript, typescript
+# fixture: javascript/detect-angular-element-taint.js
 # from: javascript/angular/security/detect-angular-element-taint.yaml
+#
+# Repair: dead as written. The `angular.element($$$_)...$SINK($QUERY)`
+# chain with bare middle holes never matched, and the `$http` source wrapper
+# needed a named callback. The sinks are now direct
+# `angular.element($E).$SINK($QUERY)` shapes and the `$http` wrapper accepts
+# anonymous callbacks too.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "$ANGULAR = angular.element($$$_)\n$$$_\n$ANGULAR. $$$_ .$SINK($QUERY)",
       "$RES.data",
       "$http.$METHOD($$$_).$CONTINUE(function $FUNC($RES) {$$$_})",
+      "$http.$METHOD($$$_).$CONTINUE(function ($RES) {$$$_})",
       "$location.search($$$_)",
-      "$sanitize($$$_)",
+      "sanitize($$$_)",
       "$sce.getTrustedHtml($$$_)",
       "DOMPurify.sanitize($$$_)",
-      "angular.element($$$_). $$$_ .$SINK($QUERY)",
+      "angular.element($E).$SINK($QUERY)",
       "document.location.search",
       "location.search",
       "window.document.location.search",
@@ -29,19 +36,13 @@
       "$location.url()",
       "$location.hash()"
     ])) as $all
-    | ( ((($all
-          | within($all | of(["angular.element($$$_). $$$_ .$SINK($QUERY)"])))
-          + ($all
-          | within($all | of(["$ANGULAR = angular.element($$$_)\n$$$_\n$ANGULAR. $$$_ .$SINK($QUERY)"])))
+    | ( ((($all | of(["angular.element($E).$SINK($QUERY)"]))
           | where_capture("SINK"; "^(after|append|html|prepend|replaceWith|wrap)$")
           | focus("QUERY")))
           | reaching((($all | of(["window.location.search","window.document.location.search","document.location.search","location.search","$location.search($$$_)","window.location.href","window.document.location.href","document.location.href","location.href","window.location.hash","document.location.hash","location.hash","document.URL","window.document.URL","$location.absUrl()","$location.url()","$location.hash()"]))
               + ($all | of(["$RES.data"])
-          | within($all | of(["$http.$METHOD($$$_).$CONTINUE(function $FUNC($RES) {$$$_})"]))
-          | where_capture("METHOD"; "^(get|delete|head|jsonp|post|put|patch)")));
-              (($all | of(["$sce.getTrustedHtml($$$_)","$sanitize($$$_)","DOMPurify.sanitize($$$_)"]))))
+          | within($all | of(["$http.$METHOD($$$_).$CONTINUE(function $FUNC($RES) {$$$_})","$http.$METHOD($$$_).$CONTINUE(function ($RES) {$$$_})"]))));
+              (($all | of(["$sce.getTrustedHtml($$$_)","sanitize($$$_)","DOMPurify.sanitize($$$_)"]))))
         | finding("detect-angular-element-taint";
             "Use of angular.element can lead to XSS if user-input is treated as part of the HTML element within `$SINK`.") ) )
 | report
-
-

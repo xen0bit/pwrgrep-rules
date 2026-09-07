@@ -1,56 +1,55 @@
 # rules: express-vm2-injection
-# languages: typescript
+# languages: javascript, typescript
+# fixture: javascript/express-vm2-injection.js
 # from: javascript/express/security/express-vm2-injection.yaml
+#
+# Repair: `function $$$_ (...)` matched only named declarations, route callbacks had to be named, and `at_same_place` needed exact span coincidence; wrappers now cover anon and named shapes, the `vm2` gates are file-level, and the sinks are one `$CODE` hole each. Globs cover *.js as well as *.ts.
 
 . as $root
-| ( ($root | scan_ast(["*.ts"]; [
+| ( ($root | scan_ast(["*.js","*.ts"]; [
       "$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})",
       "$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})",
+      "$APP.$METHOD($$$_, function ($REQ, $RES) {$$$_})",
+      "$APP.$METHOD($$$_, function ($REQ, $RES, $NEXT) {$$$_})",
+      "$REQ.query",
       "$REQ.body",
+      "$REQ.params",
       "$REQ.cookies",
       "$REQ.headers",
-      "$REQ.params",
-      "$REQ.query",
-      "$VM = new NodeVM($$$_)\n$$$_",
+      "$VM.run($CODE)",
+      "new VM($OPTS).run($CODE)",
+      "new NodeVM($OPTS).run($CODE)",
+      "new VMScript($CODE)",
+      "new VM($OPTS)",
+      "new NodeVM($OPTS)",
       "$VM = new VM($$$_)\n$$$_",
-      "$VM.run($$$_)",
+      "$VM = new NodeVM($$$_)\n$$$_",
+      "const $VM = new VM($$$_)",
+      "const $VM = new NodeVM($$$_)",
+      "require('vm2')\n$$$_",
+      "$V2 = require('$IMPORT')\n$$$_",
+      "const $V2 = require('$IMPORT')",
+      "let $V2 = require('$IMPORT')",
+      "var $V2 = require('$IMPORT')",
       "({ $REQ }: Request,$RES: Response) => {$$$_}",
       "({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) =>\n{$$$_}",
       "body",
       "cookies",
-      "function $$$_ ($REQ, $RES) {$$$_}",
-      "function $$$_ ($REQ, $RES, $NEXT) {$$$_}",
       "headers",
-      "new NodeVM($$$_)",
-      "new NodeVM($$$_).run($$$_)",
-      "new VM($$$_)",
-      "new VM($$$_).run($$$_)",
-      "new VMScript($$$_)",
       "params",
       "query",
-      "require('vm2')\n$$$_"
+      "function ($REQ, $RES) {$$$_}",
+      "function $FUNC($REQ, $RES) {$$$_}",
+      "function ($REQ, $RES, $NEXT) {$$$_}",
+      "function $FUNC($REQ, $RES, $NEXT) {$$$_}"
     ])) as $all
-    | ( (((($all
-          | in_files_with($all | of(["$VM = new VM($$$_)\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["$VM = new NodeVM($$$_)\n$$$_"])))
-          | at_same_place(($all | of(["$VM.run($$$_)"]))))
-          + ($all | of(["new VM($$$_).run($$$_)"]))
-          + ($all | of(["new NodeVM($$$_).run($$$_)"]))
-          + ($all | of(["new VMScript($$$_)"]))
-          + ($all | of(["new VM($$$_)"]))
-          + ($all | of(["new NodeVM($$$_)"]))
-          | in_files_with($all | of(["require('vm2')\n$$$_"]))))
-          | reaching(((($all
-          | within($all | of(["function $$$_ ($REQ, $RES) {$$$_}"])))
-          + ($all
-          | within($all | of(["function $$$_ ($REQ, $RES, $NEXT) {$$$_}"])))
-          + (($all
-          | within($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})"])))
-          + ($all
-          | within($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})"])))
-          | where_capture("METHOD"; "^(get|post|put|head|delete|options)$"))
-          | at_same_place(($all | of(["$REQ.query","$REQ.body","$REQ.params","$REQ.cookies","$REQ.headers"]))))
+    | ( (($all | of(["$VM.run($CODE)", "new VM($OPTS).run($CODE)", "new NodeVM($OPTS).run($CODE)", "new VMScript($CODE)", "new VM($OPTS)", "new NodeVM($OPTS)"])
+          | focus("CODE"))
+          | in_files_with(($all | of(["$VM = new VM($$$_)\n$$$_", "$VM = new NodeVM($$$_)\n$$$_", "const $VM = new VM($$$_)", "const $VM = new NodeVM($$$_)"])) + ($all | of(["require('vm2')\n$$$_", "$V2 = require('$IMPORT')\n$$$_", "const $V2 = require('$IMPORT')", "let $V2 = require('$IMPORT')"])) + ($all | of(["var $V2 = require('$IMPORT')"])))
+          )
+          | reaching(((($all | of(["$REQ.query", "$REQ.body", "$REQ.params", "$REQ.cookies", "$REQ.headers"]))
+          | within((($all | of(["function ($REQ, $RES) {$$$_}", "function $FUNC($REQ, $RES) {$$$_}", "function ($REQ, $RES, $NEXT) {$$$_}", "function $FUNC($REQ, $RES, $NEXT) {$$$_}"])))
+          + ((($all | of(["$REQ.query", "$REQ.body", "$REQ.params", "$REQ.cookies", "$REQ.headers"])) | within((($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})", "$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})"])) + ($all | of(["$APP.$METHOD($$$_, function ($REQ, $RES) {$$$_})", "$APP.$METHOD($$$_, function ($REQ, $RES, $NEXT) {$$$_})"])))) | where_capture("METHOD"; "^(get|post|put|head|delete|options)$")))))
               + (($all
           | within($all | of(["({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) =>\n{$$$_}"])))
           + ($all

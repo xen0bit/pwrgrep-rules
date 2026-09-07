@@ -1,4 +1,7 @@
 # rules: azure-postgresql-min-tls-version
+# fixture: terraform/azure-postgresql-min-tls-version.tf
+#
+# The `ssl_minimal_tls_version_enforced\s+=\s+[\s\S]*?` container matches with an empty tail, ending at the `=`, so the version literal after it is never `within` it. The tail now swallows the quoted value, which is the only change.
 # from: terraform/azure/security/azure-postgresql-min-tls-version.yaml
 
 . as $root
@@ -7,13 +10,13 @@
       "\"TLS1_1\"",
       "\"TLS1_2\"",
       "(?P<RESOURCE>\\S+)\\s+\"azurerm_postgresql_server\"\\s+\"[\\s\\S]*?\"\\s+\\{\\s+[\\s\\S]*?\\s+\\}",
-      "(?P<RESOURCE>\\S+)\\s+\"azurerm_postgresql_server\"\\s+\"[\\s\\S]*?\"\\s+\\{\\s+[\\s\\S]*?\\s+ssl_enforcement_enabled\\s+=\\s+true\\s+[\\s\\S]*?\\s+\\}",
-      "ssl_minimal_tls_version_enforced\\s+=\\s+[\\s\\S]*?"
+      "(?P<RESOURCE>\\S+)\\s+\"azurerm_postgresql_server\"\\s+\"[^}]*?\"\\s+\\{\\s+[^}]*?\\s+ssl_enforcement_enabled\\s+=\\s+true\\s+[^}]*?\\s+\\}",
+      "ssl_minimal_tls_version_enforced\\s*=\\s*\"[^\"]*\""
     ])) as $all
     | ( $all | of(["\"TLS1_2\"","\"TLS1_1\"","\"TLS1_0\""])
-          | within($all | of(["ssl_minimal_tls_version_enforced\\s+=\\s+[\\s\\S]*?"]))
+          | within($all | of(["ssl_minimal_tls_version_enforced\\s*=\\s*\"[^\"]*\""]))
           | within($all | of(["(?P<RESOURCE>\\S+)\\s+\"azurerm_postgresql_server\"\\s+\"[\\s\\S]*?\"\\s+\\{\\s+[\\s\\S]*?\\s+\\}"]))
-          | outside($all | of(["(?P<RESOURCE>\\S+)\\s+\"azurerm_postgresql_server\"\\s+\"[\\s\\S]*?\"\\s+\\{\\s+[\\s\\S]*?\\s+ssl_enforcement_enabled\\s+=\\s+true\\s+[\\s\\S]*?\\s+\\}"]))
+          | outside($all | of(["(?P<RESOURCE>\\S+)\\s+\"azurerm_postgresql_server\"\\s+\"[^}]*?\"\\s+\\{\\s+[^}]*?\\s+ssl_enforcement_enabled\\s+=\\s+true\\s+[^}]*?\\s+\\}"]))
         | finding("azure-postgresql-min-tls-version";
             "Ensure PostgreSQL is using the latest version of TLS encryption") ) )
 | report

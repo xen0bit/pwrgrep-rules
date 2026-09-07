@@ -1,19 +1,23 @@
 # rules: shelljs-exec-injection
 # languages: javascript, typescript
+# fixture: javascript/shelljs-exec-injection.js
 # from: javascript/shelljs/security/shelljs-exec-injection.yaml
+#
+# Repair: dead as written. `in_files_without("\"$$$\"")` dropped every file
+# containing a string literal while the gates required one, and the
+# literal-argument exclusion read its hole as any value. The exclusion now
+# keeps only fully-quoted text and the gates are file-level unions.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "\"$$$_\"",
-      "$SHELL.exec(\"$$$_\",$$$_)",
-      "$SHELL.exec($INPUT,$$$_)",
-      "require('shelljs');\n$$$_",
-      "require('shelljs');\n$$$_\nvar $INPUT = \"$$$_\";\n$$$_"
+      "$SHELL.exec($INPUT, $$$_)",
+      "const $S = require('shelljs')",
+      "require('shelljs');\n$$$"
     ])) as $all
-    | ( $all | of(["$SHELL.exec($INPUT,$$$_)"])
-          | in_files_with($all | of(["require('shelljs');\n$$$_"]))
-          | in_files_without($all | of(["require('shelljs');\n$$$_\nvar $INPUT = \"$$$_\";\n$$$_","\"$$$_\""]))
-          | not_at($all | of(["$SHELL.exec(\"$$$_\",$$$_)"]))
+    | ( ($all | of(["$SHELL.exec($INPUT, $$$_)"])
+          | not_at(($all | of(["$SHELL.exec($INPUT, $$$_)"]) | where_capture("INPUT"; "^[\"'].*[\"']$")))
+          | focus("INPUT"))
+          | in_files_with(($all | of(["require('shelljs');\n$$$", "const $S = require('shelljs')"])))
         | finding("shelljs-exec-injection";
             "If unverified user data can reach the `exec` method it can result in Remote Code Execution") ) )
 | report

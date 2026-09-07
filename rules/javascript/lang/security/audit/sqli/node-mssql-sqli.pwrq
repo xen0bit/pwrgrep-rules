@@ -1,26 +1,28 @@
 # rules: node-mssql-sqli
 # languages: javascript, typescript
+# fixture: javascript/node-mssql-sqli.js
 # from: javascript/lang/security/audit/sqli/node-mssql-sqli.yaml
+#
+# Repair: the file gates fed require matches into `at_same_place`, so no sink ever counted, and the `function $$$` wrappers never matched. Sinks are selected first with file-level gates and sources cover anon/named declarations and arrows.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "$REQ = $POOL.request($$$_)\n$$$_",
-      "$REQ.query($QUERY,$$$_)",
-      "function $$$_ ($$$_,$FUNC,$$$_) {\n  $$$_\n}",
+      "$R = $POOL.request($$$_)",
+      "$R.query($QUERY, $$$_)",
+      "($$$_, $FUNC, $$$_) => {$$$_}",
+      "($FUNC) => {$$$_}",
+      "function $F($$$_, $FUNC, $$$_) {$$$_}",
+      "function ($$$_, $FUNC, $$$_) {$$$_}",
       "import 'mssql';\n$$$_",
       "require('mssql');\n$$$_"
     ])) as $all
-    | ( ((($all
-          | in_files_with($all | of(["require('mssql');\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["import 'mssql';\n$$$_"])))
-          | at_same_place(($all | of(["$REQ.query($QUERY,$$$_)"])))
-          | in_files_with($all | of(["$REQ = $POOL.request($$$_)\n$$$_"]))
-          | focus("QUERY")))
-          | reaching((($all
-          | within($all | of(["function $$$_ ($$$_,$FUNC,$$$_) {\n  $$$_\n}"]))
+    | ( (($all | of(["$R.query($QUERY, $$$_)"])
+          | focus("QUERY"))
+          | in_files_with(($all | of(["require('mssql');\n$$$_", "import 'mssql';\n$$$_"])) + ($all | of(["$R = $POOL.request($$$_)"])))
+          | reaching(((($all | of(["function ($$$_, $FUNC, $$$_) {$$$_}", "function $F($$$_, $FUNC, $$$_) {$$$_}"]))
+          + ($all | of(["($FUNC) => {$$$_}", "($$$_, $FUNC, $$$_) => {$$$_}"]))
           | focus("FUNC")));
-              ([]))
+              ([])))
         | finding("node-mssql-sqli";
             "Detected string concatenation with a non-literal variable in a `mssql` JS SQL statement.") ) )
 | report

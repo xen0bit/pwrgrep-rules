@@ -1,26 +1,30 @@
 # rules: detect-non-literal-regexp
 # languages: javascript, typescript
+# fixture: javascript/detect-non-literal-regexp.js
 # from: javascript/lang/security/audit/detect-non-literal-regexp.yaml
+#
+# Repair: dead as written. The `function $$$_ (...)` wrapper never matched,
+# so no source ever counted, and the literal-argument exclusions
+# `RegExp("$$$", $$$)` read their holes as any value and subtracted every
+# call. Sources now cover anon/named declarations and arrows, and the
+# exclusion keeps only quoted or slash-led text.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "RegExp(\"$$$_\", $$$_)",
+      "($$$_, $ARG, $$$_) => {$$$_}",
+      "($ARG) => {$$$_}",
       "RegExp($ARG, $$$_)",
-      "RegExp(/$$$_/, $$$_)",
-      "function $$$_ ($$$_,$ARG,$$$_) {$$$_}",
-      "new RegExp(\"$$$_\", $$$_)",
-      "new RegExp($ARG, $$$_)",
-      "new RegExp(/$$$_/, $$$_)"
+      "function ($$$_, $ARG, $$$_) {$$$_}",
+      "function $FUNC($$$_, $ARG, $$$_) {$$$_}",
+      "new RegExp($ARG, $$$_)"
     ])) as $all
     | ( (($all | of(["new RegExp($ARG, $$$_)","RegExp($ARG, $$$_)"])
-          | not_at($all | of(["RegExp(\"$$$_\", $$$_)"]))
-          | not_at($all | of(["new RegExp(\"$$$_\", $$$_)"]))
-          | not_at($all | of(["RegExp(/$$$_/, $$$_)"]))
-          | not_at($all | of(["new RegExp(/$$$_/, $$$_)"]))))
-          | reaching((($all
-          | within($all | of(["function $$$_ ($$$_,$ARG,$$$_) {$$$_}"]))
+          | not_at(($all | of(["new RegExp($ARG, $$$_)","RegExp($ARG, $$$_)"]) | where_capture("ARG"; "^[\"'/].*[\"'/]$")))
+          | focus("ARG")))
+          | reaching(((($all | of(["function ($$$_, $ARG, $$$_) {$$$_}","function $FUNC($$$_, $ARG, $$$_) {$$$_}"]))
+          + ($all | of(["($ARG) => {$$$_}","($$$_, $ARG, $$$_) => {$$$_}"]))
           | focus("ARG")));
               ([]))
         | finding("detect-non-literal-regexp";
-            "RegExp() called with a `$ARG` function argument, this might allow an attacker to cause a Regular Expression Denial-of-Service (ReDoS) within your application as RegExP blocks the main thread.") ) )
+            "RegExp() called with a non-literal pattern, this might allow an attacker to cause a Regular Expression Denial-of-Service (ReDoS) within your application as RegExP blocks the main thread.") ) )
 | report

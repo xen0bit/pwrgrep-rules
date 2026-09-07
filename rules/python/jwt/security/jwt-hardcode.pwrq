@@ -1,15 +1,22 @@
 # rules: jwt-python-hardcoded-secret
 # languages: python
+# fixture: python/jwt-hardcode.py
+#
+# The translated rule required the `jwt.encode(...)` call at the exact
+# span of a `"$$$"` string match, and `"$$$"` only ever matches an empty
+# string, so the conjunction was empty on any real secret. The literal
+# test is now a where_capture on $SECRET itself (captures carry their
+# quotes), and focus("SECRET") puts the finding on the secret — the
+# focus-based span the original `focus-metavariable: $SECRET` asked for.
 # from: python/jwt/security/jwt-hardcode.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.py"]; [
-      "\"$$$_\"",
       "jwt.encode($X, $SECRET, $$$_)"
     ])) as $all
-    | ( $all | of(["jwt.encode($X, $SECRET, $$$_)"])
-          | at_same_place(($all | of(["\"$$$_\""])))
-          | focus("SECRET")
+    | ( ($all | of(["jwt.encode($X, $SECRET, $$$_)"])
+          | where_capture("SECRET"; "^['\"]")
+          | focus("SECRET"))
         | finding("jwt-python-hardcoded-secret";
             "Hardcoded JWT secret or private key is used.") ) )
 | report

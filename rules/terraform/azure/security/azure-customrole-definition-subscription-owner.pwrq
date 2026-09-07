@@ -1,15 +1,17 @@
 # rules: azure-customrole-definition-subscription-owner
+# fixture: terraform/azure-customrole-definition-subscription-owner.tf
+#
+# The `actions\s+=\s+[\s\S]*?` container matches with an empty tail, ending at the `=`, so the `["*"]` literal after it is never `within` it. The tail now swallows the bracketed list into a (?P<V>...) capture kept by guard, so multi-action lists match too; the exact-literal alternative is dropped. The role container also tolerates attributes around the permissions block ([^}]*? gaps), since attribute order is free.
 # from: terraform/azure/security/azure-customrole-definition-subscription-owner.yaml
 
 . as $root
 | ( ($root | scan_regex(["*.tf"]; [
-      "\\[\"\\*\"\\]",
-      "actions\\s+=\\s+[\\s\\S]*?",
-      "resource\\s+\"azurerm_role_definition\"\\s+\"[\\s\\S]*?\"\\s+\\{\\s+permissions\\s+\\{\\s+[\\s\\S]*?\\s+\\}\\s+\\}"
+      "resource\\s+\"azurerm_role_definition\"\\s+\"[\\s\\S]*?\"\\s+\\{\\s+[^}]*?permissions\\s+\\{[^}]*?\\}\\s*[^}]*?\\}",
+      "actions\\s*=\\s*(?P<V>\\[[^\\]]*\\])"
     ])) as $all
-    | ( $all | of(["\\[\"\\*\"\\]"])
-          | within($all | of(["resource\\s+\"azurerm_role_definition\"\\s+\"[\\s\\S]*?\"\\s+\\{\\s+permissions\\s+\\{\\s+[\\s\\S]*?\\s+\\}\\s+\\}"]))
-          | within($all | of(["actions\\s+=\\s+[\\s\\S]*?"]))
+    | ( $all | of(["actions\\s*=\\s*(?P<V>\\[[^\\]]*\\])"])
+          | where_capture("V"; "\\\"\\*\\\"")
+          | within($all | of(["resource\\s+\"azurerm_role_definition\"\\s+\"[\\s\\S]*?\"\\s+\\{\\s+[^}]*?permissions\\s+\\{[^}]*?\\}\\s*[^}]*?\\}"]))
         | finding("azure-customrole-definition-subscription-owner";
             "Ensure that no custom subscription owner roles are created") ) )
 | report

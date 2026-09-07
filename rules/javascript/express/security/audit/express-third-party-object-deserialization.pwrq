@@ -1,60 +1,59 @@
 # rules: express-third-party-object-deserialization
-# languages: typescript
+# languages: javascript, typescript
+# fixture: javascript/express-third-party-object-deserialization.js
 # from: javascript/express/security/audit/express-third-party-object-deserialization.yaml
+#
+# Repair: `function $$$_ (...)` matched only named declarations, route callbacks had to be named, `at_same_place` needed exact span coincidence, `within(import...)` confined the sink to the import span, and bare `$X = require()` missed const/let/var; wrappers now cover anon and named shapes, gates are file-level with const/let/var require variants, and the sink is one `$DATA` hole. Globs cover *.js as well as *.ts.
 
 . as $root
-| ( ($root | scan_ast(["*.ts"]; [
+| ( ($root | scan_ast(["*.js","*.ts"]; [
       "$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})",
       "$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})",
+      "$APP.$METHOD($$$_, function ($REQ, $RES) {$$$_})",
+      "$APP.$METHOD($$$_, function ($REQ, $RES, $NEXT) {$$$_})",
+      "$REQ.query",
       "$REQ.body",
+      "$REQ.params",
       "$REQ.cookies",
+      "$REQ.headers",
       "$REQ.files.$ANYTHING.data.toString('utf8')",
       "$REQ.files.$ANYTHING['data'].toString('utf8')",
-      "$REQ.headers",
-      "$REQ.params",
-      "$REQ.query",
+      "$SER.unserialize($DATA)",
+      "$SER.deserialize($DATA)",
+      "$REQ.files.$ANYTHING.data.toString('utf8')",
+      "$REQ.files.$ANYTHING['data'].toString('utf8')",
       "$SER = require('$IMPORT')\n$$$_",
-      "$SER.$FUNC($$$_)",
+      "const $SER = require('$IMPORT')",
+      "let $SER = require('$IMPORT')",
+      "var $SER = require('$IMPORT')",
+      "import $SER from '$IMPORT'\n$$$_",
+      "import * as $SER from '$IMPORT'\n$$$_",
       "({ $REQ }: Request,$RES: Response) => {$$$_}",
       "({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) =>\n{$$$_}",
       "body",
       "cookies",
-      "files.$ANYTHING.data.toString('utf8')",
-      "files.$ANYTHING['data'].toString('utf8')",
-      "function $$$_ ($REQ, $RES) {$$$_}",
-      "function $$$_ ($REQ, $RES, $NEXT) {$$$_}",
       "headers",
-      "import $SER from '$IMPORT'\n $$$_",
-      "import * as $SER from '$IMPORT'\n$$$_",
       "params",
-      "query"
+      "query",
+      "function ($REQ, $RES) {$$$_}",
+      "function $FUNC($REQ, $RES) {$$$_}",
+      "function ($REQ, $RES, $NEXT) {$$$_}",
+      "function $FUNC($REQ, $RES, $NEXT) {$$$_}"
     ])) as $all
-    | ( (((($all
-          | in_files_with($all | of(["$SER = require('$IMPORT')\n$$$_"])))
-          + ($all
-          | within($all | of(["import $SER from '$IMPORT'\n $$$_"])))
-          + ($all
-          | in_files_with($all | of(["import * as $SER from '$IMPORT'\n$$$_"])))
-          | at_same_place(($all | of(["$SER.$FUNC($$$_)"])))
-          | where_capture("IMPORT"; "^(node-serialize|serialize-to-js)$")
-          | where_capture("FUNC"; "^(unserialize|deserialize)$"))))
-          | reaching(((($all
-          | within($all | of(["function $$$_ ($REQ, $RES) {$$$_}"])))
-          + ($all
-          | within($all | of(["function $$$_ ($REQ, $RES, $NEXT) {$$$_}"])))
-          + (($all
-          | within($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})"])))
-          + ($all
-          | within($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})"])))
-          | where_capture("METHOD"; "^(get|post|put|head|delete|options)$"))
-          | at_same_place(($all | of(["$REQ.query","$REQ.body","$REQ.params","$REQ.cookies","$REQ.headers","$REQ.files.$ANYTHING.data.toString('utf8')","$REQ.files.$ANYTHING['data'].toString('utf8')"]))))
+    | ( (($all | of(["$SER.unserialize($DATA)", "$SER.deserialize($DATA)"])
+          | focus("DATA"))
+          | in_files_with((($all | of(["$SER = require('$IMPORT')\n$$$_", "const $SER = require('$IMPORT')", "let $SER = require('$IMPORT')", "var $SER = require('$IMPORT')"]) | where_capture("IMPORT"; "^(node-serialize|serialize-to-js)$"))) + (($all | of(["import $SER from '$IMPORT'\n$$$_", "import * as $SER from '$IMPORT'\n$$$_"]) | where_capture("IMPORT"; "^(node-serialize|serialize-to-js)$"))))
+          )
+          | reaching(((($all | of(["$REQ.query", "$REQ.body", "$REQ.params", "$REQ.cookies", "$REQ.headers", "$REQ.files.$ANYTHING.data.toString('utf8')", "$REQ.files.$ANYTHING['data'].toString('utf8')"]))
+          | within((($all | of(["function ($REQ, $RES) {$$$_}", "function $FUNC($REQ, $RES) {$$$_}", "function ($REQ, $RES, $NEXT) {$$$_}", "function $FUNC($REQ, $RES, $NEXT) {$$$_}"])))
+          + ((($all | of(["$REQ.query", "$REQ.body", "$REQ.params", "$REQ.cookies", "$REQ.headers", "$REQ.files.$ANYTHING.data.toString('utf8')", "$REQ.files.$ANYTHING['data'].toString('utf8')"])) | within((($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})", "$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})"])) + ($all | of(["$APP.$METHOD($$$_, function ($REQ, $RES) {$$$_})", "$APP.$METHOD($$$_, function ($REQ, $RES, $NEXT) {$$$_})"])))) | where_capture("METHOD"; "^(get|post|put|head|delete|options)$")))))
               + (($all
           | within($all | of(["({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) =>\n{$$$_}"])))
           + ($all
           | within($all | of(["({ $REQ }: Request,$RES: Response) => {$$$_}"])))
-          | at_same_place(($all | of(["params","query","cookies","headers","body","files.$ANYTHING.data.toString('utf8')","files.$ANYTHING['data'].toString('utf8')"])))
+          | at_same_place(($all | of(["params","query","cookies","headers","body"])))
           | focus("REQ")));
               ([]))
         | finding("express-third-party-object-deserialization";
-            "The following function call $SER.$FUNC accepts user controlled data which can result in Remote Code Execution (RCE) through Object Deserialization.") ) )
+            "The following function call accepts user controlled data which can result in Remote Code Execution (RCE) through Object Deserialization.") ) )
 | report

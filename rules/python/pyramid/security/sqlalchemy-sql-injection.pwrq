@@ -1,6 +1,6 @@
 # rules: pyramid-sqlalchemy-sql-injection
 # languages: python
-# fixture: python/sqlalchemy-sql-injection.py
+# fixture: python/pyramid-sqlalchemy-sql-injection.py
 # from: python/pyramid/security/sqlalchemy-sql-injection.yaml
 
 . as $root

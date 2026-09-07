@@ -1,14 +1,22 @@
 # rules: filter-skipping
 # languages: ruby
+# fixture: ruby/filter-skipping.rb
+#
+# The translated patterns baked a Semgrep `=~/.../` regex into the
+# string literal, where the matcher reads it as literal text, so both
+# alternatives were empty. The route argument is now a $ARG hole kept
+# by guard for the `/:action` marker the original regex demanded, and
+# the two-argument (constrained) spelling stays excluded.
 # from: ruby/lang/security/filter-skipping.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.rb"]; [
-      "$CALL \"=~/.*(/:action.*).*/\"",
-      "$CALL \"=~/.*(/:action.*).*/\", $ACTION"
+      "$CALL $ARG",
+      "$CALL $ARG, $ACTION"
     ])) as $all
-    | ( $all | of(["$CALL \"=~/.*(/:action.*).*/\""])
-          | not_at($all | of(["$CALL \"=~/.*(/:action.*).*/\", $ACTION"]))
+    | ( $all | of(["$CALL $ARG"])
+          | where_capture("ARG"; "/:action")
+          | not_at($all | of(["$CALL $ARG, $ACTION"]))
         | finding("filter-skipping";
             "Checks for use of action in Ruby routes.") ) )
 | report

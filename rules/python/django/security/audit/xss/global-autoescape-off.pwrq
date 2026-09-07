@@ -1,13 +1,21 @@
 # rules: global-autoescape-off
+# fixture: python/global-autoescape-off.py
+#
+# The translated rule wrapped the whole TEMPLATES block in one giant
+# regex demanding commas before 'BACKEND' and 'autoescape' (so neither
+# key may stand first, as they usually do) and then asked
+# where_capture_ast — a structural test — of a regex capture in a rule
+# with no language at all. The question is one pair,
+# `'autoescape': False`, asked with a where_capture for the False
+# spelling; the finding lands on the pair itself.
 # from: python/django/security/audit/xss/global-autoescape-off.yaml
 
 . as $root
 | ( ($root | scan_regex(["*.py"]; [
-      "\\{[\\s\\S]*?,\\s+'BACKEND':\\s+[\\s\\S]*?,\\s+'OPTIONS':\\s+\\{[\\s\\S]*?,\\s+'autoescape':\\s+(?P<FALSE>\\S+),\\s+[\\s\\S]*?\\},\\s+[\\s\\S]*?\\}"
+      "'autoescape'\\s*:\\s*(?P<V>\\S+)"
     ])) as $all
-    | ( $all | of(["\\{[\\s\\S]*?,\\s+'BACKEND':\\s+[\\s\\S]*?,\\s+'OPTIONS':\\s+\\{[\\s\\S]*?,\\s+'autoescape':\\s+(?P<FALSE>\\S+),\\s+[\\s\\S]*?\\},\\s+[\\s\\S]*?\\}"])
-          | where_capture_ast("FALSE"; "False")
-          | focus("FALSE")
+    | ( ($all | of(["'autoescape'\\s*:\\s*(?P<V>\\S+)"])
+        | where_capture("V"; "^False\\b"))
         | finding("global-autoescape-off";
             "Autoescape is globally disbaled for this Django application.") ) )
 | report

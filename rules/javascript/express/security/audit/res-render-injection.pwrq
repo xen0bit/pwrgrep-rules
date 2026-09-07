@@ -1,39 +1,41 @@
 # rules: res-render-injection
-# languages: typescript
+# languages: javascript, typescript
+# fixture: javascript/res-render-injection.js
 # from: javascript/express/security/audit/res-render-injection.yaml
+#
+# Repair: `function $$$_ (...)` matched only named declarations, route callbacks had to be named, `at_same_place` needed exact span coincidence, and the overlapping sink spellings suppressed each other in one scan; wrappers now cover anon and named shapes, gates use `reaching`, and the sink is one `$VIEW` hole over the one- and two-argument shapes. Globs cover *.js as well as *.ts.
 
 . as $root
-| ( ($root | scan_ast(["*.ts"]; [
+| ( ($root | scan_ast(["*.js","*.ts"]; [
       "$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})",
       "$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})",
+      "$APP.$METHOD($$$_, function ($REQ, $RES) {$$$_})",
+      "$APP.$METHOD($$$_, function ($REQ, $RES, $NEXT) {$$$_})",
+      "$REQ.query",
       "$REQ.body",
+      "$REQ.params",
       "$REQ.cookies",
       "$REQ.headers",
-      "$REQ.params",
-      "$REQ.query",
-      "$RES.render($SINK, $$$_)",
+      "$RES.render($VIEW)",
+      "$RES.render($VIEW, $OPTS)",
       "({ $REQ }: Request,$RES: Response) => {$$$_}",
       "({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) =>\n{$$$_}",
       "body",
       "cookies",
-      "function $$$_ ($REQ, $RES) {$$$_}",
-      "function $$$_ ($REQ, $RES, $NEXT) {$$$_}",
       "headers",
       "params",
-      "query"
+      "query",
+      "function ($REQ, $RES) {$$$_}",
+      "function $FUNC($REQ, $RES) {$$$_}",
+      "function ($REQ, $RES, $NEXT) {$$$_}",
+      "function $FUNC($REQ, $RES, $NEXT) {$$$_}"
     ])) as $all
-    | ( (($all | of(["$RES.render($SINK, $$$_)"])
-          | focus("SINK")))
-          | reaching(((($all
-          | within($all | of(["function $$$_ ($REQ, $RES) {$$$_}"])))
-          + ($all
-          | within($all | of(["function $$$_ ($REQ, $RES, $NEXT) {$$$_}"])))
-          + (($all
-          | within($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})"])))
-          + ($all
-          | within($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})"])))
-          | where_capture("METHOD"; "^(get|post|put|head|delete|options)$"))
-          | at_same_place(($all | of(["$REQ.query","$REQ.body","$REQ.params","$REQ.cookies","$REQ.headers"]))))
+    | ( (($all | of(["$RES.render($VIEW)", "$RES.render($VIEW, $OPTS)"])
+          | focus("VIEW"))
+          )
+          | reaching(((($all | of(["$REQ.query", "$REQ.body", "$REQ.params", "$REQ.cookies", "$REQ.headers"]))
+          | within((($all | of(["function ($REQ, $RES) {$$$_}", "function $FUNC($REQ, $RES) {$$$_}", "function ($REQ, $RES, $NEXT) {$$$_}", "function $FUNC($REQ, $RES, $NEXT) {$$$_}"])))
+          + ((($all | of(["$REQ.query", "$REQ.body", "$REQ.params", "$REQ.cookies", "$REQ.headers"])) | within((($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})", "$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})"])) + ($all | of(["$APP.$METHOD($$$_, function ($REQ, $RES) {$$$_})", "$APP.$METHOD($$$_, function ($REQ, $RES, $NEXT) {$$$_})"])))) | where_capture("METHOD"; "^(get|post|put|head|delete|options)$")))))
               + (($all
           | within($all | of(["({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) =>\n{$$$_}"])))
           + ($all
@@ -42,5 +44,5 @@
           | focus("REQ")));
               ([]))
         | finding("res-render-injection";
-            "User controllable data `$REQ` enters `$RES.render(...)` this can lead to the loading of other HTML/templating pages that they may not be authorized to render.") ) )
+            "User controllable data enters `res.render(...)` this can lead to the loading of other HTML/templating pages that they may not be authorized to render.") ) )
 | report

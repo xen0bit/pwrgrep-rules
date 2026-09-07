@@ -1,17 +1,23 @@
 # rules: remote-property-injection
-# languages: typescript
+# languages: javascript, typescript
+# fixture: javascript/remote-property-injection.js
 # from: javascript/express/security/audit/remote-property-injection.yaml
+#
+# Repair: dead as written. The `$INDEX` lone hole matched everything while
+# `$OBJ[$$$] = $$$` with bare holes never matched, and `at_same_place`
+# needed exact span coincidence. The sink is now `$OBJ[$KEY] = $VAL` focused
+# on the key with static-literal exclusions, and sources are taken `within`
+# fixed handler wrappers. Globs cover *.js as well as *.ts.
 
 . as $root
-| ( ($root | scan_ast(["*.ts"]; [
-      "\"$$$_\" + $INDEX",
+| ( ($root | scan_ast(["*.js","*.ts"]; [
       "$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})",
       "$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})",
-      "$INDEX",
-      "$INDEX + \"$$$_\"",
-      "$OBJ[\"$$$_\"] = $$$_",
-      "$OBJ[$$$_] = \"$$$_\"",
-      "$OBJ[$$$_] = $$$_",
+      "$APP.$METHOD($$$_, function ($REQ, $RES) {$$$_})",
+      "$APP.$METHOD($$$_, function ($REQ, $RES, $NEXT) {$$$_})",
+      "$OBJ[$KEY] = $VAL",
+      "$OBJ[\"$LIT\"] = $VAL",
+      "$OBJ[$KEY] = \"$LIT\"",
       "$REQ.body",
       "$REQ.cookies",
       "$REQ.headers",
@@ -21,30 +27,26 @@
       "({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) =>\n{$$$_}",
       "body",
       "cookies",
-      "function $$$_ ($REQ, $RES) {$$$_}",
-      "function $$$_ ($REQ, $RES, $NEXT) {$$$_}",
+      "function ($REQ, $RES) {$$$_}",
+      "function $FUNC($REQ, $RES) {$$$_}",
+      "function ($REQ, $RES, $NEXT) {$$$_}",
+      "function $FUNC($REQ, $RES, $NEXT) {$$$_}",
       "headers",
       "params",
       "query",
       "var $X = $$$_",
       "var $X = $REQ.$ANY"
     ])) as $all
-    | ( (($all | of(["$INDEX"])
-          | within($all | of(["$OBJ[$$$_] = $$$_"]))
-          | outside($all | of(["$OBJ[\"$$$_\"] = $$$_"]))
-          | outside($all | of(["$OBJ[$$$_] = \"$$$_\""]))
-          | not_at($all | of(["\"$$$_\" + $INDEX"]))
-          | not_at($all | of(["$INDEX + \"$$$_\""]))))
-          | reaching(((($all
-          | within($all | of(["function $$$_ ($REQ, $RES) {$$$_}"])))
-          + ($all
-          | within($all | of(["function $$$_ ($REQ, $RES, $NEXT) {$$$_}"])))
-          + (($all
-          | within($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})"])))
-          + ($all
-          | within($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})"])))
-          | where_capture("METHOD"; "^(get|post|put|head|delete|options)$"))
-          | at_same_place(($all | of(["$REQ.query","$REQ.body","$REQ.params","$REQ.cookies","$REQ.headers"]))))
+    | ( (($all | of(["$OBJ[$KEY] = $VAL"])
+          | outside($all | of(["$OBJ[\"$LIT\"] = $VAL"]))
+          | outside($all | of(["$OBJ[$KEY] = \"$LIT\""]))
+          | focus("KEY")))
+          | reaching(((($all | of(["$REQ.query","$REQ.body","$REQ.params","$REQ.cookies","$REQ.headers"]))
+          | within((($all | of(["function ($REQ, $RES) {$$$_}","function $FUNC($REQ, $RES) {$$$_}"]))
+          + ($all | of(["function ($REQ, $RES, $NEXT) {$$$_}","function $FUNC($REQ, $RES, $NEXT) {$$$_}"]))
+          + ((($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES) {$$$_})","$APP.$METHOD($$$_, function ($REQ, $RES) {$$$_})"]))
+          + ($all | of(["$APP.$METHOD($$$_, function $FUNC($REQ, $RES, $NEXT) {$$$_})","$APP.$METHOD($$$_, function ($REQ, $RES, $NEXT) {$$$_})"])))
+          | where_capture("METHOD"; "^(get|post|put|head|delete|options)$")))))
               + (($all
           | within($all | of(["({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) =>\n{$$$_}"])))
           + ($all

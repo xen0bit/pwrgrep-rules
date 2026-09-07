@@ -1,29 +1,30 @@
 # rules: detect-angular-element-methods
 # languages: javascript, typescript
+# fixture: javascript/detect-angular-element-methods.js
 # from: javascript/angular/security/detect-angular-element-methods.yaml
+#
+# Repair: dead as written. The `angular.element($$$_)...$SINK($QUERY)`
+# chain with bare middle holes never matched, so no sink ever counted. The
+# sinks are now direct `angular.element($E).$SINK($QUERY)` shapes with the
+# method filtered by `where_capture`.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "$ANGULAR = angular.element($$$_)\n$$$_\n$ANGULAR. $$$_ .$SINK($QUERY)",
       "$injector.get('$rootScope')",
       "$injector.get('$scope')",
       "$rootScope",
-      "$sanitize($$$_)",
+      "sanitize($$$_)",
       "$sce.getTrustedHtml($$$_)",
       "DOMPurify.sanitize($$$_)",
-      "angular.element($$$_). $$$_ .$SINK($QUERY)",
+      "angular.element($E).$SINK($QUERY)",
       "function($$$_, $SCOPE, $$$_) { $$$_ }"
     ])) as $all
-    | ( ((($all
-          | within($all | of(["angular.element($$$_). $$$_ .$SINK($QUERY)"])))
-          + ($all
-          | within($all | of(["$ANGULAR = angular.element($$$_)\n$$$_\n$ANGULAR. $$$_ .$SINK($QUERY)"])))
+    | ( ((($all | of(["angular.element($E).$SINK($QUERY)"]))
           | where_capture("SINK"; "^(after|append|html|prepend|replaceWith|wrap)$")
+          | not_at(($all | of(["angular.element($E).$SINK($QUERY)"]) | where_capture("QUERY"; "^[\"'].*[\"']$")))
           | focus("QUERY")))
           | reaching((($all | of(["$rootScope","$scope","$injector.get('$rootScope')","$injector.get('$scope')"])));
-              (($all | of(["$sce.getTrustedHtml($$$_)","$sanitize($$$_)","DOMPurify.sanitize($$$_)"]))))
+              (($all | of(["$sce.getTrustedHtml($$$_)","sanitize($$$_)","DOMPurify.sanitize($$$_)"]))))
         | finding("detect-angular-element-methods";
             "Use of angular.element can lead to XSS if user-input is treated as part of the HTML element within `$SINK`.") ) )
 | report
-
-

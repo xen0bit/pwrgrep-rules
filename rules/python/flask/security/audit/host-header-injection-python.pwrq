@@ -1,23 +1,27 @@
 # rules: host-header-injection-python
 # languages: python
+# fixture: python/host-header-injection-python.py
+#
+# The translated rule guarded four `where_capture_ast` legs whose inner
+# patterns embed a Semgrep `=~/.../` regex as literal text, so no hole
+# ever satisfied them. The four legs are one question — is a value built
+# from `flask.request.host` — asked the way the corpus asks it: every
+# assignment focused onto its right-hand side, kept when the host value
+# reaches it, inside a route handler. The `def` takes no parameters in
+# the original; `($$$_)` covers that and more.
 # from: python/flask/security/audit/host-header-injection-python.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.py"]; [
-      "$X = $PWRQDEEP1;",
-      "$Z = flask.request.host;\n$$$_\n$X = $PWRQDEEP1;",
-      "$Z = flask.request[\"host\"];\n$$$_\n$X = $PWRQDEEP1;",
-      "@$APP.route($ROUTE, $$$_)\ndef $FUNC():\n  $$$_"
+      "flask.request.host",
+      "flask.request[\"host\"]",
+      "$X = $R",
+      "@$APP.route($ROUTE)\ndef $FUNC($$$_):\n  $$$_BODY"
     ])) as $all
-    | ( ($all | of(["$X = $PWRQDEEP1;"])
-          | where_capture_ast("PWRQDEEP1"; "\"=~/.*http[s]*:///\" + flask.request.host"))
-          + ($all | of(["$X = $PWRQDEEP1;"])
-          | where_capture_ast("PWRQDEEP1"; "\"=~/.*http[s]*:///\" + flask.request[\"host\"]"))
-          + ($all | of(["$Z = flask.request.host;\n$$$_\n$X = $PWRQDEEP1;"])
-          | where_capture_ast("PWRQDEEP1"; "\"=~/.*http[s]*:///\" + $Z"))
-          + ($all | of(["$Z = flask.request[\"host\"];\n$$$_\n$X = $PWRQDEEP1;"])
-          | where_capture_ast("PWRQDEEP1"; "\"=~/.*http[s]*:///\" + $Z"))
-          | within($all | of(["@$APP.route($ROUTE, $$$_)\ndef $FUNC():\n  $$$_"]))
-        | finding("host-header-injection-python";
-            "The `flask.request.host` is used to construct an HTTP request.") ) )
+    | ( ($all | of(["$X = $R"])
+        | focus("R")
+        | reaching($all | of(["flask.request.host", "flask.request[\"host\"]"]); [])
+        | within($all | of(["@$APP.route($ROUTE)\ndef $FUNC($$$_):\n  $$$_BODY"]))) )
+    | finding("host-header-injection-python";
+        "The `flask.request.host` is used to construct an HTTP request.") )
 | report

@@ -1,13 +1,24 @@
 # rules: no-auth-over-http
 # languages: python
+# fixture: python/no-auth-over-http.py
+#
+# The translated patterns baked a Semgrep `=~/.../` regex into the string
+# literal, where the matcher reads it as literal text, so the rule could
+# never fire. The URL is now a hole guarded by where_capture for the
+# `http://` scheme. A trailing `, $$$` after the `auth=` keyword never
+# matches either, so the call is written with `auth=$X` last — the
+# assigned-URL leg keeps the gap form, which does match across statements.
 # from: python/requests/security/no-auth-over-http.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.py"]; [
-      "$URL = \"=~/http:\\/\\/$$$_/\"\n$$$_\nrequests.$W($URL, $$$_, auth=$X, $$$_)",
-      "requests.$W(\"=~/http:\\/\\/.*/\", $$$_, auth=$X, $$$_)"
+      "requests.$W($U, $$$_, auth=$X)",
+      "$URL = $P\n$$$_\nrequests.$W($URL, $$$_, auth=$X)",
+      "$URL = $P\n$$$_\nreturn requests.$W($URL, $$$_, auth=$X)"
     ])) as $all
-    | ( $all | of(["requests.$W(\"=~/http:\\/\\/.*/\", $$$_, auth=$X, $$$_)","$URL = \"=~/http:\\/\\/$$$_/\"\n$$$_\nrequests.$W($URL, $$$_, auth=$X, $$$_)"])
-        | finding("no-auth-over-http";
-            "Authentication detected over HTTP.") ) )
+    | ( ($all | of(["requests.$W($U, $$$_, auth=$X)"]) | where_capture("U"; "[Hh][Tt][Tt][Pp]://"))
+        + ($all | of(["$URL = $P\n$$$_\nrequests.$W($URL, $$$_, auth=$X)", "$URL = $P\n$$$_\nreturn requests.$W($URL, $$$_, auth=$X)"]) | where_capture("P"; "[Hh][Tt][Tt][Pp]://")) )
+    | finding("no-auth-over-http";
+        "Authentication detected over HTTP.") )
+| report
 | report

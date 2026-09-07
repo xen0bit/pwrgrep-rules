@@ -1,16 +1,20 @@
 # rules: var-in-script-tag
 # from: javascript/express/security/audit/xss/pug/var-in-script-tag.yaml
+# fixture: javascript/var-in-script-tag-pug.js
+#
+# Repair: the `=` needed trailing whitespace tolerance that spaced Pug
+# output always has; added.
 
 . as $root
 | ( ($root | scan_regex(["*.pug"]; [
       "script\\(.*?\\)\\s*=\\s*.*[\"']\\s*\\+.*",
       "script\\(.*?\\)\\s*=\\s*[A-Za-z0-9]+",
       "script\\(.*?\\)\\s*=\\s*[^'\"]+\\+.*",
-      "script\\s*=.*[\"']\\s*\\+.*",
-      "script\\s*=[A-Za-z0-9]+",
-      "script\\s*=[^'\"]+\\+.*"
+      "script\\s*=\\s*.*[\"']\\s*\\+.*",
+      "script\\s*=\\s*[A-Za-z0-9]+",
+      "script\\s*=\\s*[^'\"]+\\+.*"
     ])) as $all
-    | ( $all | of(["script\\s*=[A-Za-z0-9]+","script\\s*=.*[\"']\\s*\\+.*","script\\s*=[^'\"]+\\+.*","script\\(.*?\\)\\s*=\\s*[A-Za-z0-9]+","script\\(.*?\\)\\s*=\\s*.*[\"']\\s*\\+.*","script\\(.*?\\)\\s*=\\s*[^'\"]+\\+.*"])
+    | ( $all | of("script\\(.*?\\)\\s*=\\s*.*[\"']\\s*\\+.*","script\\(.*?\\)\\s*=\\s*[A-Za-z0-9]+","script\\(.*?\\)\\s*=\\s*[^'\"]+\\+.*","script\\s*=\\s*.*[\"']\\s*\\+.*","script\\s*=\\s*[A-Za-z0-9]+","script\\s*=\\s*[^'\"]+\\+.*")
         | finding("var-in-script-tag";
             "Detected a template variable used in a script tag.") ) )
 | report

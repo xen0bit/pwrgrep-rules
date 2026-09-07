@@ -2,6 +2,12 @@
 # languages: javascript, typescript
 # fixture: javascript/jwt-exposed-data.js
 # from: javascript/jsonwebtoken/security/audit/jwt-exposed-data.yaml
+#
+# Coincidence of whole-match spans can never say "the signed value is the
+# parameter": a call span is not a function span, so at_same_place let a
+# literal object through. The sink arg is focused and reached from the
+# focused parameter instead, which a bare parameter taints under its own
+# name; a literal payload has no flow and goes quiet.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
@@ -12,12 +18,10 @@
       "function $F($$$_,$INPUT,$$$_) {$$$_}",
       "function ($$$_,$INPUT,$$$_) {$$$_}"
     ])) as $all
-    | ( ($all
-          | within($all | of(["function ($$$_,$INPUT,$$$_) {$$$_}"])))
-          + ($all
-          | within($all | of(["function $F($$$_,$INPUT,$$$_) {$$$_}"])))
-          | at_same_place(($all | of(["$JWT.sign($INPUT,$$$_)"])))
-          | in_files_with($all | of(["const $JWT = require('jsonwebtoken')",
+    | ( $all | of(["$JWT.sign($INPUT,$$$_)"]) | focus("INPUT")
+        | reaching(($all | of(["function $F($$$_,$INPUT,$$$_) {$$$_}",
+      "function ($$$_,$INPUT,$$$_) {$$$_}"]) | focus("INPUT")); [])
+        | in_files_with($all | of(["const $JWT = require('jsonwebtoken')",
       "var $JWT = require('jsonwebtoken')",
       "$JWT = require('jsonwebtoken');\n$$$_"]))
         | finding("jwt-exposed-data";

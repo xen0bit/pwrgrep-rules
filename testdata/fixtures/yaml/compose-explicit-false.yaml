@@ -1,0 +1,21 @@
+version: "3"
+services:
+  web:
+    image: nginx
+    security_opt:
+      # ruleid: compose-no-new-privileges
+      - no-new-privileges:false
+  api:
+    image: myapi:latest
+    security_opt:
+      # ruleid: compose-no-new-privileges
+      - no-new-privileges:false
+  worker:
+    image: worker:1.0
+    security_opt:
+      # ok: compose-no-new-privileges
+      - no-new-privileges:true
+  cron:
+    image: cron:1.0
+    # ok: compose-no-new-privileges
+    security_opt: []

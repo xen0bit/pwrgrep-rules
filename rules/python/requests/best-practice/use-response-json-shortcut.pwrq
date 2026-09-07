@@ -1,18 +1,33 @@
-# rules: python.requests.best-practice.use-response-json-shortcut
+# rules: use-response-json-shortcut
 # languages: python
+# fixture: python/use-response-json-shortcut.py
+#
+# The translated id was dotted; dots are un-annotatable (the checker reads
+# to the first dot), so it reports under the hyphenated tail like its
+# siblings.
+#
+# Two silent failures: `import json; $$$` (and `import requests; $$$`)
+# never matches a plain `import ...` line, so both `within` containers
+# were empty; and `$RESP = requests.$METHOD($$$_); $$$` never matches an
+# assignment, since a trailing `; $$$` after a statement matches nothing.
+# Imports are now bare statements read file-wide: `pattern-inside` in the
+# original is a file-level test, and `within` (span containment) can never
+# hold across lines, so the containers are `in_files_with`. The $RESP name
+# join across the two statements has no operator here; the rule is
+# file-level by construction, which the header states plainly.
 # from: python/requests/best-practice/use-response-json-shortcut.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.py"]; [
-      "$RESP = requests.$METHOD($$$_); $$$_",
-      "import json; $$$_",
-      "import requests; $$$_",
+      "$RESP = requests.$METHOD($$$_)",
+      "import json",
+      "import requests",
       "json.loads($RESP.text)"
     ])) as $all
-    | ( $all | of(["json.loads($RESP.text)"])
-          | within($all | of(["import json; $$$_"]))
-          | within($all | of(["import requests; $$$_"]))
-          | within($all | of(["$RESP = requests.$METHOD($$$_); $$$_"]))
-        | finding("python.requests.best-practice.use-response-json-shortcut";
-            "The requests library has a convenient shortcut for reading JSON responses, which lets you stop worrying about deserializing the response yourself.") ) )
+    | ( ($all | of(["json.loads($RESP.text)"])
+        | in_files_with($all | of(["import json"]))
+        | in_files_with($all | of(["import requests"]))
+        | in_files_with($all | of(["$RESP = requests.$METHOD($$$_)"]))) )
+    | finding("use-response-json-shortcut";
+        "The requests library has a convenient shortcut for reading JSON responses, which lets you stop worrying about deserializing the response yourself.") )
 | report

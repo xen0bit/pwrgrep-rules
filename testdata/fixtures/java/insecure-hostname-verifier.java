@@ -1,22 +1,22 @@
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSession;
 
+// ruleid: insecure-hostname-verifier
 class TrustingVerifier implements HostnameVerifier {
-    // ruleid: insecure-hostname-verifier
     public boolean verify(String hostname, SSLSession session) {
         return true;
     }
 }
 
+// ruleid: insecure-hostname-verifier
 class TrustingAgain implements HostnameVerifier {
-    // ruleid: insecure-hostname-verifier
     public boolean verify(String hostname, SSLSession session) {
         return true;
     }
 }
 
+// ruleid: insecure-hostname-verifier
 class TrustingThird implements HostnameVerifier {
-    // ruleid: insecure-hostname-verifier
     public boolean verify(String hostname, SSLSession session) {
         return true;
     }

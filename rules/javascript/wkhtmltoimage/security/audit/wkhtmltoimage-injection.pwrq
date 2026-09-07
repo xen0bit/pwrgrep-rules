@@ -1,19 +1,39 @@
 # rules: wkhtmltoimage-injection
 # languages: javascript, typescript
+# fixture: javascript/wkhtmltoimage-injection.js
 # from: javascript/wkhtmltoimage/security/audit/wkhtmltoimage-injection.yaml
+#
+# Repair: the file gates fed require matches into `at_same_place`, `in_files_without("..."` dropped every file with a string, and the literal exclusions read holes as anything. Sinks are selected first with file-level gates and function-argument sources.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "\"$$$_\"",
-      "$WK = require('wkhtmltoimage');\n$$$_",
-      "$WK.generate(\"$$$_\",$$$_)",
-      "$WK.generate($INPUT,$$$_)",
-      "var $INPUT = \"$$$_\";\n$$$_"
+      "($$$_, $FUNC, $$$_) => {$$$_}",
+      "($FUNC) => {$$$_}",
+      "$WK.generate($INPUT, $$$_)",
+      "$WK = require('wkhtmltoimage')",
+      "const $WK = require('wkhtmltoimage')",
+      "$CP.spawnSync($CMD, $$$_)",
+      "child_process.exec($CMD, $$$_)",
+      "child_process.execSync($CMD, $$$_)",
+      "child_process.spawn($CMD, $$$_)",
+      "child_process.spawnSync($CMD, $$$_)",
+      "const $WK = require('wkhtmltoimage')",
+      "function ($$$_, $FUNC, $$$_) {$$$_}",
+      "function $F($$$_, $FUNC, $$$_) {$$$_}",
+      "import $CP from 'child_process'\n$$$",
+      "import * as $CP from 'child_process'\n$$$",
+      "let $CP = require('child_process')",
+      "var $CP = require('child_process')",
+      "$WK = require('wkhtmltoimage')"
     ])) as $all
-    | ( $all | of(["$WK.generate($INPUT,$$$_)"])
-          | in_files_with($all | of(["$WK = require('wkhtmltoimage');\n$$$_"]))
-          | in_files_without($all | of(["var $INPUT = \"$$$_\";\n$$$_","\"$$$_\""]))
-          | not_at($all | of(["$WK.generate(\"$$$_\",$$$_)"]))
+    | ( (($all | of(["$WK.generate($INPUT, $$$_)"])
+          | not_at(($all | of(["$WK.generate($INPUT, $$$_)"]) | where_capture("INPUT"; "^[\"'].*[\"']$")))
+          | focus("INPUT"))
+          | in_files_with(($all | of(["$WK = require('wkhtmltoimage')", "const $WK = require('wkhtmltoimage')"])) + ($all | of([])))
+          | reaching(((($all | of(["function ($$$_, $FUNC, $$$_) {$$$_}","function $F($$$_, $FUNC, $$$_) {$$$_}"]))
+          + ($all | of(["($FUNC) => {$$$_}","($$$_, $FUNC, $$$_) => {$$$_}"]))
+          | focus("FUNC")));
+              ([]))
         | finding("wkhtmltoimage-injection";
-            "If unverified user data can reach the `wkhtmltoimage` it can result in Server-Side Request Forgery vulnerabilities") ) )
+            "If unverified user data can reach the `wkhtmltoimage` it can result in Server-Side Request Forgery vulnerabilities") ) ))
 | report

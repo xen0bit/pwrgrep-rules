@@ -1,28 +1,28 @@
 const jwt = require('jsonwebtoken');
 
-function issueToken(a, payload, c) {
+// A request-derived object reaches the signed payload.
+function issueToken(req, res) {
   // ruleid: jwt-exposed-data
-  return jwt.sign(payload, 'secret', { algorithm: 'HS256' });
+  return jwt.sign(req.body, 'secret', { algorithm: 'HS256' });
 }
 
-function issueAgain(a, payload, c) {
+// Three-argument handlers read the same way.
+function issueAgain(req, res, next) {
   // ruleid: jwt-exposed-data
-  return jwt.sign(payload, 'secret', { algorithm: 'HS256' });
+  return jwt.sign(req.query, 'secret', { algorithm: 'HS256' });
 }
 
-function issueThird(a, payload, c) {
+// One hop through a local still reaches the sink.
+function issueThird(req, res) {
+  const data = req.body;
   // ruleid: jwt-exposed-data
-  return jwt.sign(payload, 'secret', { algorithm: 'HS256' });
+  return jwt.sign(data, 'secret', { algorithm: 'HS256' });
 }
 
-function issueConst(a, b, c) {
+// A literal object has no flow behind it.
+function issueConst(req, res) {
   // ok: jwt-exposed-data
   return jwt.sign({ sub: 1 }, 'secret', { algorithm: 'HS256' });
-}
-
-function issueTwo(payload, opts) {
-  // ok: jwt-exposed-data
-  return jwt.sign(payload, 'secret', { algorithm: 'HS256' });
 }
 
 function plain(a, b, c) {

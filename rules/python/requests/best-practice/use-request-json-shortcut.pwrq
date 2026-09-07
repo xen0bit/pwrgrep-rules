@@ -1,16 +1,30 @@
-# rules: python.requests.best-practice.use-request-json-shortcut
+# rules: use-request-json-shortcut
 # languages: python
+# fixture: python/use-request-json-shortcut.py
+#
+# The translated id was dotted; dots are un-annotatable (the checker reads
+# to the first dot), so it reports under the hyphenated tail like its
+# siblings.
+#
+# Two silent failures: `import json; $$$` (and `import requests; $$$`)
+# never matches a plain `import json` line, so both file-level containers
+# were empty (`within` is span containment and can never span lines, hence
+# `in_files_with`); and a trailing `, $$$` after the `body=` keyword never
+# matches, so the sink was empty too. Imports are now bare statements,
+# and the sink is two arities — `body=` last and `body=` followed by a
+# named hole — since only a named hole can follow a keyword argument.
 # from: python/requests/best-practice/use-request-json-shortcut.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.py"]; [
-      "import json; $$$_",
-      "import requests; $$$_",
-      "requests.$METHOD($$$_, body=json.dumps($BODY), $$$_)"
+      "import json",
+      "import requests",
+      "requests.$METHOD($$$_, body=json.dumps($BODY))",
+      "requests.$METHOD($$$_, body=json.dumps($BODY), $$$_, $TAIL)"
     ])) as $all
-    | ( $all | of(["requests.$METHOD($$$_, body=json.dumps($BODY), $$$_)"])
-          | within($all | of(["import json; $$$_"]))
-          | within($all | of(["import requests; $$$_"]))
-        | finding("python.requests.best-practice.use-request-json-shortcut";
-            "The requests library has a convenient shortcut for sending JSON requests, which lets you stop worrying about serializing the body yourself.") ) )
+    | ( ($all | of(["requests.$METHOD($$$_, body=json.dumps($BODY))", "requests.$METHOD($$$_, body=json.dumps($BODY), $$$_, $TAIL)"])
+        | in_files_with($all | of(["import json"]))
+        | in_files_with($all | of(["import requests"]))) )
+    | finding("use-request-json-shortcut";
+        "The requests library has a convenient shortcut for sending JSON requests, which lets you stop worrying about serializing the body yourself.") )
 | report

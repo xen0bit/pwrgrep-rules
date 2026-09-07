@@ -1,18 +1,32 @@
 # rules: unverified-jwt-decode
 # languages: python
+# fixture: python/unverified-jwt-decode.py
+#
+# The translated patterns wrapped the options mapping in `$$$_` ellipses
+# (`{$$$_, "verify_signature": $BOOL, ...}`), and an ellipsis among
+# mapping pairs never matches, so both alternatives were empty. The
+# options mapping is now an $O/$D hole read with a where_capture for
+# `"verify_signature": False`, which holds wherever in the mapping the
+# pair stands. `options=` last and `options=` followed by more keywords
+# are two arities each, bare and under `return`, since only a named hole
+# can follow a keyword argument.
 # from: python/jwt/security/unverified-jwt-decode.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.py"]; [
-      "$OPTS = {$$$_, \"verify_signature\": $BOOL, $$$_}\n$$$_\njwt.decode($$$_, options=$OPTS, $$$_)",
-      "jwt.decode($$$_, options={$$$_, \"verify_signature\": $BOOL, $$$_}, $$$_)"
+      "$OPTS = $D\n$$$_\njwt.decode($$$_, options=$OPTS)",
+      "$OPTS = $D\n$$$_\njwt.decode($$$_, options=$OPTS, $$$_, $TAIL)",
+      "$OPTS = $D\n$$$_\nreturn jwt.decode($$$_, options=$OPTS)",
+      "$OPTS = $D\n$$$_\nreturn jwt.decode($$$_, options=$OPTS, $$$_, $TAIL)",
+      "jwt.decode($$$_, options=$O)",
+      "jwt.decode($$$_, options=$O, $$$_, $TAIL)"
     ])) as $all
-    | ( ($all | of(["jwt.decode($$$_, options={$$$_, \"verify_signature\": $BOOL, $$$_}, $$$_)"])
-          | where_capture_ast("BOOL"; "False")
-          | focus("BOOL"))
-          + ($all | of(["$OPTS = {$$$_, \"verify_signature\": $BOOL, $$$_}\n$$$_\njwt.decode($$$_, options=$OPTS, $$$_)"])
-          | where_capture_ast("BOOL"; "False")
-          | focus("BOOL"))
-        | finding("unverified-jwt-decode";
-            "Detected JWT token decoded with 'verify=False'.") ) )
+    | ( ($all | of(["jwt.decode($$$_, options=$O)", "jwt.decode($$$_, options=$O, $$$_, $TAIL)"])
+          | where_capture("O"; "['\"]verify_signature['\"]\\s*:\\s*False\\b")
+          | focus("O"))
+        + ($all | of(["$OPTS = $D\n$$$_\njwt.decode($$$_, options=$OPTS)", "$OPTS = $D\n$$$_\njwt.decode($$$_, options=$OPTS, $$$_, $TAIL)", "$OPTS = $D\n$$$_\nreturn jwt.decode($$$_, options=$OPTS)", "$OPTS = $D\n$$$_\nreturn jwt.decode($$$_, options=$OPTS, $$$_, $TAIL)"])
+          | where_capture("D"; "['\"]verify_signature['\"]\\s*:\\s*False\\b")
+          | focus("D")) )
+    | finding("unverified-jwt-decode";
+        "Detected JWT token decoded with 'verify=False'.") )
 | report

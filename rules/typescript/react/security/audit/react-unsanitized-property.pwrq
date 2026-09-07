@@ -9,8 +9,14 @@
 # dead. The assignment shapes match on their own now - `$BODY.$HTML` binds
 # `body.current` without help - and the declaration spellings stay in the
 # scan list, where they cost nothing.
+# The rule is gated on the file importing React. `el.innerHTML = <derived>`
+# is a browser shape, not a React one, and `insecure-innerhtml` already
+# reports it: over pwrq's own web UI the ungated rule found four lines, all
+# four already reported under that id, in a file with no React in it.
 
 . as $root
+| ($root | scan_regex(["*.js","*.ts"];
+    ["from\\s*['\"]react['\"]", "require\\(\\s*['\"]react['\"]\\s*\\)"])) as $isReact
 | ( ($root | scan_ast(["*.js","*.ts"]; [
       "$BODY. $$$_ .$HTML = $SINK",
       "$BODY.$HTML = $SINK",
@@ -46,6 +52,7 @@
     ])) as $all
     | ( (($all | of(["$BODY. $$$_ .$HTML = $SINK","$BODY.$HTML = $SINK","ReactDOM.findDOMNode($$$_).$HTML = $SINK"])
           | where_capture("HTML"; "^(?:(innerHTML|outerHTML))")
+          | in_files_with($isReact)
           | focus("SINK")))
           | reaching(((($all
           | within($all | of(["function $$$_({$$$_, $X, $$$_}) { $$$_ }"])))

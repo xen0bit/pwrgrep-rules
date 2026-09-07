@@ -2359,6 +2359,31 @@ Two of those seven repositories were enough to find all four. The point is not
 the number of trees, it is that none of them was the tree the rule was written
 about.
 
+An eighth tree — pwrq's own source, which is Go with a JavaScript web UI —
+found two more of the same kind. `useless-if-conditional` is
+`if $X { $$$A } else if $X { $$$B }`, and the repeated `$X` *is* unified, so
+the pattern is right; what it leaves out is Go's `if init; cond` form, where
+the pattern sees only the condition and
+`if a, ok := x.(T); ok { } else if b, ok := y.(T); ok { }` is two different
+tests that both spell it `ok`. Thirty findings, none real, subtracted by a
+`where_text_not` on an `if` line that carries a semicolon.
+`react-unsanitized-property` reported four `el.innerHTML = …` lines in a file
+with no React in it, all four already reported by `insecure-innerhtml`: a
+rule that lives under `rules/typescript/react` and is named for the framework
+has to say so in the query too, the same way the Django one does.
+
+And one that could not be fixed, which is worth writing down because the
+reason is the engine and not the rule. `exported_loop_pointer` wants "the
+body takes the address *of the iteration variable*".
+`where_capture_ast("B"; "&$V")` re-binds `$V` instead of comparing it to the
+one the loop clause already bound, `where_same` compares two holes inside one
+match and these are two, and neither an inline `&$V` in the body nor a
+statement-sequence ellipsis matches anything. So the rule asks "the body takes
+an address", which over pwrq is 52 findings for a handful of real ones. The
+header says so, with the number, and says that Go 1.22 made the bug itself
+go away for any module that declares it. A limitation you have measured and
+written down is a different object from one you have not noticed.
+
 ## Before you commit
 
 ```

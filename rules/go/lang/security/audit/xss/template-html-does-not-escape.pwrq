@@ -10,7 +10,6 @@
 . as $root
 | ( ($root | scan_ast(["*.go"]; [
       "template.$ANY(\"$$$_\" + \"$$$_\")",
-      "template.$ANY(\"$$$_\")",
       "template.CSS($H)",
       "template.CSS($$$_)",
       "template.HTML($H)",

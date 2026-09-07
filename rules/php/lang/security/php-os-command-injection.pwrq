@@ -2,6 +2,13 @@
 # languages: php
 # fixture: php/CWE-78b.php
 # from: CWE-78 (OS Command Injection)
+#
+# A PHP superglobal cannot be written into a pattern: `$_GET` is a `$` and
+# a name, which is how a hole is spelled, so `$_GET[$K]` reads as "any
+# variable subscripted by anything". The four spellings were one pattern
+# four times over, and the source set was every array access in the file.
+# The name is pinned by guard on the capture instead, whose text carries
+# the `$`.
 
 ["shell_exec($CMD, $$$_)",
  "exec($CMD, $$$_)",
@@ -9,9 +16,9 @@
  "passthru($CMD, $$$_)",
  "popen($CMD, $$$_)", "proc_open($CMD, $$$_)",
  "pcntl_exec($CMD, $$$_)"] as $sinks
-| ["$_GET[$K]", "$_POST[$K]", "$_REQUEST[$K]", "$_COOKIE[$K]"] as $outside
+| ["$SG[$K]"] as $outside
 | scan_ast("*.php"; $sinks + $outside) as $all
-| ($all | of($sinks) | focus("CMD") | reaching($all | of($outside); []))
+| ($all | of($sinks) | focus("CMD") | reaching(($all | of($outside) | where_capture("SG"; "^\\$_(?:GET|POST|REQUEST|COOKIE)$")); []))
 | finding("php-os-command-injection";
     "untrusted input from the request reaches a shell sink; a `;` or `|` in the value starts a second command")
 | report

@@ -20,8 +20,6 @@
       "$REQ.files.$ANYTHING['data'].toString('utf8')",
       "$SER.unserialize($DATA)",
       "$SER.deserialize($DATA)",
-      "$REQ.files.$ANYTHING.data.toString('utf8')",
-      "$REQ.files.$ANYTHING['data'].toString('utf8')",
       "$SER = require('$IMPORT')\n$$$_",
       "const $SER = require('$IMPORT')",
       "let $SER = require('$IMPORT')",

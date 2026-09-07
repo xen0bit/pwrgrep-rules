@@ -17,19 +17,15 @@
       "const $VM = new VM($$$_)",
       "$VM = new NodeVM($$$_)",
       "const $VM = new NodeVM($$$_)",
-      "const $VM = new VM($$$_)",
       "function ($$$_, $FUNC, $$$_) {$$$_}",
       "function $F($$$_, $FUNC, $$$_) {$$$_}",
       "$V2 = require('vm2')",
-      "const $V2 = require('vm2')",
-      "$VM = new NodeVM($$$_)",
-      "const $VM = new NodeVM($$$_)",
-      "$VM = new VM($$$_)"
+      "const $V2 = require('vm2')"
     ])) as $all
     | ( (($all | of(["$VM.run($CODE)", "new VM($OPTS).run($CODE)", "new NodeVM($OPTS).run($CODE)", "new VMScript($CODE)","new $LIB.VMScript($CODE)"])
           | not_at(($all | of(["$VM.run($CODE)", "new VM($OPTS).run($CODE)", "new NodeVM($OPTS).run($CODE)", "new VMScript($CODE)","new $LIB.VMScript($CODE)"]) | where_capture("CODE"; "^[\"'].*[\"']$")))
           | focus("CODE"))
-          | in_files_with(($all | of(["$VM = new VM($$$_)", "const $VM = new VM($$$_)", "$VM = new NodeVM($$$_)", "const $VM = new NodeVM($$$_)", "$V2 = require('vm2')", "const $V2 = require('vm2')"])) + ($all | of([])))
+          | in_files_with(($all | of(["$VM = new VM($$$_)", "const $VM = new VM($$$_)", "$VM = new NodeVM($$$_)", "const $VM = new NodeVM($$$_)", "$V2 = require('vm2')", "const $V2 = require('vm2')"])))
           | reaching(((($all | of(["function ($$$_, $FUNC, $$$_) {$$$_}","function $F($$$_, $FUNC, $$$_) {$$$_}"]))
           + ($all | of(["($FUNC) => {$$$_}","($$$_, $FUNC, $$$_) => {$$$_}"]))
           | focus("FUNC")));

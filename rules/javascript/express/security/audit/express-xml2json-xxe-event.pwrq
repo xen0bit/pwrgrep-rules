@@ -12,7 +12,6 @@
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "$P.toJson($D)",
       "$REQ.on($EVT, $CB)",
       "const $X = require('xml2json')",
       "let $X = require('xml2json')",

@@ -12,7 +12,10 @@
 # Two file-level sanitizers are dropped: `$X` in a file with a
 # guard sanitizes every value in the file, which silenced the whole rule.
 # The `if-throw` guard is not modeled - only values transformed through
-# GetFileName are clean.
+# GetFileName are clean. The Combine itself is a file-level gate rather
+# than a step on the path: a name assigned from Combine and read a
+# statement later is the shape the rule exists for, and there is no
+# operator for "the value passed through this call on its way".
 # from: csharp/lang/security/filesystem/unsafe-path-combine.yaml
 
 . as $root
@@ -24,7 +27,8 @@
     ])) as $all
     | ( (($all | of(["File.$METHOD($X)"])
           | focus("X")
-          | where_capture("METHOD"; "^(?:(?i)^(read|write))")))
+          | where_capture("METHOD"; "^(?:(?i)^(read|write))")
+          | in_files_with($all | of(["Path.Combine($A, $B)", "Path.Combine($A, $B, $C)"]))))
           | reaching((($all | of(["public $TYPE $M($T $A) { $$$BODY }", "public $TYPE $M($T1 $A, $T2 $B) { $$$BODY }"])
           | focus("A")));
               (($all | of(["Path.GetFileName($$$_)"]))))

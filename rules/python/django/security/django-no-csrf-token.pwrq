@@ -8,13 +8,24 @@
 # corpus's `python-csrf-django` uses: the method rides along as a
 # named group, state-changing methods are kept by guard, and either
 # csrf_token spelling is excluded by a negative text test.
+# The Django gate is load-bearing: a POST form with no token is every
+# server-rendered template ever written, and the rule is named for the
+# framework whose token it is looking for. Run ungated over Spring
+# PetClinic, whose templates are Thymeleaf and whose CSRF token Spring
+# writes itself, it reported three forms that are not vulnerable.
+# `*.py` is scanned as well as `*.html` because a template can be a string
+# in a view.
 # from: python/django/security/django-no-csrf-token.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.html"]; [
+| ($root | scan_regex(["*.html", "*.py"];
+    ["\\{%\\s*(?:csrf_token|extends|block|load|include|if|for|url)\\b",
+     "from\\s+django\\b", "import\\s+django\\b"])) as $isDjango
+| ( ($root | scan_regex(["*.html", "*.py"]; [
       "<form\\b[^>]*\\bmethod\\s*=\\s*[\"']?(?P<METHOD>[A-Za-z]+)[\"']?[^>]*>[\\s\\S]*?</form>"
     ])) as $all
     | ( ($all | of(["<form\\b[^>]*\\bmethod\\s*=\\s*[\"']?(?P<METHOD>[A-Za-z]+)[\"']?[^>]*>[\\s\\S]*?</form>"])
+        | in_files_with($isDjango)
         | where_capture("METHOD"; "(?i)^(post|put|delete|patch)$")
         | where_text_not("csrf_token"))
         | finding("django-no-csrf-token";

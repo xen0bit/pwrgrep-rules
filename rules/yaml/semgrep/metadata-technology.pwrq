@@ -6,12 +6,19 @@
 # Rewritten as a greedy rule block (id line plus following four-space lines,
 # which ends at the next rule) with text guards.
 # Join-mode inner rules are out of scope.
+# A `rules:` key at column zero is what says the file is a Semgrep rule and
+# not something else that spells a key the same way: `metadata:` is every
+# Kubernetes manifest, `- id:` is any list of records, and `message: |` is
+# any workflow that writes more than a line.
 # from: yaml/semgrep/metadata-technology.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+| ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^rules:[^\\S\n]*$"
+    ])) as $semgrep
+| ( (($root | scan_regex(["*.yaml","*.yml"]; [
       "(?m)^  - id:\\s*(?P<RULEID>\\S+)[^\n]*\n((?:    [^\n]*\n?)*)"
-    ])) as $all
+    ])) | in_files_with($semgrep)) as $all
     | ( $all | of(["(?m)^  - id:\\s*(?P<RULEID>\\S+)[^\n]*\n((?:    [^\n]*\n?)*)"])
           | where_text_not("technology:")
           | where_text_not("mode:\\s*join")

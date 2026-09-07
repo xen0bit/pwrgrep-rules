@@ -6,13 +6,21 @@
 # a service block without read_only true.
 # Service spans use an indent-anchored block (name plus deeper fields);
 # fixture services keep the standard two/four-space layout.
+# A compose file is named by its top-level `services:` key, and the gate is
+# load-bearing: the service-block regex is two-space indentation and a
+# deeper body, which every GitHub Actions workflow and Kubernetes manifest
+# in a repository also is.
 # from: yaml/docker-compose/security/writable-filesystem-service.yaml
 
 . as $root
+| ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^services:[^\\S\n]*$"
+    ])) as $compose
 | ( ($root | scan_regex(["*.yaml","*.yml"]; [
       "(?m)^  (?P<SVC>[A-Za-z_]\\w*):[^\\S\n]*\n((?:    [^\n]*\n?)*)"
     ])) as $all
     | ( $all | of(["(?m)^  (?P<SVC>[A-Za-z_]\\w*):[^\\S\n]*\n((?:    [^\n]*\n?)*)"])
+          | in_files_with($compose)
           | where_text_not("read_only:\\s*true")
           | focus("SVC")
         | finding("writable-filesystem-service";

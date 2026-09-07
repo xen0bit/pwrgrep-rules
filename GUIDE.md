@@ -1586,6 +1586,40 @@ first, then `Valid` vs `specificity()`. If `Valid:true` but empty over a file
 you know contains the sink, you are missing a `let`/`val`/`defn` scaffold.
 
 
+## A PHP superglobal is spelled exactly like a hole
+
+`$_GET[$K]` is not a pattern for `$_GET`. In PHP every variable begins with
+`$`, which is also how a metavariable is written, so the matcher reads
+`$_GET` as a hole named `_GET` and the pattern means *any variable subscripted
+by anything*. Four spellings written out —
+
+```
+["$_GET[$K]", "$_POST[$K]", "$_REQUEST[$K]", "$_COOKIE[$K]"]
+```
+
+— are one pattern four times over, and a taint rule whose source set is that
+list has, in effect, no source: every array access in the file is untrusted
+input. `php-missing-auth` written this way reported 971 lines of Guzzle, an
+HTTP client with no session, no endpoint and no superglobal in it. The same
+reading turned every `isset($arr[$k])` into an authentication check, so the
+`in_files_with` gate that was supposed to say "this file authenticates
+somewhere" was satisfied by any file that tests an array key.
+
+Pin the name on the capture instead. The capture's text carries the `$`:
+
+```
+$all | of(["$SG[$K]"]) | where_capture("SG"; "^\\$_(?:GET|POST|REQUEST|COOKIE)$")
+```
+
+Probe it before you trust it — `{v: .Captures.SG}` over two lines, one
+superglobal and one ordinary array, is the whole test. This is not a PHP
+quirk you can learn once and forget: it applies to any name the pattern
+language would read as a hole, and PHP is the language where every name is
+one. A specific literal key rescues the pattern by accident —
+`$_SERVER['REQUEST_URI']` is still "any variable subscripted by
+`'REQUEST_URI'`", which is nearly always the real thing — but that is luck,
+not a rule.
+
 ## A fixture that is `2 ruleid, 2 ok` proves the rule runs and nothing else
 
 `validate.py` is satisfied by two marked lines and two unmarked ones, and a
@@ -1647,6 +1681,40 @@ rules to anyone writing patterns by eye - a rule per spelling is a rule that
 double-reports, not a rule that catches more. Check it: run the rule you
 already have against the fixture you wrote for the new one before writing the
 new one at all.
+
+## An indented YAML block is every YAML file's indented block
+
+A docker-compose service is a two-space key with a deeper body. So is a
+GitHub Actions job, a Kubernetes container spec, an eslint override and half
+of every configuration file in a repository. A rule written as
+
+```
+"(?m)^  (?P<SVC>[A-Za-z_]\\w*):[^\\S\n]*\n((?:    [^\n]*\n?)*)"
+```
+
+with a `where_text_not` on the setting it wants present is not a
+docker-compose rule. It is a rule about indentation, and `writable-filesystem-service`
+written that way reported twenty-one findings in Spring PetClinic, of which
+two were in the compose file and nineteen were workflow steps —
+"Service 'push' is running with a writable root filesystem."
+
+The file itself has to be identified, and every one of these formats says
+what it is in a key at column zero. Bind the marker and gate on it:
+
+```
+| ($root | scan_regex(["*.yaml","*.yml"]; ["(?m)^services:[^\\S\n]*$"])) as $compose
+...
+  | in_files_with($compose)
+```
+
+`^services:` for compose, `^kind:` for a Kubernetes manifest, `^rules:` for a
+Semgrep rule. Gate the whole scan rather than one leg —
+`(($root | scan_regex(...)) | in_files_with($marker)) as $all` — and every leg
+of the rule inherits it, including the ones added later.
+
+The fixture cannot catch this, because the fixture is a compose file. What
+catches it is one run over a repository that has YAML in it and no compose at
+all.
 
 ## Open redirect and upload are just taint with a boring source
 
@@ -2256,6 +2324,40 @@ After all three, fifty-one findings became six, and all six are the weak-hash
 rule reporting real MD5 and SHA-1 — a checksum tool offering both to the user,
 and two APIs whose protocols require them. That rule's header says the
 judgement is the reader's, which is the honest place for it to land.
+
+The fixture pass — the one that gave every rule in the corpus a fixture —
+made this the load-bearing check rather than a closing one, because a rule
+repaired from "never fires" to "fires on its fixture" has been moved from one
+failure to the edge of another. Seven repositories, chosen so that each of the
+changed areas had one that was not about it: spring-petclinic, flask, express,
+two Terraform module libraries, Shopify's liquid and Guzzle. Two thousand nine
+hundred findings became six hundred, and the reductions were all one of four
+mistakes:
+
+- **A block shape with no statement about the file.** The compose, Kubernetes
+  and Semgrep-lint rules, above. Fifty-eight findings across four repositories
+  that have none of those three things in them.
+- **A name the pattern language reads as a hole.** PHP's superglobals, above.
+  971 findings in Guzzle.
+- **A word boundary on one end of a keyword.**
+  `\b(?:include|require)\s*\(?\s*(?P<PATH>[^;\n]+)` has no boundary after the
+  keyword, so it matched the first seven characters of `requireStreamFactory(`
+  and the word "include" in a docblock: 330 findings in Guzzle, none of them a
+  loader. A boundary after the keyword, a line-start anchor, and a `$` required
+  in the path took it to zero.
+- **A guard that describes something more common than the bug.**
+  `code-after-unconditional-return` asked its regex for "a `return` with a line
+  under it", which is every Python function with an early return: 1316 findings
+  in flask. What it means is a `return` and a following statement at the *same*
+  indentation, and RE2 has no backreference to say "the same" — so the two
+  indentations a body actually has, four spaces and eight, are written out, and
+  the body's first statement, which the capture strips the indent from, is
+  tested separately. Three findings remain and all three are a docstring whose
+  prose begins a line with the word "return".
+
+Two of those seven repositories were enough to find all four. The point is not
+the number of trees, it is that none of them was the tree the rule was written
+about.
 
 ## Before you commit
 

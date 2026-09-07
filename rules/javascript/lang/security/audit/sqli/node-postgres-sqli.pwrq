@@ -15,7 +15,6 @@
       "function $F($$$_, $FUNC, $$$_) {$$$_}",
       "function ($$$_, $FUNC, $$$_) {$$$_}",
       "let { $CLIENT } = require('pg')",
-      "parseInt($$$_)",
       "var { $CLIENT } = require('pg')"
     ])) as $all
     | ( (($all | of(["$DB.query($QUERY,$$$_)"])

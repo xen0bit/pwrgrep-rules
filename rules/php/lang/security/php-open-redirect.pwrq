@@ -4,12 +4,19 @@
 # from: CWE-601 (Open Redirect)
 #
 # header('Location: ' . $_GET['url']) with tainted data.
+#
+# A PHP superglobal cannot be written into a pattern: `$_GET` is a `$` and
+# a name, which is how a hole is spelled, so `$_GET[$K]` reads as "any
+# variable subscripted by anything". The four spellings were one pattern
+# four times over, and the source set was every array access in the file.
+# The name is pinned by guard on the capture instead, whose text carries
+# the `$`.
 
-["$T $V = $S;", "$T $V = $_GET[$K];", "$T $V = $_POST[$K];", "$T $V = $_REQUEST[$K];"] as $assigned
+["$T $V = $S;"] as $assigned
 | ["header($H, $$$_)"] as $sinks
-| ["$_GET[$K]", "$_POST[$K]", "$_REQUEST[$K]", "$_GET.get($$$_)"] as $srcDirect
+| ["$SG[$K]"] as $srcDirect
 | scan_ast("*.php"; $assigned + $sinks + $srcDirect) as $all
-| ( ($all | of($assigned) | where_capture("S"; "\\$_GET|\\$_POST|\\$_REQUEST") | focus("S")) + ($all | of($srcDirect)) ) as $untrusted
+| ( ($all | of($assigned) | where_capture("S"; "\\$_GET|\\$_POST|\\$_REQUEST") | focus("S")) + ($all | of($srcDirect) | where_capture("SG"; "^\\$_(?:GET|POST|REQUEST|COOKIE)$")) ) as $untrusted
 | ($all | of($sinks) | where_capture("H"; "(?i)Location:") | focus("H"))
 | reaching($untrusted; [])
 | finding("php-open-redirect"; "Open redirect: header Location with tainted $_GET/$_POST")

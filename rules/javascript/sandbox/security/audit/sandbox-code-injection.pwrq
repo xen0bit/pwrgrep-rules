@@ -16,20 +16,13 @@
       "const $SBX = new $BOX($$$_)",
       "$SBXLIB = require('sandbox')",
       "const $SBXLIB = require('sandbox')",
-      "child_process.spawnSync($CMD, $$$_)",
-      "const $SBX = new $BOX($$$_)",
       "function ($$$_, $FUNC, $$$_) {$$$_}",
-      "function $F($$$_, $FUNC, $$$_) {$$$_}",
-      "import $SBXLIB from 'sandbox'\n$$$_",
-      "import * as $SBXLIB from 'sandbox'\n$$$_",
-      "$SBXLIB = require('sandbox')",
-      "const $SBXLIB = require('sandbox')",
-      "$SBX = new $BOX($$$_)"
+      "function $F($$$_, $FUNC, $$$_) {$$$_}"
     ])) as $all
     | ( (($all | of(["$SBX.run($CODE)", "new $BOX($OPTS).run($CODE)", "new $BOX().run($CODE)"])
           | not_at(($all | of(["$SBX.run($CODE)", "new $BOX($OPTS).run($CODE)", "new $BOX().run($CODE)"]) | where_capture("CODE"; "^[\"'].*[\"']$")))
           | focus("CODE"))
-          | in_files_with(($all | of(["$SBX = new $BOX($$$_)", "const $SBX = new $BOX($$$_)", "$SBXLIB = require('sandbox')", "const $SBXLIB = require('sandbox')"])) + ($all | of([])))
+          | in_files_with(($all | of(["$SBX = new $BOX($$$_)", "const $SBX = new $BOX($$$_)", "$SBXLIB = require('sandbox')", "const $SBXLIB = require('sandbox')"])))
           | reaching(((($all | of(["function ($$$_, $FUNC, $$$_) {$$$_}","function $F($$$_, $FUNC, $$$_) {$$$_}"]))
           + ($all | of(["($FUNC) => {$$$_}","($$$_, $FUNC, $$$_) => {$$$_}"]))
           | focus("FUNC")));

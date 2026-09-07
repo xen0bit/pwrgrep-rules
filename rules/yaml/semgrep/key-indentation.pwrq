@@ -4,12 +4,19 @@
 #
 # The rules-span within never encloses list items, so the rule never fired.
 # Rewritten as a line-anchored regex for a list dash fused to the key.
+# A `rules:` key at column zero is what says the file is a Semgrep rule and
+# not something else that spells a key the same way: `metadata:` is every
+# Kubernetes manifest, `- id:` is any list of records, and `message: |` is
+# any workflow that writes more than a line.
 # from: yaml/semgrep/key-indentation.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+| ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^rules:[^\\S\n]*$"
+    ])) as $semgrep
+| ( (($root | scan_regex(["*.yaml","*.yml"]; [
       "(?m)^\\s*-(?P<KEY>\\w+):\\s*>-"
-    ])) as $all
+    ])) | in_files_with($semgrep)) as $all
     | ( $all | of(["(?m)^\\s*-(?P<KEY>\\w+):\\s*>-"])
           | focus("KEY")
         | finding("yaml-key-indentation-check";

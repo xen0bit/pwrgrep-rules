@@ -15,7 +15,6 @@
       "const $X = new Queue($$$_)",
       "const $X = new Queue($$$_, {$$$_, encryption: QueueEncryption.KMS, $$$_})",
       "const $X = new Queue($$$_, {$$$_, encryption: QueueEncryption.KMS_MANAGED, $$$_})",
-      "'@aws-cdk/aws-sqs'",
       "'@aws-cdk/aws-sqs'"
     ])) as $all
     | ( ($all | of(["const $X = new Queue($$$_)"])

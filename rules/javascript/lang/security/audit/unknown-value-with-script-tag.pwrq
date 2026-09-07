@@ -15,8 +15,8 @@
       "$OTHERFUNC($A1, $PWRQDEEP1)","$OTHERFUNC($A1, $PWRQDEEP1, $A3)"
     ])) as $all
     | ( $all | of(["$OTHERFUNC($A1, $PWRQDEEP1)","$OTHERFUNC($A1, $PWRQDEEP1, $A3)"])
+          | where_capture_ast("PWRQDEEP1"; "$L + $R")
           | where_capture("PWRQDEEP1"; "<script")
-          | not_at(($all | of(["$OTHERFUNC($A1, $PWRQDEEP1)","$OTHERFUNC($A1, $PWRQDEEP1, $A3)"]) | where_capture("PWRQDEEP1"; "^[\"'].*[\"']$")))
         | finding("unknown-value-with-script-tag";
             "An unknown value is used with a '<script>' tag.") ) )
 | report

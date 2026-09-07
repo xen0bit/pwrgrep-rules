@@ -12,12 +12,6 @@
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "const $BODY = $REACT.createRef($$$_);",
-      "const $BODY = $REACT.findDOMNode($$$_);",
-      "const $BODY = $REACT.useRef($$$_);",
-      "const $BODY = createRef($$$_);",
-      "const $BODY = findDOMNode($$$_);",
-      "const $BODY = useRef($$$_);",
       "$BODY. $$$_ .$HTML = $SINK",
       "$BODY.$HTML = $SINK",
       "$S = new Remarkable()\n$$$_",

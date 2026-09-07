@@ -12,25 +12,14 @@
       "$WK($INPUT, $$$_)",
       "$WK = require('wkhtmltopdf')",
       "const $WK = require('wkhtmltopdf')",
-      "$CP.spawnSync($CMD, $$$_)",
-      "child_process.exec($CMD, $$$_)",
-      "child_process.execSync($CMD, $$$_)",
-      "child_process.spawn($CMD, $$$_)",
-      "child_process.spawnSync($CMD, $$$_)",
-      "const $WK = require('wkhtmltopdf')",
       "function ($$$_, $FUNC, $$$_) {$$$_}",
-      "function $F($$$_, $FUNC, $$$_) {$$$_}",
-      "import $CP from 'child_process'\n$$$",
-      "import * as $CP from 'child_process'\n$$$",
-      "let $CP = require('child_process')",
-      "var $CP = require('child_process')",
-      "$WK = require('wkhtmltopdf')"
+      "function $F($$$_, $FUNC, $$$_) {$$$_}"
     ])) as $all
     | ( (($all | of(["$WK($INPUT, $$$_)"])
           | where_capture("WK"; "(?i)wkhtml")
           | not_at(($all | of(["$WK($INPUT, $$$_)"]) | where_capture("INPUT"; "^[\"'].*[\"']$")))
           | focus("INPUT"))
-          | in_files_with(($all | of(["$WK = require('wkhtmltopdf')", "const $WK = require('wkhtmltopdf')"])) + ($all | of([])))
+          | in_files_with(($all | of(["$WK = require('wkhtmltopdf')", "const $WK = require('wkhtmltopdf')"])))
           | reaching(((($all | of(["function ($$$_, $FUNC, $$$_) {$$$_}","function $F($$$_, $FUNC, $$$_) {$$$_}"]))
           + ($all | of(["($FUNC) => {$$$_}","($$$_, $FUNC, $$$_) => {$$$_}"]))
           | focus("FUNC")));

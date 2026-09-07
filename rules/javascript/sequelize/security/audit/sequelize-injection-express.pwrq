@@ -20,8 +20,6 @@
       "$REQ.files.$ANYTHING['data'].toString('utf8')",
       "$DB.sequelize.query($QUERY, $$$_)",
       "sequelize.query($QUERY, $$$_)",
-      "$REQ.files.$ANYTHING.data.toString('utf8')",
-      "$REQ.files.$ANYTHING['data'].toString('utf8')",
       "parseInt($$$_)",
       "$FUNC.$PROP.hash($$$_)",
       "({ $REQ }: Request,$RES: Response) => {$$$_}",

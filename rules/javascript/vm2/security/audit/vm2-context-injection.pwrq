@@ -13,23 +13,13 @@
       "new $V({sandbox: $SB}, $REST)",
       "$V2 = require('vm2')",
       "const $V2 = require('vm2')",
-      "child_process.exec($CMD, $$$_)",
-      "child_process.execSync($CMD, $$$_)",
-      "child_process.spawn($CMD, $$$_)",
-      "child_process.spawnSync($CMD, $$$_)",
-      "const $V2 = require('vm2')",
       "function ($$$_, $FUNC, $$$_) {$$$_}",
-      "function $F($$$_, $FUNC, $$$_) {$$$_}",
-      "import $CP from 'child_process'\n$$$",
-      "import * as $CP from 'child_process'\n$$$",
-      "let $CP = require('child_process')",
-      "var $CP = require('child_process')",
-      "$V2 = require('vm2')"
+      "function $F($$$_, $FUNC, $$$_) {$$$_}"
     ])) as $all
     | ( (($all | of(["new $V({sandbox: $SB})", "new $V({sandbox: $SB}, $REST)"])
           | not_at(($all | of(["new $V({sandbox: $SB})", "new $V({sandbox: $SB}, $REST)"]) | where_capture("SB"; "^[\"'].*[\"']$")))
           | focus("SB"))
-          | in_files_with(($all | of(["$V2 = require('vm2')", "const $V2 = require('vm2')"])) + ($all | of([])))
+          | in_files_with(($all | of(["$V2 = require('vm2')", "const $V2 = require('vm2')"])))
           | reaching(((($all | of(["function ($$$_, $FUNC, $$$_) {$$$_}","function $F($$$_, $FUNC, $$$_) {$$$_}"]))
           + ($all | of(["($FUNC) => {$$$_}","($$$_, $FUNC, $$$_) => {$$$_}"]))
           | focus("FUNC")));

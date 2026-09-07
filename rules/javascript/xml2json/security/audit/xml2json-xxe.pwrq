@@ -13,23 +13,13 @@
       "$PARSER.toJson($DATA, $OPTS)",
       "var $XML = require('xml2json')",
       "const $XML = require('xml2json')",
-      "child_process.exec($CMD, $$$_)",
-      "child_process.execSync($CMD, $$$_)",
-      "child_process.spawn($CMD, $$$_)",
-      "child_process.spawnSync($CMD, $$$_)",
-      "const $XML = require('xml2json')",
       "function ($$$_, $FUNC, $$$_) {$$$_}",
-      "function $F($$$_, $FUNC, $$$_) {$$$_}",
-      "import $CP from 'child_process'\n$$$",
-      "import * as $CP from 'child_process'\n$$$",
-      "let $CP = require('child_process')",
-      "var $CP = require('child_process')",
-      "var $XML = require('xml2json')"
+      "function $F($$$_, $FUNC, $$$_) {$$$_}"
     ])) as $all
     | ( (($all | of(["$PARSER.toJson($DATA)", "$PARSER.toJson($DATA, $OPTS)"])
           | not_at(($all | of(["$PARSER.toJson($DATA)", "$PARSER.toJson($DATA, $OPTS)"]) | where_capture("DATA"; "^[\"'].*[\"']$")))
           | focus("DATA"))
-          | in_files_with(($all | of(["var $XML = require('xml2json')", "const $XML = require('xml2json')"])) + ($all | of([])))
+          | in_files_with(($all | of(["var $XML = require('xml2json')", "const $XML = require('xml2json')"])))
           | reaching(((($all | of(["function ($$$_, $FUNC, $$$_) {$$$_}","function $F($$$_, $FUNC, $$$_) {$$$_}"]))
           + ($all | of(["($FUNC) => {$$$_}","($$$_, $FUNC, $$$_) => {$$$_}"]))
           | focus("FUNC")));

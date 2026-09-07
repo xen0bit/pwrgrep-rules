@@ -5,16 +5,23 @@
 # Multi-line within spans never enclose their targets, so the check never
 # ran. Rewritten as a direct list-item match with the three allowlisted
 # spellings subtracted; the security scope is file-level.
+# A `rules:` key at column zero is what says the file is a Semgrep rule and
+# not something else that spells a key the same way: `metadata:` is every
+# Kubernetes manifest, `- id:` is any list of records, and `message: |` is
+# any workflow that writes more than a line.
 # from: yaml/semgrep/metadata-subcategory-incorrect-value.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+| ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^rules:[^\\S\n]*$"
+    ])) as $semgrep
+| ( (($root | scan_regex(["*.yaml","*.yml"]; [
       "subcategory:\\s+-\\s+(?P<VALUE>\\S+)",
       "subcategory:\\s+-\\s+vuln",
       "subcategory:\\s+-\\s+audit",
       "subcategory:\\s+-\\s+secure\\s+default",
       "metadata:\\s+[\\s\\S]*?category:\\s+security"
-    ])) as $all
+    ])) | in_files_with($semgrep)) as $all
     | ( $all | of(["subcategory:\\s+-\\s+(?P<VALUE>\\S+)"])
           | not_at($all | of(["subcategory:\\s+-\\s+vuln"]))
           | not_at($all | of(["subcategory:\\s+-\\s+audit"]))

@@ -5,13 +5,20 @@
 # Multi-line within spans never enclose their targets, so the value check
 # never ran. Rewritten as a direct value match with an allowlist guard;
 # the security-category scope is file-level.
+# A `rules:` key at column zero is what says the file is a Semgrep rule and
+# not something else that spells a key the same way: `metadata:` is every
+# Kubernetes manifest, `- id:` is any list of records, and `message: |` is
+# any workflow that writes more than a line.
 # from: yaml/semgrep/metadata-confidence-incorrect-value.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+| ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^rules:[^\\S\n]*$"
+    ])) as $semgrep
+| ( (($root | scan_regex(["*.yaml","*.yml"]; [
       "confidence:\\s+(?P<VALUE>\\S+)",
       "metadata:\\s+[\\s\\S]*?\\s+category:\\s+security"
-    ])) as $all
+    ])) | in_files_with($semgrep)) as $all
     | ( $all | of(["confidence:\\s+(?P<VALUE>\\S+)"])
           | where_capture_not("VALUE"; "^(?:LOW|MEDIUM|HIGH)$")
           | in_files_with($all | of(["metadata:\\s+[\\s\\S]*?\\s+category:\\s+security"]))

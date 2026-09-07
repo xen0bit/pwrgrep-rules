@@ -6,13 +6,20 @@
 # a container block with an explicit runAsNonRoot false.
 # Container spans use an indent-anchored block (dash plus deeper fields);
 # fixture containers keep the standard four/six-space layout.
+# A `kind:` key at column zero is what says the file is a Kubernetes
+# manifest: the container block is a dashed `name:` entry with a deeper
+# body, which an eslint config or any other list of named things also is.
 # from: yaml/kubernetes/security/run-as-non-root-container-level.yaml
 
 . as $root
+| ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^kind:[^\\S\n]*\\S"
+    ])) as $manifest
 | ( ($root | scan_regex(["*.yaml","*.yml"]; [
       "(?m)^    -\\s+name:\\s*(?P<C>\\S+)[^\n]*((?:\n      [^\n]*)*)"
     ])) as $all
     | ( $all | of(["(?m)^    -\\s+name:\\s*(?P<C>\\S+)[^\n]*((?:\n      [^\n]*)*)"])
+          | in_files_with($manifest)
           | where_text("runAsNonRoot:\\s*false")
           | focus("C")
         | finding("run-as-non-root-container-level";

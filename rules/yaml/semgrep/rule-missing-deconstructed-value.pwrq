@@ -6,13 +6,20 @@
 # triple-coverage file check cannot express partial absence, so the rule
 # never fired. Rewritten as a destructuring pattern-inside outside any
 # pattern-either; full const/let/var coverage stays a reviewer check.
+# A `rules:` key at column zero is what says the file is a Semgrep rule and
+# not something else that spells a key the same way: `metadata:` is every
+# Kubernetes manifest, `- id:` is any list of records, and `message: |` is
+# any workflow that writes more than a line.
 # from: yaml/semgrep/rule-missing-deconstructed-value.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+| ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^rules:[^\\S\n]*$"
+    ])) as $semgrep
+| ( (($root | scan_regex(["*.yaml","*.yml"]; [
       "-\\s+pattern-inside:\\s*(?P<V>[^\n]*?\\{[^}\n]*\\}[^\n]*)",
       "-\\s+pattern-either:\\s+[\\s\\S]*?"
-    ])) as $all
+    ])) | in_files_with($semgrep)) as $all
     | ( $all | of(["-\\s+pattern-inside:\\s*(?P<V>[^\n]*?\\{[^}\n]*\\}[^\n]*)"])
           | where_capture("V"; "(?:const|let|var)")
           | outside($all | of(["-\\s+pattern-either:\\s+[\\s\\S]*?"]))

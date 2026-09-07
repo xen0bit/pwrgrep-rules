@@ -12,7 +12,6 @@
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "$X = $SMTH[$A]\n$$$_",
       "$X.forEach(function $NAME($OBJ, $B,$$$_) {$$$_})",
       "$X[$B] = $LIT",
       "$X[$B] = $VAL",

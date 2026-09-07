@@ -21,8 +21,6 @@
       "$KNEX.fromRaw($QUERY, $$$_)",
       "$KNEX.raw($QUERY, $$$_)",
       "$KNEX.whereRaw($QUERY, $$$_)",
-      "$REQ.files.$ANYTHING.data.toString('utf8')",
-      "$REQ.files.$ANYTHING['data'].toString('utf8')",
       "require('knex');\n$$$",
       "import 'knex';\n$$$",
       "const $K = require('knex')($$$_)",

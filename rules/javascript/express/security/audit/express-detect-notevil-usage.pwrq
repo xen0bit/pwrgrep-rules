@@ -15,14 +15,11 @@
 | ( ($root | scan_ast(["*.js","*.ts"]; [
       "$EVAL($ARG)",
       "$EVAL($LIT)",
-      "$EVAL = require('notevil')\n$$$_",
       "$VM.compileFunction(\"$CMD\", $$$_)",
       "$VM.runInContext(\"$CMD\", $$$_)",
       "$VM.runInNewContext(\"$CMD\", $$$_)",
       "$VM.runInThisContext(\"$CMD\", $$$_)",
       "const $EVAL = require('notevil')",
-      "import $EVAL from 'notevil'\n$$$_",
-      "import {$EVAL} from 'notevil'\n$$$_",
       "let $EVAL = require('notevil')",
       "var $EVAL = require('notevil')"
     ])) as $all

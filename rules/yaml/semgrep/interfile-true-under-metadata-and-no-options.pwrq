@@ -5,13 +5,20 @@
 # Rule-start-anchored spans never line up, so the form never fired. Rewritten
 # as a metadata-block match with an interfile guard, in files with no options
 # section at all. Fixed four/six-space indent.
+# A `rules:` key at column zero is what says the file is a Semgrep rule and
+# not something else that spells a key the same way: `metadata:` is every
+# Kubernetes manifest, `- id:` is any list of records, and `message: |` is
+# any workflow that writes more than a line.
 # from: yaml/semgrep/interfile-true-under-metadata-and-no-options.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+| ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^rules:[^\\S\n]*$"
+    ])) as $semgrep
+| ( (($root | scan_regex(["*.yaml","*.yml"]; [
       "(?m)^    metadata:[^\\S\n]*\n((?:      [^\n]*\n?)*)",
       "(?m)^    options:"
-    ])) as $all
+    ])) | in_files_with($semgrep)) as $all
     | ( $all | of(["(?m)^    metadata:[^\\S\n]*\n((?:      [^\n]*\n?)*)"])
           | where_text("interfile:\\s*true")
           | in_files_without($all | of(["(?m)^    options:"]))

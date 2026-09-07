@@ -5,13 +5,20 @@
 # The OWASP tag check compared file-spanning shapes that never coincide,
 # so the rule never fired. Rewritten as string and first-list-item matches
 # with a Top-10 number:year guard. Later list items are out of scope.
+# A `rules:` key at column zero is what says the file is a Semgrep rule and
+# not something else that spells a key the same way: `metadata:` is every
+# Kubernetes manifest, `- id:` is any list of records, and `message: |` is
+# any workflow that writes more than a line.
 # from: yaml/semgrep/metadata-owasp.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+| ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^rules:[^\\S\n]*$"
+    ])) as $semgrep
+| ( (($root | scan_regex(["*.yaml","*.yml"]; [
       "owasp:\\s*\"(?P<O>[^\"\n]*)\"",
       "owasp:[^\\S\n]*\n\\s+-\\s+(?P<O>\\S+)"
-    ])) as $all
+    ])) | in_files_with($semgrep)) as $all
     | ( (($all | of(["owasp:\\s*\"(?P<O>[^\"\n]*)\""]) | where_capture_not("O"; "^(A\\d\\d|K\\d\\d|LLM\\d\\d):\\d{4}"))
           + ($all | of(["owasp:[^\\S\n]*\n\\s+-\\s+(?P<O>\\S+)"]) | where_capture_not("O"; "^(A\\d\\d|K\\d\\d|LLM\\d\\d):"))
         | finding("metadata-owasp";

@@ -32,3 +32,23 @@ def trailing_comment(x):
 # ok: code-after-unconditional-return
 def no_return(x):
     print(x)
+
+
+# ok: code-after-unconditional-return
+def conditional_return(x):
+    if x > 0:
+        return x
+    return -x
+
+
+class Wrapper:
+    # ok: code-after-unconditional-return
+    def guarded(self, x):
+        if x is None:
+            return 0
+        return x + 1
+
+    # ruleid: code-after-unconditional-return
+    def dead_tail(self, x):
+        return x
+        self.log(x)

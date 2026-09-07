@@ -8,12 +8,8 @@
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "$X.spawn('git', ['clone',$$$_,\"$$$_\",\"$$$_\"])",
-      "$X.spawn('git', ['clone',$$$_,\"$$$_\"])",
       "$X.spawn('git', ['clone',$$$_,$F])",
       "$X.spawn('git', ['clone',$$$_,$P,$F])",
-      "spawn('git', ['clone',$$$_,\"$$$_\",\"$$$_\"])",
-      "spawn('git', ['clone',$$$_,\"$$$_\"])",
       "spawn('git', ['clone',$$$_,$F])",
       "spawn('git', ['clone',$$$_,$P,$F])"
     ])) as $all

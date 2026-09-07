@@ -20,8 +20,6 @@
       "$REQ.files.$ANYTHING['data'].toString('utf8')",
       "$PARSER.toJson($DATA)",
       "$PARSER.toJson($DATA, $OPTS)",
-      "$REQ.files.$ANYTHING.data.toString('utf8')",
-      "$REQ.files.$ANYTHING['data'].toString('utf8')",
       "require('xml2json');\n$$$_",
       "import 'xml2json';\n$$$_",
       "({ $REQ }: Request,$RES: Response) => {$$$_}",

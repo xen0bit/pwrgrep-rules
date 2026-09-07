@@ -5,12 +5,19 @@
 # Duplicate detection needs value equality across two matches, which the
 # ported scaffolding (reusing one capture name for both) never established.
 # Rewritten as one regex over a pattern pair with where_same.
+# A `rules:` key at column zero is what says the file is a Semgrep rule and
+# not something else that spells a key the same way: `metadata:` is every
+# Kubernetes manifest, `- id:` is any list of records, and `message: |` is
+# any workflow that writes more than a line.
 # from: yaml/semgrep/duplicate-pattern.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+| ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^rules:[^\\S\n]*$"
+    ])) as $semgrep
+| ( (($root | scan_regex(["*.yaml","*.yml"]; [
       "-\\s+pattern:\\s+(?P<A>\\S+)[\\s\\S]*?-\\s+pattern:\\s+(?P<B>\\S+)"
-    ])) as $all
+    ])) | in_files_with($semgrep)) as $all
     | ( $all | of(["-\\s+pattern:\\s+(?P<A>\\S+)[\\s\\S]*?-\\s+pattern:\\s+(?P<B>\\S+)"])
           | where_same("A"; "B")
           | focus("A")

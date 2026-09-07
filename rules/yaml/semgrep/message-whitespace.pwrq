@@ -5,12 +5,19 @@
 # The at_same_place pair against regex-literal shapes never coincided, so the
 # rule never fired. Rewritten as a block message containing a double space;
 # the backslash-escape half is out of scope.
+# A `rules:` key at column zero is what says the file is a Semgrep rule and
+# not something else that spells a key the same way: `metadata:` is every
+# Kubernetes manifest, `- id:` is any list of records, and `message: |` is
+# any workflow that writes more than a line.
 # from: yaml/semgrep/message-whitespace.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+| ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^rules:[^\\S\n]*$"
+    ])) as $semgrep
+| ( (($root | scan_regex(["*.yaml","*.yml"]; [
       "message:\\s*>-\\s*(?P<VALUE>[^\n]*)"
-    ])) as $all
+    ])) | in_files_with($semgrep)) as $all
     | ( $all | of(["message:\\s*>-\\s*(?P<VALUE>[^\n]*)"])
           | where_capture("VALUE"; "  ")
         | finding("message-whitespace-check";

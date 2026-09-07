@@ -17,7 +17,6 @@
       "const $X = new Bucket($$$_, {$$$_, encryption: BucketEncryption.KMS, $$$_})",
       "const $X = new Bucket($$$_, {$$$_, encryption: BucketEncryption.KMS_MANAGED, $$$_})",
       "const $X = new Bucket($$$_, {$$$_, encryption: BucketEncryption.S3_MANAGED, $$$_})",
-      "'@aws-cdk/aws-s3'",
       "'@aws-cdk/aws-s3'"
     ])) as $all
     | ( ($all | of(["const $X = new Bucket($$$_)"])

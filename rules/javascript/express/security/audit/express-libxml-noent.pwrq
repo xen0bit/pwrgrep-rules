@@ -20,8 +20,6 @@
       "$REQ.files.$ANYTHING['data'].toString('utf8')",
       "$LIB.parseXml($DATA, {$$$_, noent: true, $$$_})",
       "$LIB.parseXmlString($DATA, {$$$_, noent: true, $$$_})",
-      "$REQ.files.$ANYTHING.data.toString('utf8')",
-      "$REQ.files.$ANYTHING['data'].toString('utf8')",
       "$XML = require('$IMPORT')\n$$$_",
       "const $XML = require('$IMPORT')",
       "let $XML = require('$IMPORT')",

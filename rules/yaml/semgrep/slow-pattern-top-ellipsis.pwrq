@@ -5,11 +5,18 @@
 # Block-scalar values are invisible to AST patterns (only the key matched),
 # so the sandwich form never fired. Rewritten as a regex over a pattern
 # block whose first line is an ellipsis. Both globs are scanned.
+# A `rules:` key at column zero is what says the file is a Semgrep rule and
+# not something else that spells a key the same way: `metadata:` is every
+# Kubernetes manifest, `- id:` is any list of records, and `message: |` is
+# any workflow that writes more than a line.
 # from: yaml/semgrep/slow-pattern-top-ellipsis.yaml
 . as $root
-| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+| ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^rules:[^\\S\n]*$"
+    ])) as $semgrep
+| ( (($root | scan_regex(["*.yaml","*.yml"]; [
       "pattern:\\s*\\|\\s*\\n\\s*\\.\\.\\."
-    ])) as $all
+    ])) | in_files_with($semgrep)) as $all
     | ( $all | of(["pattern:\\s*\\|\\s*\\n\\s*\\.\\.\\."])
         | finding("slow-pattern-top-ellipsis";
             "Using the ellipsis operator `...` at the top of the pattern drastically slows down the rule performance.") ) )

@@ -9,15 +9,9 @@
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "$(\"$$$_\",$$$_).$METHOD($$$_)",
-      "$($$$_).$METHOD($VAR,$$$_)",
       "$($$$_).$METHOD($VAR,$$$_)",
       "$.$METHOD($VAR,$$$_)",
-      "$.$METHOD($VAR,$$$_)",
-      "jQuery(\"$$$_\",$$$_).$METHOD($$$_)",
       "jQuery($$$_).$METHOD($VAR,$$$_)",
-      "jQuery($$$_).$METHOD($VAR,$$$_)",
-      "jQuery.$METHOD($VAR,$$$_)",
       "jQuery.$METHOD($VAR,$$$_)"
     ])) as $all
     | ( ($all | of(["$.$METHOD($VAR,$$$_)","$($$$_).$METHOD($VAR,$$$_)","jQuery.$METHOD($VAR,$$$_)","jQuery($$$_).$METHOD($VAR,$$$_)"])

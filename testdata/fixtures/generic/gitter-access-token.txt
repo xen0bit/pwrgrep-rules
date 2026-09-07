@@ -1,0 +1,10 @@
+# Gitleaks gitter-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: gitter-access-token
+gitter=abcdefghijklmnopqrstuvwxy0123456789_-abc
+# ruleid: gitter-access-token
+gitter=lmnopqrstuvwxy0123456789_-abcdefghijklmn
+# ok: gitter-access-token
+gitter = "example"
+# ok: gitter-access-token
+gitter = "placeholder"

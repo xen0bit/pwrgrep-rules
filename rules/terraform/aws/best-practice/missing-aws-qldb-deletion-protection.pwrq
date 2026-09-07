@@ -1,5 +1,6 @@
 # rules: missing-aws-qldb-deletion-protection
 # languages: hcl
+# fixture: terraform/missing-aws-qldb-deletion-protection.tf
 # from: terraform/aws/best-practice/missing-aws-qldb-deletion-protection.yaml
 
 . as $root

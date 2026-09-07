@@ -1,5 +1,6 @@
 # rules: find-sql-string-concatenation
 # languages: java
+# fixture: java/find-sql-string-concatenation.java
 # from: java/jboss/security/session_sqli.yaml
 
 . as $root

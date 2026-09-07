@@ -1,5 +1,6 @@
 # rules: azure-appservice-identityprovider-enabled
 # languages: hcl
+# fixture: terraform/azure-appservice-identityprovider-enabled.tf
 # from: terraform/azure/security/appservice/azure-appservice-identityprovider-enabled.yaml
 
 . as $root

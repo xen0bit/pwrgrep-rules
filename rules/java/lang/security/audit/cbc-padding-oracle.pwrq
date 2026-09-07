@@ -1,14 +1,19 @@
 # rules: cbc-padding-oracle
 # languages: java
+# fixture: java/cbc-padding-oracle.java
+# fixture: java/cbc-padding-oracle.java
 # from: java/lang/security/audit/cbc-padding-oracle.yaml
+#
+# The mode was written Semgrep-style (`"=~/.*/CBC/.../"`), a literal string
+# no file contains, so the rule never fired. The mode is a hole now and the
+# CBC-with-PKCS5Padding shape is a guard on what it caught.
 
 . as $root
 | ( ($root | scan_ast(["*.java"]; [
-      "\"=~/.*\\/CBC\\/PKCS5Padding/\"",
-      "Cipher.getInstance(\"=~/.*\\/CBC\\/PKCS5Padding/\")"
+      "Cipher.getInstance($MODE)"
     ])) as $all
-    | ( $all | of(["\"=~/.*\\/CBC\\/PKCS5Padding/\""])
-          | within($all | of(["Cipher.getInstance(\"=~/.*\\/CBC\\/PKCS5Padding/\")"]))
+    | ( $all | of(["Cipher.getInstance($MODE)"])
+          | where_capture("MODE"; "CBC/PKCS5Padding")
         | finding("cbc-padding-oracle";
             "Using CBC with PKCS5Padding is susceptible to padding oracle attacks.") ) )
 | report

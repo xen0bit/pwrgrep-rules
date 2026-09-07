@@ -1,5 +1,6 @@
 # rules: aws-ecr-mutable-image-tags
 # languages: hcl
+# fixture: terraform/aws-ecr-mutable-image-tags.tf
 # from: terraform/aws/security/aws-ecr-mutable-image-tags.yaml
 
 . as $root

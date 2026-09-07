@@ -1,5 +1,6 @@
 # rules: insecure-hash-algorithm-md4
 # languages: python
+# fixture: python/insecure-hash-algorithm-md4.py
 # from: python/pycryptodome/security/insecure-hash-algorithm-md4.yaml
 
 . as $root

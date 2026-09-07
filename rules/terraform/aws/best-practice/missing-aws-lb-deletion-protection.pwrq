@@ -1,5 +1,6 @@
 # rules: missing-aws-lb-deletion-protection
 # languages: hcl
+# fixture: terraform/missing-aws-lb-deletion-protection.tf
 # from: terraform/aws/best-practice/missing-aws-lb-deletion-protection.yaml
 
 . as $root

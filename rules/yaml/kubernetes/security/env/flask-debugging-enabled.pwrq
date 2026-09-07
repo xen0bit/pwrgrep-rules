@@ -1,9 +1,9 @@
 # rules: flask-debugging-enabled
 # languages: yaml
+# fixture: yaml/k8s-flask-debugging-enabled.yaml
 # from: yaml/kubernetes/security/env/flask-debugging-enabled.yaml
-
 . as $root
-| ( ($root | scan_ast(["*.yaml"]; [
+| ( ($root | scan_ast(["*.yaml","*.yml"]; [
       "env: [$$$_]",
       "{name: FLASK_ENV, value: \"development\"}"
     ])) as $all

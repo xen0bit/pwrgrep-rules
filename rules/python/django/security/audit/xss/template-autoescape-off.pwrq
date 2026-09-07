@@ -1,4 +1,5 @@
 # rules: template-autoescape-off
+# fixture: python/django-template-autoescape-off.html
 # from: python/django/security/audit/xss/template-autoescape-off.yaml
 
 . as $root

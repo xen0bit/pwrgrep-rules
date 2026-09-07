@@ -1,5 +1,6 @@
 # rules: aws-codebuild-artifacts-unencrypted
 # languages: hcl
+# fixture: terraform/aws-codebuild-artifacts-unencrypted.tf
 # from: terraform/aws/security/aws-codebuild-artifacts-unencrypted.yaml
 
 . as $root

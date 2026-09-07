@@ -1,0 +1,10 @@
+# Gitleaks sentry-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: sentry-access-token
+sentry=abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789
+# ruleid: sentry-access-token
+sentry=56789abcdef0123456789abcdef0123456789abcdef0123456789abcdef01234
+# ok: sentry-access-token
+sentry = "example"
+# ok: sentry-access-token
+sentry = "placeholder"

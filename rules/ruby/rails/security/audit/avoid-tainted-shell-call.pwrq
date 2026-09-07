@@ -1,5 +1,6 @@
 # rules: avoid-tainted-shell-call
 # languages: ruby
+# fixture: ruby/avoid-tainted-shell-call.rb
 # from: ruby/rails/security/audit/avoid-tainted-shell-call.yaml
 
 . as $root

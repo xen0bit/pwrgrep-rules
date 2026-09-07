@@ -1,32 +1,19 @@
 # rules: ldap-injection
 # languages: java
+# fixture: java/ldap-injection.java
 # from: java/lang/security/audit/ldap-injection.yaml
+#
+# Every shape was a method scaffold with statement gaps that match nothing,
+# so the rule never fired. The finding is the search call itself now, kept
+# when its filter is not a literal.
 
 . as $root
 | ( ($root | scan_ast(["*.java"]; [
-      "$X $METHOD($$$_) {\n  $$$_\n  $CTX.search($Y,\"$$$_\",$$$_);\n  $$$_\n}",
-      "$X $METHOD($$$_) {\n  $$$_\n  $CTX.search($Y,$INPUT,$$$_);\n  $$$_\n}",
-      "$X $METHOD($$$_) {\n  $$$_\n  DirContext $CTX = $$$_;\n  $$$_\n}",
-      "$X $METHOD($$$_) {\n  $$$_\n  EventDirContext $CTX = $$$_;\n  $$$_\n}",
-      "$X $METHOD($$$_) {\n  $$$_\n  InitialDirContext $CTX = $$$_;\n  $$$_\n}",
-      "$X $METHOD($$$_) {\n  $$$_\n  InitialLdapContext $CTX = $$$_;\n  $$$_\n}",
-      "$X $METHOD($$$_) {\n  $$$_\n  LdapContext $CTX = $$$_;\n  $$$_\n}",
-      "$X $METHOD($$$_) {\n  $$$_\n  LdapCtx $CTX = $$$_;\n  $$$_\n}"
+      "$CTX.search($BASE, $FILTER)",
+      "$CTX.search($BASE, $FILTER, $CONTROLS)"
     ])) as $all
-    | ( ($all
-          | within($all | of(["$X $METHOD($$$_) {\n  $$$_\n  InitialDirContext $CTX = $$$_;\n  $$$_\n}"])))
-          + ($all
-          | within($all | of(["$X $METHOD($$$_) {\n  $$$_\n  DirContext $CTX = $$$_;\n  $$$_\n}"])))
-          + ($all
-          | within($all | of(["$X $METHOD($$$_) {\n  $$$_\n  InitialLdapContext $CTX = $$$_;\n  $$$_\n}"])))
-          + ($all
-          | within($all | of(["$X $METHOD($$$_) {\n  $$$_\n  LdapContext $CTX = $$$_;\n  $$$_\n}"])))
-          + ($all
-          | within($all | of(["$X $METHOD($$$_) {\n  $$$_\n  LdapCtx $CTX = $$$_;\n  $$$_\n}"])))
-          + ($all
-          | within($all | of(["$X $METHOD($$$_) {\n  $$$_\n  EventDirContext $CTX = $$$_;\n  $$$_\n}"])))
-          | at_same_place(($all | of(["$X $METHOD($$$_) {\n  $$$_\n  $CTX.search($Y,$INPUT,$$$_);\n  $$$_\n}"])))
-          | not_at($all | of(["$X $METHOD($$$_) {\n  $$$_\n  $CTX.search($Y,\"$$$_\",$$$_);\n  $$$_\n}"]))
+    | ( $all | of(["$CTX.search($BASE, $FILTER)","$CTX.search($BASE, $FILTER, $CONTROLS)"])
+          | where_capture_not("FILTER"; "^\"[^\"]*\"$")
         | finding("ldap-injection";
             "Detected non-constant data passed into an LDAP query.") ) )
 | report

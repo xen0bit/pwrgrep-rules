@@ -1,5 +1,6 @@
 # rules: azure-mariadb-geo-backup-enabled
 # languages: hcl
+# fixture: terraform/azure-mariadb-geo-backup-enabled.tf
 # from: terraform/azure/best-practice/azure-mariadb-geo-backup-enabled.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: avoid-insecure-deserialization
 # languages: python
+# fixture: python/avoid-insecure-deserialization.py
 # from: python/django/security/audit/avoid-insecure-deserialization.yaml
 
 . as $root

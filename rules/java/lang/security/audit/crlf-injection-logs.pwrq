@@ -1,4 +1,5 @@
 # rules: crlf-injection-logs
+# fixture: java/crlf-injection-logs.java
 # from: java/lang/security/audit/crlf-injection-logs.yaml
 
 . as $root

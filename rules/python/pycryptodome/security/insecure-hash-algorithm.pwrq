@@ -1,5 +1,6 @@
 # rules: insecure-hash-algorithm-sha1
 # languages: python
+# fixture: python/insecure-hash-algorithm.py
 # from: python/pycryptodome/security/insecure-hash-algorithm.yaml
 
 . as $root

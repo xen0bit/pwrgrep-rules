@@ -1,5 +1,6 @@
 # rules: ecb-cipher
 # languages: java
+# fixture: java/ecb-cipher.java
 # from: java/lang/security/audit/crypto/ecb-cipher.yaml
 
 . as $root

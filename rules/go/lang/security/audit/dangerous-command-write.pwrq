@@ -1,11 +1,15 @@
 # rules: dangerous-command-write
+# fixture: go/dangerous-command-write.go
 # from: go/lang/security/audit/dangerous-command-write.yaml
+#
+# The StdinPipe patterns joined the two result names with a bare comma,
+# which gofmt never writes; they allow whitespace after it now.
 
 . as $root
 | ( ($root | scan_regex(["*.go"]; [
       "(?P<BYTE>\\S+)\\s+=\\s+\\[\\]byte\\(\"[\\s\\S]*?\"\\);\\s+[\\s\\S]*?",
       "(?P<BYTE>\\S+)\\s+=\\s+\\[\\]byte\\(\"[\\s\\S]*?\"\\+\"[\\s\\S]*?\"\\);\\s+[\\s\\S]*?",
-      "(?P<CW>\\S+),(?P<ERR>\\S+)\\s+:=\\s+(?P<CMD>\\S+)\\.StdinPipe\\(\\)\\s+[\\s\\S]*?",
+      "(?P<CW>\\S+),\\s*(?P<ERR>\\S+)\\s+:=\\s+(?P<CMD>\\S+)\\.StdinPipe\\(\\)\\s+[\\s\\S]*?",
       "(?P<CW>\\S+)\\.Write\\(\"[\\s\\S]*?\"\\)",
       "(?P<CW>\\S+)\\.Write\\((?P<BYTE>\\S+)\\)",
       "(?P<CW>\\S+)\\.Write\\(\\[\\]byte\\(\"[\\s\\S]*?\"\\)\\)",
@@ -13,7 +17,7 @@
       "import\\s+\"os\\/exec\"\\s+[\\s\\S]*?"
     ])) as $all
     | ( $all | of(["(?P<CW>\\S+)\\.Write\\((?P<BYTE>\\S+)\\)"])
-          | in_files_with($all | of(["(?P<CW>\\S+),(?P<ERR>\\S+)\\s+:=\\s+(?P<CMD>\\S+)\\.StdinPipe\\(\\)\\s+[\\s\\S]*?"]))
+          | in_files_with($all | of(["(?P<CW>\\S+),\\s*(?P<ERR>\\S+)\\s+:=\\s+(?P<CMD>\\S+)\\.StdinPipe\\(\\)\\s+[\\s\\S]*?"]))
           | not_at($all | of(["(?P<CW>\\S+)\\.Write\\(\"[\\s\\S]*?\"\\)"]))
           | not_at($all | of(["(?P<CW>\\S+)\\.Write\\(\\[\\]byte\\(\"[\\s\\S]*?\"\\)\\)"]))
           | not_at($all | of(["(?P<CW>\\S+)\\.Write\\(\\[\\]byte\\(\"[\\s\\S]*?\"\\+\"[\\s\\S]*?\"\\)\\)"]))

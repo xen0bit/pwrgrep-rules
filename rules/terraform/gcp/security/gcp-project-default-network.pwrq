@@ -1,5 +1,6 @@
 # rules: gcp-project-default-network
 # languages: hcl
+# fixture: terraform/gcp-project-default-network.tf
 # from: terraform/gcp/security/gcp-project-default-network.yaml
 
 . as $root

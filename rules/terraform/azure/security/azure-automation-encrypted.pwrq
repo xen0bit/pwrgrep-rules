@@ -1,5 +1,6 @@
 # rules: azure-automation-encrypted
 # languages: hcl
+# fixture: terraform/azure-automation-encrypted.tf
 # from: terraform/azure/security/azure-automation-encrypted.yaml
 
 . as $root

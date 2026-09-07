@@ -1,0 +1,12 @@
+<%# ruleid: check-dynamic-render-local-file-include %>
+<%= render :file => params[:f] %>
+<%# ruleid: check-dynamic-render-local-file-include %>
+<%= render :file => params[:other] %>
+<%# ruleid: check-dynamic-render-local-file-include %>
+<%= render :file => params['third'] %>
+<%# ok: check-dynamic-render-local-file-include %>
+<%= render :file => 'static' %>
+<%# ok: check-dynamic-render-local-file-include %>
+<%= render :template => 'show' %>
+<%# ok: check-dynamic-render-local-file-include %>
+<p>static markup</p>

@@ -1,5 +1,6 @@
 # rules: mysql-sqli
 # languages: python
+# fixture: python/mysql-sqli.py
 # from: python/aws-lambda/security/mysql-sqli.yaml
 
 . as $root

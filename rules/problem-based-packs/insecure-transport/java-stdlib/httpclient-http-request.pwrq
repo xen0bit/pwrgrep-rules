@@ -1,24 +1,36 @@
 # rules: httpclient-http-request
 # languages: java
+# fixture: problem-based-packs/java-httpclient-http-request.java
+#
+# The `"=~/.../"` string guards never match and untyped `$X = new ...`
+# declarations never match typed Java, so the rule never fired. Rewritten with
+# typed declarations and the URL in a named hole guarded by where_capture.
 # from: problem-based-packs/insecure-transport/java-stdlib/httpclient-http-request.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.java"]; [
-      "HttpClient $CLIENT = $$$_;\n$$$_\nHttpRequest $REQ = $$$_;\n$$$_\n$CLIENT.send($$$_);",
-      "HttpClient $CLIENT = $$$_;\n$$$_\nHttpRequest $REQ = $$$_;\n$$$_\n$CLIENT.sendAsync($$$_);",
-      "String $URI = \"=~/[hH][tT][tT][pP]://.*/\";\n$$$_\nHttpClient $CLIENT = $$$_;\n$$$_\nHttpRequest $REQ = $$$_;\n$$$_\n$CLIENT.send($$$_);",
-      "String $URI = \"=~/[hH][tT][tT][pP]://.*/\";\n$$$_\nHttpClient $CLIENT = $$$_;\n$$$_\nHttpRequest $REQ = $$$_;\n$$$_\n$CLIENT.sendAsync($$$_);",
-      "URI.create(\"=~/[hH][tT][tT][pP]://.*/\", $$$_)",
-      "URI.create($URI)"
+      "URI.create($URI)",
+      "HttpClient $CLIENT = $C;
+$$$_
+HttpRequest $REQ = $R;
+$$$_
+$CLIENT.send($$$_);",
+      "HttpClient $CLIENT = $C;
+$$$_
+HttpRequest $REQ = $R;
+$$$_
+$CLIENT.sendAsync($$$_);"
     ])) as $all
-    | ( ($all | of(["URI.create(\"=~/[hH][tT][tT][pP]://.*/\", $$$_)"])
-          | within($all | of(["HttpClient $CLIENT = $$$_;\n$$$_\nHttpRequest $REQ = $$$_;\n$$$_\n$CLIENT.sendAsync($$$_);"])))
-          + ($all | of(["URI.create(\"=~/[hH][tT][tT][pP]://.*/\", $$$_)"])
-          | within($all | of(["HttpClient $CLIENT = $$$_;\n$$$_\nHttpRequest $REQ = $$$_;\n$$$_\n$CLIENT.send($$$_);"])))
-          + ($all | of(["URI.create($URI)"])
-          | within($all | of(["String $URI = \"=~/[hH][tT][tT][pP]://.*/\";\n$$$_\nHttpClient $CLIENT = $$$_;\n$$$_\nHttpRequest $REQ = $$$_;\n$$$_\n$CLIENT.send($$$_);"])))
-          + ($all | of(["URI.create($URI)"])
-          | within($all | of(["String $URI = \"=~/[hH][tT][tT][pP]://.*/\";\n$$$_\nHttpClient $CLIENT = $$$_;\n$$$_\nHttpRequest $REQ = $$$_;\n$$$_\n$CLIENT.sendAsync($$$_);"])))
+    | ( (($all | of(["URI.create($URI)"]) | within($all | of(["HttpClient $CLIENT = $C;
+$$$_
+HttpRequest $REQ = $R;
+$$$_
+$CLIENT.send($$$_);"])) | where_capture("URI"; "http://"))
+          + ($all | of(["URI.create($URI)"]) | within($all | of(["HttpClient $CLIENT = $C;
+$$$_
+HttpRequest $REQ = $R;
+$$$_
+$CLIENT.sendAsync($$$_);"])) | where_capture("URI"; "http://"))
         | finding("httpclient-http-request";
-            "Checks for requests sent via HttpClient to http:// URLS.") ) )
+            "Checks for requests sent via HttpClient to http:// URLS.") ) ) )
 | report

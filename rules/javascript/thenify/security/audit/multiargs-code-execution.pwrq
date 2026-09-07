@@ -1,5 +1,6 @@
 # rules: multiargs-code-execution
 # languages: javascript, typescript
+# fixture: javascript/multiargs-code-execution.js
 # from: javascript/thenify/security/audit/multiargs-code-execution.yaml
 
 . as $root

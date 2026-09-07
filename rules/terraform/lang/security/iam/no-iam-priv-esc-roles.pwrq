@@ -1,4 +1,5 @@
 # rules: no-iam-priv-esc-roles
+# fixture: terraform/no-iam-priv-esc-roles.tf
 # from: terraform/lang/security/iam/no-iam-priv-esc-roles.yaml
 
 . as $root

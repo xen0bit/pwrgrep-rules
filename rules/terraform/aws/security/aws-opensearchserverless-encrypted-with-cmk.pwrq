@@ -1,4 +1,5 @@
 # rules: aws-opensearchserverless-encrypted-with-cmk
+# fixture: terraform/aws-opensearchserverless-encrypted-with-cmk.tf
 # from: terraform/aws/security/aws-opensearchserverless-encrypted-with-cmk.yaml
 
 . as $root

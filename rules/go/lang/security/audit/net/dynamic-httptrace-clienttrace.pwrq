@@ -1,4 +1,5 @@
 # rules: dynamic-httptrace-clienttrace
+# fixture: go/dynamic-httptrace-clienttrace.go
 # from: go/lang/security/audit/net/dynamic-httptrace-clienttrace.yaml
 
 . as $root

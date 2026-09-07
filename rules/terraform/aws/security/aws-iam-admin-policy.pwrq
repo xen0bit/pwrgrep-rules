@@ -1,5 +1,6 @@
 # rules: aws-iam-admin-policy
 # languages: hcl
+# fixture: terraform/aws-iam-admin-policy.tf
 # from: terraform/aws/security/aws-iam-admin-policy.yaml
 
 . as $root

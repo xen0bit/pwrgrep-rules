@@ -1,0 +1,10 @@
+# Gitleaks slack-webhook-url: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: slack-webhook-url
+hooks.slack.com/services/ABCDEFGHIJKLMNOPQRSTUVWXYabcdefghijklmnopqr
+# ruleid: slack-webhook-url
+hooks.slack.com/services/LMNOPQRSTUVWXYabcdefghijklmnopqrstuvwxy0123
+# ok: slack-webhook-url
+api_key = "example"
+# ok: slack-webhook-url
+token = "placeholder"

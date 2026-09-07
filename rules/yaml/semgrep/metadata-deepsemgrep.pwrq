@@ -1,16 +1,18 @@
 # rules: metadata-deepsemgrep
+# languages: yaml
+# fixture: yaml/semgrep-metadata-deepsemgrep.yaml
+#
+# The within scaffolding spans never enclose the key, so the rule never
+# fired. Rewritten as a direct key match with focus.
 # from: yaml/semgrep/metadata-deepsemgrep.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml"]; [
-      "metadata:\\s+[\\s\\S]*?\\s+(?P<DEEPSEMGREP>\\S+):\\s+true\\s+[\\s\\S]*?",
-      "rules:\\s+[\\s\\S]*?"
+| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?P<D>\\S+):\\s+true"
     ])) as $all
-    | ( $all
-          | within($all | of(["rules:\\s+[\\s\\S]*?"]))
-          | within($all | of(["metadata:\\s+[\\s\\S]*?\\s+(?P<DEEPSEMGREP>\\S+):\\s+true\\s+[\\s\\S]*?"]))
-          | focus("DEEPSEMGREP")
-          | where_capture("DEEPSEMGREP"; "^(deepsemgrep)$")
+    | ( $all | of(["(?P<D>\\S+):\\s+true"])
+          | where_capture("D"; "^deepsemgrep$")
+          | focus("D")
         | finding("metadata-deepsemgrep";
             "We no longer support `deepsemgrep: true`, please use `interfile:true`") ) )
 | report

@@ -1,4 +1,5 @@
 # rules: missing-autoscaling-group-tags
+# fixture: terraform/missing-autoscaling-group-tags.tf
 # from: terraform/aws/best-practice/missing-autoscaling-group-tags.yaml
 
 . as $root

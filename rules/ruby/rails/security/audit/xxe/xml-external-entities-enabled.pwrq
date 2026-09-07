@@ -1,5 +1,6 @@
 # rules: xml-external-entities-enabled
 # languages: ruby
+# fixture: ruby/xml-external-entities-enabled.rb
 # from: ruby/rails/security/audit/xxe/xml-external-entities-enabled.yaml
 
 . as $root

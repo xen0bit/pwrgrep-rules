@@ -1,5 +1,6 @@
 # rules: detect-angular-trust-as-css-method
 # languages: javascript, typescript
+# fixture: javascript/detect-angular-trust-as-css-method.js
 # from: javascript/angular/security/detect-angular-trust-as-css.yaml
 
 . as $root

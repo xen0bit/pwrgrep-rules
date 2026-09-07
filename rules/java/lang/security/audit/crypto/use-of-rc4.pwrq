@@ -1,5 +1,6 @@
 # rules: use-of-rc4
 # languages: java
+# fixture: java/use-of-rc4.java
 # from: java/lang/security/audit/crypto/use-of-rc4.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: subprocess-injection
 # languages: python
+# fixture: python/flask-subprocess-injection.py
 # from: python/flask/security/injection/subprocess-injection.yaml
 
 . as $root

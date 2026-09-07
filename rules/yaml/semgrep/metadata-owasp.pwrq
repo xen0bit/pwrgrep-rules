@@ -1,27 +1,19 @@
 # rules: metadata-owasp
+# languages: yaml
+# fixture: yaml/semgrep-metadata-owasp.yaml
+#
+# The OWASP tag check compared file-spanning shapes that never coincide,
+# so the rule never fired. Rewritten as string and first-list-item matches
+# with a Top-10 number:year guard. Later list items are out of scope.
 # from: yaml/semgrep/metadata-owasp.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.json","*.yaml"]; [
-      "\"(?P<ANYTHING>\\S+)\"",
-      "\\.\\*\\(A\\|K\\|LLM\\)\\(0\\[1\\-9\\]\\|10\\):\\[0\\-9\\]\\{4\\}\\\\s\\+\\.\\*",
-      "metadata:\\s+[\\s\\S]*?",
-      "owasp:",
-      "owasp:\\s+\"=~\\/\\^\\(A\\|K\\|LLM\\)\\(0\\?\\[1\\-9\\]\\|10\\):\\\\s\\+\\.\\+\\$\\/\"",
-      "owasp:\\s+\"=~\\/\\^\\(A\\|K\\|LLM\\)\\(0\\[1\\-9\\]\\|10\\):\\(\\[0\\-9\\]\\{4\\}\\)\\?\\\\s\\+\\.\\+\\$\\/\"",
-      "owasp:\\s+\"[\\s\\S]*?\"",
-      "owasp:\\s+\\[[\\s\\S]*?\\]",
-      "rules:\\s+[\\s\\S]*?"
+| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+      "owasp:\\s*\"(?P<O>[^\"\n]*)\"",
+      "owasp:[^\\S\n]*\n\\s+-\\s+(?P<O>\\S+)"
     ])) as $all
-    | ( ($all | of(["owasp:\\s+\"[\\s\\S]*?\""])
-          | not_at($all | of(["owasp:\\s+\"=~\\/\\^\\(A\\|K\\|LLM\\)\\(0\\?\\[1\\-9\\]\\|10\\):\\\\s\\+\\.\\+\\$\\/\""]))
-          | not_at($all | of(["owasp:\\s+\"=~\\/\\^\\(A\\|K\\|LLM\\)\\(0\\[1\\-9\\]\\|10\\):\\(\\[0\\-9\\]\\{4\\}\\)\\?\\\\s\\+\\.\\+\\$\\/\""])))
-          + ($all | of(["\"(?P<ANYTHING>\\S+)\""])
-          | within($all | of(["owasp:\\s+\\[[\\s\\S]*?\\]"]))
-          | not_at($all | of(["\\.\\*\\(A\\|K\\|LLM\\)\\(0\\[1\\-9\\]\\|10\\):\\[0\\-9\\]\\{4\\}\\\\s\\+\\.\\*"]))
-          | not_at($all | of(["owasp:"])))
-          | within($all | of(["rules:\\s+[\\s\\S]*?"]))
-          | within($all | of(["metadata:\\s+[\\s\\S]*?"]))
+    | ( (($all | of(["owasp:\\s*\"(?P<O>[^\"\n]*)\""]) | where_capture_not("O"; "^(A\\d\\d|K\\d\\d|LLM\\d\\d):\\d{4}"))
+          + ($all | of(["owasp:[^\\S\n]*\n\\s+-\\s+(?P<O>\\S+)"]) | where_capture_not("O"; "^(A\\d\\d|K\\d\\d|LLM\\d\\d):"))
         | finding("metadata-owasp";
-            "The `owasp` tag in Semgrep rule metadata should start with the format \"A00:YYYY\", where A00 is the OWASP Top 10 number and YYYY is the OWASP Top 10 year.") ) )
+            "The `owasp` tag in Semgrep rule metadata should start with the format \"A00:YYYY\", where A00 is the OWASP Top 10 number and YYYY is the OWASP Top 10 year.") ) ) )
 | report

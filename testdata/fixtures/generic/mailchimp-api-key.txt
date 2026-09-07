@@ -1,0 +1,10 @@
+# Gitleaks mailchimp-api-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: mailchimp-api-key
+mailchimp = abcdef1234567890abcdef1234567890-us12
+# ruleid: mailchimp-api-key
+mailchimp = 1234567890abcdef1234567890abcdef-us55
+# ok: mailchimp-api-key
+mailchimp = "example"
+# ok: mailchimp-api-key
+mailchimp = "placeholder"

@@ -1,5 +1,6 @@
 # rules: dangerous-subinterpreters-run-string
 # languages: python
+# fixture: python/dangerous-subinterpreters-run-string.py
 # from: python/lang/security/dangerous-subinterpreters-run-string.yaml
 
 . as $root

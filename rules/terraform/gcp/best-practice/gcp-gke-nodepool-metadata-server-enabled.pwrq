@@ -1,5 +1,6 @@
 # rules: gcp-gke-nodepool-metadata-server-enabled
 # languages: hcl
+# fixture: terraform/gcp-gke-nodepool-metadata-server-enabled.tf
 # from: terraform/gcp/best-practice/gcp-gke-nodepool-metadata-server-enabled.yaml
 
 . as $root

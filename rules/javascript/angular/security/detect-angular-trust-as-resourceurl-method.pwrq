@@ -1,5 +1,6 @@
 # rules: detect-angular-trust-as-resourceurl-method
 # languages: javascript, typescript
+# fixture: javascript/detect-angular-trust-as-resourceurl-method.js
 # from: javascript/angular/security/detect-angular-trust-as-resourceurl-method.yaml
 
 . as $root

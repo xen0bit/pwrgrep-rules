@@ -1,0 +1,10 @@
+# Gitleaks contentful-delivery-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: contentful-delivery-api-token
+contentful=abcdefghijklmnopqrstuvwxy0123456789=_-abcde
+# ruleid: contentful-delivery-api-token
+contentful=lmnopqrstuvwxy0123456789=_-abcdefghijklmnop
+# ok: contentful-delivery-api-token
+contentful = "example"
+# ok: contentful-delivery-api-token
+contentful = "placeholder"

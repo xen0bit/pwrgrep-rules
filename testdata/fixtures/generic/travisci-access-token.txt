@@ -1,0 +1,10 @@
+# Gitleaks travisci-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: travisci-access-token
+travis=abcdefghijklmnopqrstuv
+# ruleid: travisci-access-token
+travis=lmnopqrstuvwxy01234567
+# ok: travisci-access-token
+travis = "example"
+# ok: travisci-access-token
+travis = "placeholder"

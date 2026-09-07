@@ -1,0 +1,10 @@
+# Gitleaks mattermost-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: mattermost-access-token
+mattermost=abcdefghijklmnopqrstuvwxy0
+# ruleid: mattermost-access-token
+mattermost=lmnopqrstuvwxy0123456789ab
+# ok: mattermost-access-token
+mattermost = "example"
+# ok: mattermost-access-token
+mattermost = "placeholder"

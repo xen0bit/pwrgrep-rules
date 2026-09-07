@@ -1,5 +1,6 @@
 # rules: gcp-pubsub-encrypted-with-cmk
 # languages: hcl
+# fixture: terraform/gcp-pubsub-encrypted-with-cmk.tf
 # from: terraform/gcp/security/gcp-pubsub-encrypted-with-cmk.yaml
 
 . as $root

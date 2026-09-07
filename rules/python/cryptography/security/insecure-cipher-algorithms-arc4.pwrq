@@ -1,5 +1,6 @@
 # rules: insecure-cipher-algorithm-arc4
 # languages: python
+# fixture: python/insecure-cipher-algorithms-arc4.py
 # from: python/cryptography/security/insecure-cipher-algorithms-arc4.yaml
 
 . as $root

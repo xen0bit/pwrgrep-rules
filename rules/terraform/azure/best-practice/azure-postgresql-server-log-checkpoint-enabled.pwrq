@@ -1,5 +1,6 @@
 # rules: azure-postgresql-server-log-checkpoint-enabled
 # languages: hcl
+# fixture: terraform/azure-postgresql-server-log-checkpoint-enabled.tf
 # from: terraform/azure/best-practice/azure-postgresql-server-log-checkpoint-enabled.yaml
 
 . as $root

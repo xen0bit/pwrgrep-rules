@@ -1,5 +1,6 @@
 # rules: gcp-pubsub-private-topic-iam-member
 # languages: hcl
+# fixture: terraform/gcp-pubsub-private-topic-iam-member.tf
 # from: terraform/gcp/security/gcp-pubsub-private-topic-iam-member.yaml
 
 . as $root

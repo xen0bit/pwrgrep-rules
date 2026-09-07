@@ -1,5 +1,6 @@
 # rules: dict-del-while-iterate
 # languages: python
+# fixture: python/dict-modify-iterating.py
 # from: python/lang/correctness/dict-modify-iterating.yaml
 
 . as $root

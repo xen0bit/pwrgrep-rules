@@ -1,13 +1,20 @@
 # rules: multiple-entrypoint-instructions
+# languages: dockerfile
+# fixture: dockerfile/multiple-entrypoint-instructions.dockerfile
+#
+# The ported query filtered its capture through where_capture_ast with a
+# regex-shaped snippet, which never matched, so the rule never fired.
+# Rewritten as a regex over two consecutive ENTRYPOINT lines; the finding
+# lands on the first of the pair. Non-adjacent duplicates (other
+# instructions between them) are out of scope. Globs widened to cover
+# *.dockerfile fixtures too.
 # from: dockerfile/correctness/multiple-entrypoint-instructions.yaml
 
 . as $root
-| ( ($root | scan_regex(["Dockerfile*"]; [
-      "ENTRYPOINT\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+(?P<ENTRYPOINT_INSTR>\\S+)"
+| ( ($root | scan_regex(["Dockerfile*","*.dockerfile"]; [
+      "ENTRYPOINT[^\\n]*\\nENTRYPOINT"
     ])) as $all
-    | ( $all | of(["ENTRYPOINT\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+(?P<ENTRYPOINT_INSTR>\\S+)"])
-          | where_capture_ast("ENTRYPOINT_INSTR"; "ENTRYPOINT\\s+[\\s\\S]*?")
-          | focus("ENTRYPOINT_INSTR")
+    | ( $all | of(["ENTRYPOINT[^\\n]*\\nENTRYPOINT"])
         | finding("multiple-entrypoint-instructions";
             "Multiple ENTRYPOINT instructions were found.") ) )
 | report

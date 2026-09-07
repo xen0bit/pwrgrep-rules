@@ -1,5 +1,6 @@
 # rules: gcp-storage-bucket-not-public-iam-binding
 # languages: hcl
+# fixture: terraform/gcp-storage-bucket-not-public-iam-binding.tf
 # from: terraform/gcp/security/gcp-storage-bucket-not-public-iam-binding.yaml
 
 . as $root

@@ -1,4 +1,5 @@
 # rules: multiple-cmd-instructions
+# fixture: generic/multiple-cmd-instructions.txt
 # from: generic/dockerfile/correctness/multiple-cmd-instructions.yaml
 
 . as $root

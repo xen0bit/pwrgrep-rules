@@ -1,5 +1,6 @@
 # rules: avoid-html-safe
 # languages: ruby
+# fixture: ruby/avoid-html-safe.rb
 # from: ruby/rails/security/audit/xss/avoid-html-safe.yaml
 
 . as $root

@@ -1,4 +1,5 @@
 # rules: no-iam-resource-exposure
+# fixture: terraform/no-iam-resource-exposure.tf
 # from: terraform/lang/security/iam/no-iam-resource-exposure.yaml
 
 . as $root

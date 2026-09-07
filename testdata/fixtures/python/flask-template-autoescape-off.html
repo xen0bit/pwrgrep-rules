@@ -1,0 +1,14 @@
+{# Flask/Jinja template disabling autoescape (false spelling). #}
+{# The Flask twin of the Django rule uses false rather than off. #}
+{# ruleid: template-autoescape-off #}
+{% autoescape false %}{{ name }}{% endautoescape %}
+{# ruleid: template-autoescape-off #}
+{%  autoescape   false  %}{{ name }}{% endautoescape %}
+{# ruleid: template-autoescape-off #}
+<div>{% autoescape false %}{{ bio }}{% endautoescape %}</div>
+{# ok: template-autoescape-off #}
+{% autoescape true %}{{ name }}{% endautoescape %}
+{# ok: template-autoescape-off #}
+<p>{{ name }}</p>
+{# ok: template-autoescape-off #}
+<p>{{ bio|escape }}</p>

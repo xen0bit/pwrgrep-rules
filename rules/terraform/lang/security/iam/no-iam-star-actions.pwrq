@@ -1,4 +1,5 @@
 # rules: no-iam-star-actions
+# fixture: terraform/no-iam-star-actions.tf
 # from: terraform/lang/security/iam/no-iam-star-actions.yaml
 
 . as $root

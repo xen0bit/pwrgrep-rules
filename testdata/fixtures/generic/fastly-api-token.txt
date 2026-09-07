@@ -1,0 +1,10 @@
+# Gitleaks fastly-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: fastly-api-token
+fastly=abcdefghijklmnopqrstuvwxy0123456
+# ruleid: fastly-api-token
+fastly=lmnopqrstuvwxy0123456789=_-abcde
+# ok: fastly-api-token
+fastly = "example"
+# ok: fastly-api-token
+fastly = "placeholder"

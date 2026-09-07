@@ -1,5 +1,6 @@
 # rules: wildcard-assume-role
 # languages: hcl
+# fixture: terraform/wildcard-assume-role.tf
 # from: terraform/aws/security/wildcard-assume-role.yaml
 
 . as $root

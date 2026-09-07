@@ -1,0 +1,36 @@
+rules:
+  - id: like-miss
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ruleid: metadata-likelihood
+    metadata:
+      category: security
+      confidence: HIGH
+    pattern: foo($X)
+  - id: like-miss2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ruleid: metadata-likelihood
+    metadata:
+      category: security
+      impact: LOW
+    pattern: foo2($X)
+  - id: like-have
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ok: metadata-likelihood
+    metadata:
+      category: security
+      likelihood: HIGH
+    pattern: bar($X)
+  - id: like-other-cat
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ok: metadata-likelihood
+    metadata:
+      category: correctness
+    pattern: bar2($X)

@@ -1,5 +1,6 @@
 # rules: aws-rds-multiaz-not-enabled
 # languages: hcl
+# fixture: terraform/aws-rds-multiaz-not-enabled.tf
 # from: terraform/aws/best-practice/aws-rds-multiaz-not-enabled.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: gcp-vertexai-metadata-store-encrypted-with-cmk
 # languages: hcl
+# fixture: terraform/gcp-vertexai-metadata-store-encrypted-with-cmk.tf
 # from: terraform/gcp/security/gcp-vertexai-metadata-store-encrypted-with-cmk.yaml
 
 . as $root

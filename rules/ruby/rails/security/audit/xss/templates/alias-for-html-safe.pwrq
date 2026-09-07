@@ -1,13 +1,17 @@
 # rules: alias-for-html-safe
+# fixture: ruby/alias-for-html-safe.erb
 # from: ruby/rails/security/audit/xss/templates/alias-for-html-safe.yaml
+#
+# The `to_json` exclusion spanned tags to find its suffix, so it never sat
+# where a single tag sits and excluded nothing. It stays inside one tag now.
 
 . as $root
 | ( ($root | scan_regex(["*.erb"]; [
-      "<%==\\s+(?P<A>[\\s\\S]*?)\\.to_json\\s+%>",
+      "<%==\\s+(?P<A>[^%]*?)\\.to_json\\s+%>",
       "<%==\\s+[\\s\\S]*?\\s+%>"
     ])) as $all
     | ( $all | of(["<%==\\s+[\\s\\S]*?\\s+%>"])
-          | not_at($all | of(["<%==\\s+(?P<A>[\\s\\S]*?)\\.to_json\\s+%>"]))
+          | not_at($all | of(["<%==\\s+(?P<A>[^%]*?)\\.to_json\\s+%>"]))
         | finding("alias-for-html-safe";
             "The syntax `<%== ...") ) )
 | report

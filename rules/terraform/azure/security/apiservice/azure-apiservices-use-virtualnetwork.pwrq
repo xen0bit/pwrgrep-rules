@@ -1,5 +1,6 @@
 # rules: azure-apiservices-use-virtualnetwork
 # languages: hcl
+# fixture: terraform/azure-apiservices-use-virtualnetwork.tf
 # from: terraform/azure/security/apiservice/azure-apiservices-use-virtualnetwork.yaml
 
 . as $root

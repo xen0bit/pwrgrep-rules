@@ -1,5 +1,6 @@
 # rules: ldap-entry-poisoning
 # languages: java
+# fixture: java/ldap-entry-poisoning.java
 # from: java/lang/security/audit/ldap-entry-poisoning.yaml
 
 . as $root

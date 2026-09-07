@@ -1,14 +1,17 @@
 # rules: wp-file-download-audit
 # languages: php
+# fixture: php/wp-file-download-audit.php
+#
+# The original call patterns used anonymous holes, which the PHP grammar
+# reads as inline HTML text instead of code, so the rule never fired.
+# Rewritten with a hole in function position plus a where_capture allowlist
+# of the audited names (the eval-use shape); see GUIDE.md.
 # from: php/wordpress-plugins/security/audit/wp-file-download-audit.yaml
 
-. as $root
-| ( ($root | scan_ast(["*.php"]; [
-      "file($$$_)",
-      "file_get_contents($$$_)",
-      "readfile($$$_)"
-    ])) as $all
-    | ( $all | of(["file($$$_)","readfile($$$_)","file_get_contents($$$_)"])
-        | finding("wp-file-download-audit";
-            "These functions can be used to read to content of the files if the data inside is user-controlled.") ) )
+["$F($CODE)", "$F($CODE, $$$_)"] as $calls
+| scan_ast("*.php"; $calls) as $all
+| ($all | of(["$F($CODE)", "$F($CODE, $$$_)"]))
+| where_capture("F"; "^(?:file|file_get_contents|readfile)$")
+| finding("wp-file-download-audit";
+            "These functions can be used to read to content of the files if the data inside is user-controlled.")
 | report

@@ -1,5 +1,6 @@
 # rules: secure-set-cookie
 # languages: python
+# fixture: python/secure-set-cookie.py
 # from: python/flask/security/audit/secure-set-cookie.yaml
 
 . as $root

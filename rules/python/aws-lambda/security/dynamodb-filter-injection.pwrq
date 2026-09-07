@@ -1,5 +1,6 @@
 # rules: dynamodb-filter-injection
 # languages: python
+# fixture: python/dynamodb-filter-injection.py
 # from: python/aws-lambda/security/dynamodb-filter-injection.yaml
 
 . as $root

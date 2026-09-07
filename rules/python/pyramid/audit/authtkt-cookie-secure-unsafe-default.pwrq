@@ -1,5 +1,6 @@
 # rules: pyramid-authtkt-cookie-secure-unsafe-default
 # languages: python
+# fixture: python/authtkt-cookie-secure-unsafe-default.py
 # from: python/pyramid/audit/authtkt-cookie-secure-unsafe-default.yaml
 
 . as $root

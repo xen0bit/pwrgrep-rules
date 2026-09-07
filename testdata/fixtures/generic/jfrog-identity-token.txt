@@ -1,0 +1,10 @@
+# Gitleaks jfrog-identity-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: jfrog-identity-token
+jfrog=abcdefghijklmnopqrstuvwxy0123456789abcdefghijklmnopqrstuvwxy0123
+# ruleid: jfrog-identity-token
+jfrog=lmnopqrstuvwxy0123456789abcdefghijklmnopqrstuvwxy0123456789abcde
+# ok: jfrog-identity-token
+jfrog = "example"
+# ok: jfrog-identity-token
+jfrog = "placeholder"

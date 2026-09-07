@@ -1,5 +1,6 @@
 # rules: use-count-method
 # languages: python
+# fixture: python/upsell-count.py
 # from: python/django/performance/upsell-count.yaml
 
 . as $root

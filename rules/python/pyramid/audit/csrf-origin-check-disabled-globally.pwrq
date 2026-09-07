@@ -1,5 +1,6 @@
 # rules: pyramid-csrf-origin-check-disabled-globally
 # languages: python
+# fixture: python/csrf-origin-check-disabled-globally.py
 # from: python/pyramid/audit/csrf-origin-check-disabled-globally.yaml
 
 . as $root

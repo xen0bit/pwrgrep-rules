@@ -1,0 +1,35 @@
+rules:
+  - id: inter-no-opt
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ruleid: interfile-true-under-metadata-and-no-options
+    metadata:
+      interfile: true
+    pattern: foo($X)
+  - id: inter-no-opt2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ruleid: interfile-true-under-metadata-and-no-options
+    metadata:
+      category: security
+      interfile: true
+    pattern: foo2($X)
+  - id: plain-meta
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ok: interfile-true-under-metadata-and-no-options
+    metadata:
+      category: security
+    pattern: bar($X)
+  - id: plain-meta2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ok: interfile-true-under-metadata-and-no-options
+    metadata:
+      technology:
+        - python
+    pattern: bar2($X)

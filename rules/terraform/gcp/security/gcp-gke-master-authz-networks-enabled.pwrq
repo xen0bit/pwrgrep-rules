@@ -1,5 +1,6 @@
 # rules: gcp-gke-master-authz-networks-enabled
 # languages: hcl
+# fixture: terraform/gcp-gke-master-authz-networks-enabled.tf
 # from: terraform/gcp/security/gcp-gke-master-authz-networks-enabled.yaml
 
 . as $root

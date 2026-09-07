@@ -1,15 +1,20 @@
 # rules: hardcoded-jwt-secret
 # languages: javascript, typescript
+# fixture: javascript/hardcoded-jwt-secret-jose.js
 # from: javascript/jose/security/jwt-hardcode.yaml
+#
+# The literal-secret shapes read their hole as any second argument, so every
+# sign and verify fired. They name the hole and keep only the literal
+# spelling now.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
       "\"jose\"",
       "$JOSE = require(\"jose\");\n$$$_",
-      "$JWT.sign($P, JWK.asKey(\"$$$_\"), $$$_);",
-      "JWT.sign($P, \"$$$_\", $$$_);",
-      "JWT.verify($P, \"$$$_\", $$$_);",
-      "JWT.verify($P, JWK.asKey(\"$$$_\"), $$$_);",
+      "$JWT.sign($P, JWK.asKey($S), $$$_);",
+      "JWT.sign($P, $S, $$$_);",
+      "JWT.verify($P, $S, $$$_);",
+      "JWT.verify($P, JWK.asKey($S), $$$_);",
       "const {JWK, JWT} = $JOSE;\n$$$_",
       "const {JWT} = $JOSE;\n$$$_",
       "let {JWK, JWT} = $JOSE;\n$$$_",
@@ -29,7 +34,7 @@
           | in_files_with($all | of(["let {JWT} = $JOSE;\n$$$_"])))
           + ($all
           | in_files_with($all | of(["let {JWK, JWT} = $JOSE;\n$$$_"])))
-          | at_same_place(($all | of(["JWT.verify($P, \"$$$_\", $$$_);","JWT.sign($P, \"$$$_\", $$$_);","JWT.verify($P, JWK.asKey(\"$$$_\"), $$$_);","$JWT.sign($P, JWK.asKey(\"$$$_\"), $$$_);"])))
+          | at_same_place(($all | of(["JWT.verify($P, $S, $$$_);","JWT.sign($P, $S, $$$_);","JWT.verify($P, JWK.asKey($S), $$$_);","$JWT.sign($P, JWK.asKey($S), $$$_);"]) | where_capture("S"; "^[\"']")))
           | in_files_with($all | of(["$JOSE = require(\"jose\");\n$$$_","\"jose\""]))
         | finding("hardcoded-jwt-secret";
             "A hard-coded credential was detected.") ) )

@@ -1,13 +1,40 @@
 # rules: spring-ftp-request
 # languages: java
+# fixture: problem-based-packs/java-spring-ftp-request.java
+#
+# The `"=~/^ftp.../"` string guards never match - the matcher has no
+# regex-literal reading - and untyped `$SF = new ...` declarations never match
+# typed Java declarations, so the rule never fired. Rewritten with typed
+# declarations and named holes; the session factory only speaks FTP, so no
+# URL guard is needed.
 # from: problem-based-packs/insecure-transport/java-spring/spring-ftp-request.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.java"]; [
-      "$SF = new DefaultFtpSessionFactory($$$_);\n$$$_\n$SF.setHost(\"=~/^[fF][tT][pP]://.*/\");\n$$$_\n$SF.$FUNC($$$_);",
-      "$SF = new DefaultFtpSessionFactory($$$_);\n$$$_\nString $URL = \"=~/^[fF][tT][pP]://.*/\";\n$$$_\n$SF.setHost($URL);\n$$$_\n$SF.$FUNC($$$_);"
+      "DefaultFtpSessionFactory $SF = new DefaultFtpSessionFactory($$$_);
+$$$_
+$SF.setHost($HOST);
+$$$_
+$SF.$FUNC($$$_);",
+      "DefaultFtpSessionFactory $SF = new DefaultFtpSessionFactory($$$_);
+$$$_
+String $URL = $U;
+$$$_
+$SF.setHost($URL);
+$$$_
+$SF.$FUNC($$$_);"
     ])) as $all
-    | ( $all | of(["$SF = new DefaultFtpSessionFactory($$$_);\n$$$_\n$SF.setHost(\"=~/^[fF][tT][pP]://.*/\");\n$$$_\n$SF.$FUNC($$$_);","$SF = new DefaultFtpSessionFactory($$$_);\n$$$_\nString $URL = \"=~/^[fF][tT][pP]://.*/\";\n$$$_\n$SF.setHost($URL);\n$$$_\n$SF.$FUNC($$$_);"])
+    | ( $all | of(["DefaultFtpSessionFactory $SF = new DefaultFtpSessionFactory($$$_);
+$$$_
+$SF.setHost($HOST);
+$$$_
+$SF.$FUNC($$$_);","DefaultFtpSessionFactory $SF = new DefaultFtpSessionFactory($$$_);
+$$$_
+String $URL = $U;
+$$$_
+$SF.setHost($URL);
+$$$_
+$SF.$FUNC($$$_);"])
         | finding("spring-ftp-request";
             "Checks for outgoing connections to ftp servers via Spring plugin ftpSessionFactory.") ) )
 | report

@@ -1,5 +1,6 @@
 # rules: tainted-code-exec
 # languages: python
+# fixture: python/tainted-code-exec.py
 # from: python/aws-lambda/security/tainted-code-exec.yaml
 
 . as $root

@@ -1,0 +1,10 @@
+# Gitleaks github-pat: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: github-pat
+ghp_0123456789abcdefghijklmnopqrstuvwxyA
+# ruleid: github-pat
+ghp_bcdefghijklmnopqrstuvwxyABCDEFGHIJKL
+# ok: github-pat
+api_key = "example"
+# ok: github-pat
+token = "placeholder"

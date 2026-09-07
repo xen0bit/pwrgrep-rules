@@ -1,23 +1,24 @@
 # rules: semgrep-github-action-push-without-branches
 # languages: yaml
+# fixture: yaml/gh-push-without-branches.yaml
 # from: yaml/github-actions/semgrep-configuration/semgrep-github-action-push-without-branches.yml
-
+# fixture: yaml/gh-push-without-branches.yaml
+#
+# AST gaps and duplicate readings fired on every push shape, including
+# ones with branches, so the rule never distinguished. Rewritten as four
+# regex branches: bare push, flow push, branchless push block, and empty
+# branches list. Flow mappings with branch filters are out of scope.
 . as $root
-| ( ($root | scan_ast(["*.yaml"]; [
-      "branches: \"\"",
-      "branches: []",
-      "on:\n  $$$_\n  push: \"\"\n  $$$_\n$$$_",
-      "on:\n  $$$_\n  push: $$$_\n  $$$_\n$$$_",
-      "on:\n  $$$_\n  push: {}\n  $$$_\n$$$_",
-      "on: [$$$_, push, $$$_]\n$$$_",
-      "on: push\n$$$_"
+| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^on:\\s+push\\s*$",
+      "(?m)^on:\\s*\\[[^\\]\n]*\\bpush\\b[^\\]\n]*\\]",
+      "(?m)^  push:[^\\S\n]*\n((?:    [^\n]*\n?)*)",
+      "branches:\\s*(\\[\\]|\\{\\}|\"\")"
     ])) as $all
-    | ( ($all | of(["on: [$$$_, push, $$$_]\n$$$_"]))
-          + ($all | of(["on: push\n$$$_"]))
-          + ($all | of(["on:\n  $$$_\n  push: \"\"\n  $$$_\n$$$_"]))
-          + ($all | of(["on:\n  $$$_\n  push: {}\n  $$$_\n$$$_"]))
-          + ($all | of(["branches: \"\"","branches: []"])
-          | in_files_with($all | of(["on:\n  $$$_\n  push: $$$_\n  $$$_\n$$$_"])))
+    | ( (($all | of(["(?m)^on:\\s+push\\s*$"]))
+          + ($all | of(["(?m)^on:\\s*\\[[^\\]\n]*\\bpush\\b[^\\]\n]*\\]"]))
+          + ($all | of(["(?m)^  push:[^\\S\n]*\n((?:    [^\n]*\n?)*)"]) | where_text_not("branches:"))
+          + ($all | of(["branches:\\s*(\\[\\]|\\{\\}|\"\")"]))
         | finding("semgrep-github-action-push-without-branches";
-            "The 'branches' field (in the push event configuration) contains no branches.") ) )
+            "The 'branches' field (in the push event configuration) contains no branches.") ) ) )
 | report

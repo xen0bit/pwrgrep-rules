@@ -1,5 +1,6 @@
 # rules: return-in-init, yield-in-init
 # languages: python
+# fixture: python/return-in-init.py
 # from: python/lang/correctness/return-in-init.yaml
 
 . as $root

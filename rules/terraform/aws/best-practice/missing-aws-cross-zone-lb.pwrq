@@ -1,5 +1,6 @@
 # rules: missing-aws-cross-zone-lb
 # languages: hcl
+# fixture: terraform/missing-aws-cross-zone-lb.tf
 # from: terraform/aws/best-practice/missing-aws-cross-zone-lb.yaml
 
 . as $root

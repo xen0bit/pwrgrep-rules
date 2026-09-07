@@ -1,4 +1,5 @@
 # rules: no-iam-priv-esc-funcs
+# fixture: terraform/no-iam-priv-esc-funcs.tf
 # from: terraform/lang/security/iam/no-iam-priv-esc-funcs.yaml
 
 . as $root

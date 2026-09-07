@@ -1,5 +1,6 @@
 # rules: gcp-compute-ip-forward
 # languages: hcl
+# fixture: terraform/gcp-compute-ip-forward.tf
 # from: terraform/gcp/security/gcp-compute-ip-forward.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: aws-dynamodb-point-in-time-recovery-disabled
 # languages: hcl
+# fixture: terraform/aws-dynamodb-point-in-time-recovery-disabled.tf
 # from: terraform/aws/security/aws-dynamodb-point-in-time-recovery-disabled.yaml
 
 . as $root

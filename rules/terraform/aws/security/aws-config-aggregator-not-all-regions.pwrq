@@ -1,5 +1,6 @@
 # rules: aws-config-aggregator-not-all-regions
 # languages: hcl
+# fixture: terraform/aws-config-aggregator-not-all-regions.tf
 # from: terraform/aws/security/aws-config-aggregator-not-all-regions.yaml
 
 . as $root

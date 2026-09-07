@@ -1,0 +1,14 @@
+{# Flask/Jinja template variable with the safe filter. #}
+{# |safe marks the value safe, rendering caller input unescaped. #}
+{# ruleid: template-unescaped-with-safe #}
+{{ name|safe }}
+{# ruleid: template-unescaped-with-safe #}
+{{ bio| safe }}
+{# ruleid: template-unescaped-with-safe #}
+<p>{{ html|safe }}</p>
+{# ok: template-unescaped-with-safe #}
+{{ name }}
+{# ok: template-unescaped-with-safe #}
+{{ bio|escape }}
+{# ok: template-unescaped-with-safe #}
+{{ html|striptags }}

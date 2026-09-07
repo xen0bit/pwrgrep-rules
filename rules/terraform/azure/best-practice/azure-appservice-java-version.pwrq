@@ -1,5 +1,6 @@
 # rules: azure-appservice-java-version
 # languages: hcl
+# fixture: terraform/azure-appservice-java-version.tf
 # from: terraform/azure/best-practice/azure-appservice-java-version.yaml
 
 . as $root

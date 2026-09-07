@@ -1,14 +1,18 @@
 # rules: detect-angular-open-redirect
 # languages: javascript, typescript
+# fixture: javascript/detect-angular-open-redirect.js
 # from: javascript/angular/security/detect-angular-open-redirect.yaml
+#
+# The static exclusion read its hole as any value and subtracted every
+# assignment. It keeps only the literal spelling now.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "$window.location.href = \"$$$_\"",
+      "$window.location.href = $U",
       "$window.location.href = $$$_"
     ])) as $all
     | ( $all | of(["$window.location.href = $$$_"])
-          | not_at($all | of(["$window.location.href = \"$$$_\""]))
+          | not_at(($all | of(["$window.location.href = $U"]) | where_capture("U"; "^[\"']")))
         | finding("detect-angular-open-redirect";
             "Use of $window.location.href can lead to open-redirect if user input is used for redirection.") ) )
 | report

@@ -1,4 +1,5 @@
 # rules: avoid-raw
+# fixture: ruby/avoid-raw.erb
 # from: ruby/rails/security/audit/xss/templates/avoid-raw.yaml
 
 . as $root

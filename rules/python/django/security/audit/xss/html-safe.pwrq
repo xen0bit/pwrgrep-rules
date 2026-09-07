@@ -1,5 +1,6 @@
 # rules: html-safe
 # languages: python
+# fixture: python/html-safe.py
 # from: python/django/security/audit/xss/html-safe.yaml
 
 . as $root

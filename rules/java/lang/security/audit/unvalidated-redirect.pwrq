@@ -1,5 +1,6 @@
 # rules: unvalidated-redirect
 # languages: java
+# fixture: java/unvalidated-redirect.java
 # from: java/lang/security/audit/unvalidated-redirect.yaml
 
 . as $root

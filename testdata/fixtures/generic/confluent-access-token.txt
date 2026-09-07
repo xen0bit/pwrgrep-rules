@@ -1,0 +1,10 @@
+# Gitleaks confluent-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: confluent-access-token
+confluent=abcdefghijklmnop
+# ruleid: confluent-access-token
+confluent=lmnopqrstuvwxy01
+# ok: confluent-access-token
+confluent = "example"
+# ok: confluent-access-token
+confluent = "placeholder"

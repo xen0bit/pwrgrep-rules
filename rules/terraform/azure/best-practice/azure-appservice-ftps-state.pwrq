@@ -1,5 +1,6 @@
 # rules: azure-appservice-ftps-state
 # languages: hcl
+# fixture: terraform/azure-appservice-ftps-state.tf
 # from: terraform/azure/best-practice/azure-appservice-ftps-state.yaml
 
 . as $root

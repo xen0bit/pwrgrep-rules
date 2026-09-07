@@ -1,0 +1,10 @@
+# Gitleaks finicity-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: finicity-api-token
+finicity=abcdef0123456789abcdef0123456789
+# ruleid: finicity-api-token
+finicity=56789abcdef0123456789abcdef01234
+# ok: finicity-api-token
+finicity = "example"
+# ok: finicity-api-token
+finicity = "placeholder"

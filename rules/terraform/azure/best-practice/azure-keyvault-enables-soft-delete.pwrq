@@ -1,5 +1,6 @@
 # rules: azure-keyvault-enables-soft-delete
 # languages: hcl
+# fixture: terraform/azure-keyvault-enables-soft-delete.tf
 # from: terraform/azure/best-practice/azure-keyvault-enables-soft-delete.yaml
 
 . as $root

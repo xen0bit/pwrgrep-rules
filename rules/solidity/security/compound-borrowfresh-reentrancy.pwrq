@@ -1,16 +1,24 @@
 # rules: compound-borrowfresh-reentrancy
 # languages: solidity
+# fixture: solidity/compound-borrowfresh-reentrancy.sol
+#
+# Fragments and gaps never match in the solidity grammar, so no form fired.
+# Rewritten as a regex over doTransferOut inside a borrowFresh span, with
+# the file-level state-update check kept gapless. A file carrying the update
+# suppresses every finding, so the fixed form cannot share a fixture file.
+# Function spans use a lazy regex body without nested braces; fixture
+# functions keep a flat statement list so the span covers the body.
 # from: solidity/security/compound-borrowfresh-reentrancy.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.sol"]; [
-      "accountBorrows[borrower].interestIndex = borrowIndex;\n$$$_",
-      "doTransferOut($$$_);",
-      "function borrowFresh($$$_) {\n  $$$_\n}"
+| ( ($root | scan_regex(["*.sol"]; [
+      "doTransferOut\\s*\\(",
+      "function\\s+borrowFresh\\s*\\([\\s\\S]*?\\)\\s*[^{]*\\{[^}]*\\}",
+      "accountBorrows\\s*\\[\\s*borrower\\s*\\]\\s*\\.\\s*interestIndex\\s*=\\s*borrowIndex"
     ])) as $all
-    | ( $all | of(["doTransferOut($$$_);"])
-          | within($all | of(["function borrowFresh($$$_) {\n  $$$_\n}"]))
-          | in_files_without($all | of(["accountBorrows[borrower].interestIndex = borrowIndex;\n$$$_"]))
+    | ( $all | of(["doTransferOut\\s*\\("])
+          | within($all | of(["function\\s+borrowFresh\\s*\\([\\s\\S]*?\\)\\s*[^{]*\\{[^}]*\\}"]))
+          | in_files_without($all | of(["accountBorrows\\s*\\[\\s*borrower\\s*\\]\\s*\\.\\s*interestIndex\\s*=\\s*borrowIndex"]))
         | finding("compound-borrowfresh-reentrancy";
             "Function borrowFresh() in Compound performs state update after doTransferOut()") ) )
 | report

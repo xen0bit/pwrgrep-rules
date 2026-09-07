@@ -1,5 +1,6 @@
 # rules: gcp-gke-cluster-logging
 # languages: hcl
+# fixture: terraform/gcp-gke-cluster-logging.tf
 # from: terraform/gcp/security/gcp-gke-cluster-logging.yaml
 
 . as $root

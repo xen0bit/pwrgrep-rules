@@ -1,4 +1,5 @@
 # rules: dangerous-link-to
+# fixture: ruby/dangerous-link-to.erb
 # from: ruby/rails/security/audit/xss/templates/dangerous-link-to.yaml
 
 . as $root

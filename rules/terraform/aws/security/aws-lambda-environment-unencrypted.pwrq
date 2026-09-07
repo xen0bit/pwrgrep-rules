@@ -1,4 +1,5 @@
 # rules: aws-lambda-environment-unencrypted
+# fixture: terraform/aws-lambda-environment-unencrypted.tf
 # from: terraform/aws/security/aws-lambda-environment-unencrypted.yaml
 
 . as $root

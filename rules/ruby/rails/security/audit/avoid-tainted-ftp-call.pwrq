@@ -1,5 +1,6 @@
 # rules: avoid-tainted-ftp-call
 # languages: ruby
+# fixture: ruby/avoid-tainted-ftp-call.rb
 # from: ruby/rails/security/audit/avoid-tainted-ftp-call.yaml
 
 . as $root

@@ -1,0 +1,9 @@
+# CWE-798: Telegram bot API key.
+# ruleid: detected-telegram-bot-api-key
+123456789:AAHabcdef1234567890abcdef1234567890a
+# ruleid: detected-telegram-bot-api-key
+987654321:AAH0987654321fedcba0987654321fedcba09b
+# ok: detected-telegram-bot-api-key
+app version v1.2.3
+# ok: detected-telegram-bot-api-key
+telegram_token = "example"

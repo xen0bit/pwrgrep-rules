@@ -4,7 +4,7 @@
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "require('playwright');\n$$$_"
+      "require('playwright')"
     ])) as $all
     | ( ($all
           | where_text("--remote-debugging-address"))
@@ -14,7 +14,7 @@
           | where_text("--remote-debugging-socket-name"))
           + ($all
           | where_text("--remote-debugging-targets"))
-          | in_files_with($all | of(["require('playwright');\n$$$_"]))
+          | in_files_with($all | of(["require('playwright')"]))
         | finding("playwright-exposed-chrome-devtools";
             "Remote debugging protocol does not perform any authentication, so exposing it too widely can be a security risk.") ) )
 | report

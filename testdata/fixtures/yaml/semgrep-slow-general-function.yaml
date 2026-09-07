@@ -1,0 +1,25 @@
+rules:
+  - id: slow-func
+    message: "m"
+    languages: [javascript]
+    severity: WARNING
+    # ruleid: slow-pattern-general-func
+    pattern: function (...) {...}
+  - id: slow-func2
+    message: "m"
+    languages: [typescript]
+    severity: WARNING
+    # ruleid: slow-pattern-general-func
+    pattern: function foo(...) {...}
+  - id: fast-func
+    message: "m"
+    languages: [javascript]
+    severity: WARNING
+    # ok: slow-pattern-general-func
+    pattern: function foo(a) { return a; }
+  - id: fast-other
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ok: slow-pattern-general-func
+    pattern: foo($X)

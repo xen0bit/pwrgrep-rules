@@ -1,0 +1,36 @@
+rules:
+  - id: slow-sandwich
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    patterns:
+      # ruleid: slow-pattern-top-ellipsis
+      - pattern: |
+          ...
+          foo()
+          ...
+  - id: slow-sandwich2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    patterns:
+      # ruleid: slow-pattern-top-ellipsis
+      - pattern: |
+          ...
+          bar($X)
+          ...
+  - id: fast-one-sided
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    patterns:
+      # ok: slow-pattern-top-ellipsis
+      - pattern: |
+          foo()
+          ...
+  - id: fast-plain
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ok: slow-pattern-top-ellipsis
+    pattern: foo($X)

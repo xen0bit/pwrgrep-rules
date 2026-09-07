@@ -1,29 +1,20 @@
-# CWE-250: compose no-new-privileges false.
-version: '3'
+version: "3"
 services:
-  bad1:
+  # ruleid: no-new-privileges
+  web:
     image: nginx
+    ports:
+      - "80:80"
+  # ruleid: no-new-privileges
+  api:
+    image: myapi:latest
+  # ok: no-new-privileges
+  worker:
+    image: worker:1.0
     security_opt:
-# ruleid: compose-no-new-privileges
-      - no-new-privileges:false
-  bad2:
-    image: nginx
-    security_opt:
-# ruleid: compose-no-new-privileges
-      - no-new-privileges:false
-  good1:
-    image: nginx
-    security_opt:
-# ok: compose-no-new-privileges
       - no-new-privileges:true
-  good2:
-    image: nginx
+  # ok: no-new-privileges
+  cron:
+    image: cron:1.0
     security_opt:
-# ok: compose-no-new-privileges
-      - no-new-privileges:true
-# ruleid: compose-no-new-privileges
-      - no-new-privileges:false
-# ruleid: compose-no-new-privileges
-      - no-new-privileges:false
-# ok: compose-no-new-privileges
       - no-new-privileges:true

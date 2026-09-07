@@ -1,5 +1,6 @@
 # rules: azure-redis-cache-enable-non-ssl-port
 # languages: hcl
+# fixture: terraform/azure-redis-cache-enable-non-ssl-port.tf
 # from: terraform/azure/security/azure-redis-cache-enable-non-ssl-port.yaml
 
 . as $root

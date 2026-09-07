@@ -1,0 +1,9 @@
+# Template variables in anchor hrefs are open redirects unless url_for.
+# ruleid: var-in-href
+<a href = "{{ userUrl }}" >profile</a>
+# ruleid: var-in-href
+<a href = '{{ nextUrl }}' >next</a>
+# ok: var-in-href
+<a href = "{{ url_for('home')  }}" >home</a>
+# ok: var-in-href
+<a href = "/static/site.css" >css</a>

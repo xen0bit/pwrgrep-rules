@@ -1,4 +1,5 @@
 # rules: no-string-eqeq
+# fixture: java/no-string-eqeq.java
 # from: java/lang/correctness/no-string-eqeq.yaml
 
 . as $root

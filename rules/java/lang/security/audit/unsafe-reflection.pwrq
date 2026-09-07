@@ -1,16 +1,22 @@
 # rules: unsafe-reflection
 # languages: java
+# fixture: java/unsafe-reflection.java
 # from: java/lang/security/audit/unsafe-reflection.yaml
+#
+# The call shapes trailed `$$$`, which matches nothing here, and the static
+# exclusion read the same dead shape. Both name exact arities, and the
+# exclusion keeps only the literal spelling.
 
 . as $root
 | ( ($root | scan_ast(["*.java"]; [
       "\"$$$_\"",
       "$CLASS = \"$$$_\";\n$$$_",
-      "Class.forName(\"$$$_\",$$$_)",
-      "Class.forName($CLASS,$$$_)"
+      "Class.forName($LIT)",
+      "Class.forName($CLASS)",
+      "Class.forName($CLASS, $INIT, $LOADER)"
     ])) as $all
-    | ( $all | of(["Class.forName($CLASS,$$$_)"])
-          | not_at($all | of(["Class.forName(\"$$$_\",$$$_)"]))
+    | ( $all | of(["Class.forName($CLASS)", "Class.forName($CLASS, $INIT, $LOADER)"])
+          | not_at(($all | of(["Class.forName($LIT)"]) | where_capture("LIT"; "^\"")))
           | in_files_without($all | of(["$CLASS = \"$$$_\";\n$$$_","\"$$$_\""]))
         | finding("unsafe-reflection";
             "If an attacker can supply values that the application then uses to determine which class to instantiate or which method to invoke, the potential exists for the attacker to create control flow paths through the application that were not intended by the application developers.") ) )

@@ -1,0 +1,11 @@
+# Only the last command instruction takes effect; a second is dead config.
+FROM ubuntu:22.04
+# ruleid: multiple-cmd-instructions
+# ruleid: multiple-cmd-instructions
+CMD ["app"]
+
+CMD ["other"]
+# ok: multiple-cmd-instructions
+RUN echo done
+# ok: multiple-cmd-instructions
+FROM alpine:3.18

@@ -1,0 +1,12 @@
+<%# ruleid: dangerous-link-to %>
+<%= link_to 'home', @home_url %>
+<%# ruleid: dangerous-link-to %>
+<%= link_to 'profile', @profile_url %>
+<%# ruleid: dangerous-link-to %>
+<%= link_to 'next', @next_url %>
+<%# ok: dangerous-link-to %>
+<%= link_to 'home', '/home' %>
+<%# ok: dangerous-link-to %>
+<%= link_to 'static', static_path %>
+<%# ok: dangerous-link-to %>
+<p>static markup</p>

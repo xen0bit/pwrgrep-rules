@@ -1,5 +1,6 @@
 # rules: sequelize-enforce-tls
 # languages: javascript, typescript
+# fixture: javascript/sequelize-enforce-tls.js
 # from: javascript/sequelize/security/audit/sequelize-enforce-tls.yaml
 
 . as $root

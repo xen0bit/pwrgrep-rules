@@ -1,4 +1,5 @@
 # rules: request-host-used
+# fixture: generic/request-host-used.txt
 # from: generic/nginx/security/request-host-used.yaml
 
 . as $root

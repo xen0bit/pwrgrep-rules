@@ -1,5 +1,6 @@
 # rules: paramiko-implicit-trust-host-key
 # languages: python
+# fixture: python/paramiko-implicit-trust-host-key.py
 # from: python/lang/security/audit/paramiko-implicit-trust-host-key.yaml
 
 . as $root

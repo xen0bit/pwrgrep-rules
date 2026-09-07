@@ -1,5 +1,6 @@
 # rules: dangerous-subinterpreters-run-string-tainted-env-args
 # languages: python
+# fixture: python/dangerous-subinterpreters-run-string-tainted-env-args.py
 # from: python/lang/security/audit/dangerous-subinterpreters-run-string-tainted-env-args.yaml
 
 . as $root

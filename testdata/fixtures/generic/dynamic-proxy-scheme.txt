@@ -1,0 +1,9 @@
+# A proxy scheme taken from a variable follows attacker input.
+# ruleid: dynamic-proxy-scheme
+proxy_pass $scheme:// backend/ ;
+# ruleid: dynamic-proxy-scheme
+proxy_pass $upstream_scheme:// backend/ ;
+# ok: dynamic-proxy-scheme
+proxy_pass http://backend/ ;
+# ok: dynamic-proxy-scheme
+proxy_pass https://example.com/ ;

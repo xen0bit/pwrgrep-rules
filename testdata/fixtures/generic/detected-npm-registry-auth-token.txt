@@ -1,0 +1,9 @@
+# CWE-798: npm registry auth token in an .npmrc line.
+# ruleid: detected-npm-registry-auth-token
+_authToken = "npm_abcdef1234567890abcdef1234567890"
+# ruleid: detected-npm-registry-auth-token
+_auth = "dXNlcjpwYXNzd29yZAo="
+# ok: detected-npm-registry-auth-token
+_authToken = ${NPM_TOKEN}
+# ok: detected-npm-registry-auth-token
+registry = "https://registry.npmjs.org/"

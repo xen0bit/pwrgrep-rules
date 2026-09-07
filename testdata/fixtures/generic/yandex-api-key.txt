@@ -1,0 +1,10 @@
+# Gitleaks yandex-api-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: yandex-api-key
+yandex=AQVNABCDEFGHIJKLMNOPQRSTUVWXYabcdefghij
+# ruleid: yandex-api-key
+yandex=AQVNLMNOPQRSTUVWXYabcdefghijklmnopqrstu
+# ok: yandex-api-key
+yandex = "example"
+# ok: yandex-api-key
+yandex = "placeholder"

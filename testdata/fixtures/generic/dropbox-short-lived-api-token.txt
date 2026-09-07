@@ -1,0 +1,10 @@
+# Gitleaks dropbox-short-lived-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: dropbox-short-lived-api-token
+dropbox=sl.abcdefghijklmnopqrstuvwxy0123456789-=_abcdefghijklmnopqrstuvwxy0123456789-=_abcdefghijklmnopqrstuvwxy0123456789-=_abcdefghijklmnopqrstu
+# ruleid: dropbox-short-lived-api-token
+dropbox=sl.lmnopqrstuvwxy0123456789-=_abcdefghijklmnopqrstuvwxy0123456789-=_abcdefghijklmnopqrstuvwxy0123456789-=_abcdefghijklmnopqrstuvwxy0123456
+# ok: dropbox-short-lived-api-token
+dropbox = "example"
+# ok: dropbox-short-lived-api-token
+dropbox = "placeholder"

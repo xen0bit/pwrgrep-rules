@@ -1,4 +1,5 @@
 # rules: alias-must-be-unique
+# fixture: generic/alias-must-be-unique.txt
 # from: generic/dockerfile/correctness/alias-must-be-unique.yaml
 
 . as $root

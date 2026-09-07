@@ -1,5 +1,6 @@
 # rules: sqlalchemy-sql-injection
 # languages: python
+# fixture: python/sqlalchemy-sql-injection.py
 # from: python/sqlalchemy/security/sqlalchemy-sql-injection.yaml
 
 . as $root

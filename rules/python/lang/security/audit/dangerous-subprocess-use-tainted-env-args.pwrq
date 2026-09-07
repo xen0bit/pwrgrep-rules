@@ -1,5 +1,6 @@
 # rules: dangerous-subprocess-use-tainted-env-args
 # languages: python
+# fixture: python/dangerous-subprocess-use-tainted-env-args.py
 # from: python/lang/security/audit/dangerous-subprocess-use-tainted-env-args.yaml
 
 . as $root

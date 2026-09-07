@@ -1,17 +1,21 @@
 # rules: curl-eval
 # languages: bash
+# fixture: bash/curl-eval.sh
+#
+# The original eval/cause patterns used anonymous holes: eval $$$ miscompiles
+# and bare $(curl $$$) only matches a substitution standing alone as a
+# statement, so the rule never fired. Rewritten with named holes as two
+# direct full-command patterns ($() and backtick); piped or variable-
+# indirection (fetch-then-eval) is out of scope. Same direct-pattern style
+# as curl-pipe-bash.
 # from: bash/curl/security/curl-eval.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.sh"]; [
-      "$(curl $$$_)",
-      "`curl $$$_`",
-      "eval $$$_"
+      "eval \"$(curl $URL)\"",
+      "eval `curl $URL`"
     ])) as $all
-    | ( (($all | of(["eval $$$_"])))
-          | reaching((($all | of(["$(curl $$$_)"]))
-              + ($all | of(["`curl $$$_`"])));
-              ([]))
+    | ( $all | of(["eval \"$(curl $URL)\"","eval `curl $URL`"])
         | finding("curl-eval";
             "Data is being eval'd from a `curl` command.") ) )
 | report

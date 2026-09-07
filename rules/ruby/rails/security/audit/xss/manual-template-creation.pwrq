@@ -1,5 +1,6 @@
 # rules: manual-template-creation
 # languages: ruby
+# fixture: ruby/manual-template-creation.rb
 # from: ruby/rails/security/audit/xss/manual-template-creation.yaml
 
 . as $root

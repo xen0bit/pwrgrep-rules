@@ -1,5 +1,6 @@
 # rules: use-json-response
 # languages: python
+# fixture: python/json_response.py
 # from: python/django/best-practice/json_response.yaml
 
 . as $root

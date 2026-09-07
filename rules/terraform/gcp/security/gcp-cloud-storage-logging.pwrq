@@ -1,5 +1,6 @@
 # rules: gcp-cloud-storage-logging
 # languages: hcl
+# fixture: terraform/gcp-cloud-storage-logging.tf
 # from: terraform/gcp/security/gcp-cloud-storage-logging.yaml
 
 . as $root

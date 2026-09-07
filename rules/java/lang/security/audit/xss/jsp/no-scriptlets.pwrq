@@ -1,4 +1,5 @@
 # rules: no-scriptlets
+# fixture: java/no-scriptlets.jsp
 # from: java/lang/security/audit/xss/jsp/no-scriptlets.yaml
 
 . as $root

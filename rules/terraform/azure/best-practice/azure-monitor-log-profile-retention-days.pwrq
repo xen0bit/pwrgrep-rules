@@ -1,5 +1,6 @@
 # rules: azure-monitor-log-profile-retention-days
 # languages: hcl
+# fixture: terraform/azure-monitor-log-profile-retention-days.tf
 # from: terraform/azure/best-practice/azure-monitor-log-profile-retention-days.yaml
 
 . as $root

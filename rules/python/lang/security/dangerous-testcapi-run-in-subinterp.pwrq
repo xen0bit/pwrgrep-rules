@@ -1,5 +1,6 @@
 # rules: dangerous-testcapi-run-in-subinterp
 # languages: python
+# fixture: python/dangerous-testcapi-run-in-subinterp.py
 # from: python/lang/security/dangerous-testcapi-run-in-subinterp.yaml
 
 . as $root

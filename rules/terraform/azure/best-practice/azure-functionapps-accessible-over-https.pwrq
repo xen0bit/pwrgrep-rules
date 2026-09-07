@@ -1,5 +1,6 @@
 # rules: azure-functionapps-accessible-over-https
 # languages: hcl
+# fixture: terraform/azure-functionapps-accessible-over-https.tf
 # from: terraform/azure/best-practice/azure-functionapps-accessible-over-https.yaml
 
 . as $root

@@ -1,0 +1,10 @@
+# Gitleaks discord-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: discord-api-token
+discord=abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789
+# ruleid: discord-api-token
+discord=56789abcdef0123456789abcdef0123456789abcdef0123456789abcdef01234
+# ok: discord-api-token
+discord = "example"
+# ok: discord-api-token
+discord = "placeholder"

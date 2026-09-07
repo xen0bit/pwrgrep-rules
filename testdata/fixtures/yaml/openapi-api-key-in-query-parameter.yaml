@@ -1,0 +1,26 @@
+openapi: 3.0.0
+info:
+  title: T
+  version: 1.0.0
+paths: {}
+components:
+  securitySchemes:
+    # ruleid: api-key-in-query-parameter
+    keyQ:
+      type: apiKey
+      in: query
+      name: api_key
+    # ruleid: api-key-in-query-parameter
+    keyQ2:
+      type: apiKey
+      in: query
+      name: token
+    # ok: api-key-in-query-parameter
+    keyH:
+      type: apiKey
+      in: header
+      name: api_key
+    # ok: api-key-in-query-parameter
+    keyC:
+      type: http
+      scheme: basic

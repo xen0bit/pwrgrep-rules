@@ -1,5 +1,6 @@
 # rules: gcp-compute-firewall-unrestricted-ingress-3389
 # languages: hcl
+# fixture: terraform/gcp-compute-firewall-unrestricted-ingress-3389.tf
 # from: terraform/gcp/security/gcp-compute-firewall-unrestricted-ingress-3389.yaml
 
 . as $root

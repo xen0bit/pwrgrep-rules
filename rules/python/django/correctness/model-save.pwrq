@@ -1,5 +1,6 @@
 # rules: django-db-model-save-super
 # languages: python
+# fixture: python/model-save.py
 # from: python/django/correctness/model-save.yaml
 
 . as $root

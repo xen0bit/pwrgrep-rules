@@ -1,5 +1,6 @@
 # rules: dom-based-xss
 # languages: javascript, typescript
+# fixture: javascript/dom-based-xss.js
 # from: javascript/browser/security/dom-based-xss.yaml
 
 . as $root

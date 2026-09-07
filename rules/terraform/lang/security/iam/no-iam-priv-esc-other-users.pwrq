@@ -1,4 +1,5 @@
 # rules: no-iam-priv-esc-other-users
+# fixture: terraform/no-iam-priv-esc-other-users.tf
 # from: terraform/lang/security/iam/no-iam-priv-esc-other-users.yaml
 
 . as $root

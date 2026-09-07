@@ -1,5 +1,6 @@
 # rules: chrome-remote-interface-compilescript-injection
 # languages: javascript, typescript
+# fixture: javascript/chrome-remote-interface-compilescript-injection.js
 # from: javascript/chrome-remote-interface/security/audit/chrome-remote-interface-compilescript-injection.yaml
 
 . as $root

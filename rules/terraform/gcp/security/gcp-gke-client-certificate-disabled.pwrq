@@ -1,5 +1,6 @@
 # rules: gcp-gke-client-certificate-disabled
 # languages: hcl
+# fixture: terraform/gcp-gke-client-certificate-disabled.tf
 # from: terraform/gcp/security/gcp-gke-client-certificate-disabled.yaml
 
 . as $root

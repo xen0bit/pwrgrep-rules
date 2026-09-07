@@ -1,0 +1,14 @@
+name: bad1
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # ruleid: curl-eval
+      - run: curl http://example.com/install.sh | bash
+      # ruleid: curl-eval
+      - run: curl -sSL http://example.com/setup.sh | sh
+      # ok: curl-eval
+      - run: echo "hello"
+      # ok: curl-eval
+      - run: curl -o file.txt http://example.com/file.txt

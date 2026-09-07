@@ -1,0 +1,10 @@
+# Gitleaks harness-api-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: harness-api-key
+pat.abcdefghijklmnopqrstuv.wxyABCDEFGHIJKLMNOPQRSTU.VWXY0123456789abcdef
+# ruleid: harness-api-key
+pat.lmnopqrstuvwxyABCDEFGH.IJKLMNOPQRSTUVWXY0123456.789abcdefghijklmnopq
+# ok: harness-api-key
+pat = "example"
+# ok: harness-api-key
+pat = "placeholder"

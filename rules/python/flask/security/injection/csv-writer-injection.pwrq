@@ -1,5 +1,6 @@
 # rules: csv-writer-injection
 # languages: python
+# fixture: python/flask-csv-writer-injection.py
 # from: python/flask/security/injection/csv-writer-injection.yaml
 
 . as $root

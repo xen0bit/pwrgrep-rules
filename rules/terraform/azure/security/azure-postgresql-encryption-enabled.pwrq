@@ -1,5 +1,6 @@
 # rules: azure-postgresql-encryption-enabled
 # languages: hcl
+# fixture: terraform/azure-postgresql-encryption-enabled.tf
 # from: terraform/azure/security/azure-postgresql-encryption-enabled.yaml
 
 . as $root

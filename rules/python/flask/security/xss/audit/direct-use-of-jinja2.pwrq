@@ -1,5 +1,6 @@
 # rules: direct-use-of-jinja2
 # languages: python
+# fixture: python/direct-use-of-jinja2.py
 # from: python/flask/security/xss/audit/direct-use-of-jinja2.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: azure-cognitiveservices-disables-public-network
 # languages: hcl
+# fixture: terraform/azure-cognitiveservices-disables-public-network.tf
 # from: terraform/azure/security/azure-cognitiveservices-disables-public-network.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: azure-postgresql-flexi-server-geo-backup-enabled
 # languages: hcl
+# fixture: terraform/azure-postgresql-flexi-server-geo-backup-enabled.tf
 # from: terraform/azure/best-practice/azure-postgresql-flexi-server-geo-backup-enabled.yaml
 
 . as $root

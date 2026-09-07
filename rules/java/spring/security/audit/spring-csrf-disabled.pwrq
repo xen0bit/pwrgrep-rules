@@ -1,5 +1,6 @@
 # rules: spring-csrf-disabled
 # languages: java
+# fixture: java/spring-csrf-disabled.java
 # from: java/spring/security/audit/spring-csrf-disabled.yaml
 
 . as $root

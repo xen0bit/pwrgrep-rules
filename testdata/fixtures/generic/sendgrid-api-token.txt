@@ -1,0 +1,10 @@
+# Gitleaks sendgrid-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: sendgrid-api-token
+SG.abcdefghijklmnopqrstuvwxy0123456789=_-.abcdefghijklmnopqrstuvwxy01
+# ruleid: sendgrid-api-token
+SG.lmnopqrstuvwxy0123456789=_-.abcdefghijklmnopqrstuvwxy0123456789=_-
+# ok: sendgrid-api-token
+api_key = "example"
+# ok: sendgrid-api-token
+token = "placeholder"

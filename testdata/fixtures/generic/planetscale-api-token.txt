@@ -1,0 +1,10 @@
+# Gitleaks planetscale-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: planetscale-api-token
+pscale_tkn_abcdefghijklmnopqrstuvwxy0123456
+# ruleid: planetscale-api-token
+pscale_tkn_lmnopqrstuvwxy0123456789=-_.abcd
+# ok: planetscale-api-token
+api_key = "example"
+# ok: planetscale-api-token
+token = "placeholder"

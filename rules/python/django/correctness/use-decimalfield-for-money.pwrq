@@ -1,5 +1,6 @@
 # rules: use-decimalfield-for-money
 # languages: python
+# fixture: python/use-decimalfield-for-money.py
 # from: python/django/correctness/use-decimalfield-for-money.yaml
 
 . as $root

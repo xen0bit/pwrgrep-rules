@@ -1,5 +1,6 @@
 # rules: gcp-storage-versioning-enabled
 # languages: hcl
+# fixture: terraform/gcp-storage-versioning-enabled.tf
 # from: terraform/gcp/best-practice/gcp-storage-versioning-enabled.yaml
 
 . as $root

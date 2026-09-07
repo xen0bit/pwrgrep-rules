@@ -1,11 +1,17 @@
 # rules: nsc-allows-plaintext-traffic, nsc-pinning-without-backup, nsc-pinning-without-expiration, nsc-allows-user-ca-certs, nsc-allows-user-ca-certs-for-domain
+# fixture: java/nsc-allows-plaintext-traffic.xml
+# from: java/android/best-practice/network-security-config.yml
+#
+# The base-config shape wanted whitespace where single-spaced XML has none,
+# so it matched nothing. It stays inside one tag now.
+# The fixture covers the first id only.
 # from: java/android/best-practice/network-security-config.yml
 
 . as $root
 | ( ($root | scan_regex(["*.xml"]; [
       "<!\\-\\-\\s+[\\s\\S]*?\\s+\\-\\->",
       "<base\\-config\\s+[\\s\\S]*?\\s+>\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+<\\/base\\-config>",
-      "<base\\-config\\s+[\\s\\S]*?\\s+cleartextTrafficPermitted=\"true\"\\s+[\\s\\S]*?\\s+>",
+      "<base\\-config\\s+[^>]*?cleartextTrafficPermitted=\"true\"[^>]*?>",
       "<certificates\\s+[\\s\\S]*?\\s+user\\s+[\\s\\S]*?\\s+\\/>",
       "<certificates\\s+src=\"user\"\\s+[\\s\\S]*?\\s+\\/>",
       "<domain\\-config\\s+[\\s\\S]*?\\s+>\\s+[\\s\\S]*?\\s+<domain\\s+[\\s\\S]*?>\\s+(?P<DOMAIN>\\S+)\\s+<\\/domain>[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+<\\/domain\\-config>",
@@ -19,7 +25,7 @@
       "<pin\\s+[\\s\\S]*?>[\\s\\S]*?<\\/pin>[\\s\\S]*?<pin\\s+[\\s\\S]*?>[\\s\\S]*?<\\/pin>",
       "<trust\\-anchors>\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+<\\/trust\\-anchors>"
     ])) as $all
-    | ( $all | of(["<base\\-config\\s+[\\s\\S]*?\\s+cleartextTrafficPermitted=\"true\"\\s+[\\s\\S]*?\\s+>"])
+    | ( $all | of(["<base\\-config\\s+[^>]*?cleartextTrafficPermitted=\"true\"[^>]*?>"])
           | outside($all | of(["<!\\-\\-\\s+[\\s\\S]*?\\s+\\-\\->"]))
           | outside($all | of(["<network\\-security\\-config\\s+[\\s\\S]*?\\s+InsecureBaseConfiguration\\s+[\\s\\S]*?\\s+>[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+<\\/network\\-security\\-config>"]))
         | finding("nsc-allows-plaintext-traffic";

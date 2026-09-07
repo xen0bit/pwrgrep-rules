@@ -1,0 +1,10 @@
+# Gitleaks github-refresh-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: github-refresh-token
+ghr_0123456789abcdefghijklmnopqrstuvwxyA
+# ruleid: github-refresh-token
+ghr_bcdefghijklmnopqrstuvwxyABCDEFGHIJKL
+# ok: github-refresh-token
+api_key = "example"
+# ok: github-refresh-token
+token = "placeholder"

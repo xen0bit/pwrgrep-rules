@@ -1,5 +1,6 @@
 # rules: path-traversal-join
 # languages: python
+# fixture: python/path-traversal-join.py
 # from: python/django/security/injection/path-traversal/path-traversal-join.yaml
 
 . as $root

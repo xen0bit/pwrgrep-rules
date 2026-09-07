@@ -1,5 +1,6 @@
 # rules: identical-is-comparison, string-is-comparison
 # languages: python
+# fixture: python/is-comparison-string.py
 # from: python/lang/correctness/common-mistakes/is-comparison-string.yaml
 
 . as $root

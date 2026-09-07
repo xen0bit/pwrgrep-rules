@@ -1,0 +1,15 @@
+{# Django template with a debug tag left in. #}
+{# The debug tag dumps the whole context; in production it leaks #}
+{# internals, so any use of it is the finding. Plain output is the ok. #}
+{# ruleid: debug-template-tag #}
+{% debug %}
+{# ruleid: debug-template-tag #}
+<p>{% debug %}</p>
+{# ruleid: debug-template-tag #}
+<div>{% debug %}</div>
+{# ok: debug-template-tag #}
+<p>Hello, {{ name }}.</p>
+{# ok: debug-template-tag #}
+<p>{% if name %}{{ name }}{% endif %}</p>
+{# ok: debug-template-tag #}
+<p>No debug here.</p>

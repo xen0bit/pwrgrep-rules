@@ -1,4 +1,5 @@
 # rules: header-injection
+# fixture: generic/header-injection.txt
 # from: generic/nginx/security/header-injection.yaml
 
 . as $root

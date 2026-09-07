@@ -1,5 +1,6 @@
 # rules: xss-html-email-body
 # languages: python
+# fixture: python/xss-html-email-body.py
 # from: python/django/security/injection/email/xss-html-email-body.yaml
 
 . as $root

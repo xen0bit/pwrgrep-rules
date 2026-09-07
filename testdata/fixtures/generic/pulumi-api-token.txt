@@ -1,0 +1,10 @@
+# Gitleaks pulumi-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: pulumi-api-token
+pul-abcdef0123456789abcdef0123456789abcdef01
+# ruleid: pulumi-api-token
+pul-56789abcdef0123456789abcdef0123456789abc
+# ok: pulumi-api-token
+api_key = "example"
+# ok: pulumi-api-token
+token = "placeholder"

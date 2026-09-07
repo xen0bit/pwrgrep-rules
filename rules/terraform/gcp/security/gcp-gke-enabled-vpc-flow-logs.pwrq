@@ -1,5 +1,6 @@
 # rules: gcp-gke-enabled-vpc-flow-logs
 # languages: hcl
+# fixture: terraform/gcp-gke-enabled-vpc-flow-logs.tf
 # from: terraform/gcp/security/gcp-gke-enabled-vpc-flow-logs.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: dangerous-subprocess-use
 # languages: python
+# fixture: python/dangerous-subprocess-use.py
 # from: python/aws-lambda/security/dangerous-subprocess-use.yaml
 
 . as $root

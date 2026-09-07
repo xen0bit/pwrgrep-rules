@@ -1,0 +1,10 @@
+# Gitleaks mailgun-private-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: mailgun-private-api-token
+mailgun=key-abcdef0123456789abcdef0123456789
+# ruleid: mailgun-private-api-token
+mailgun=key-56789abcdef0123456789abcdef01234
+# ok: mailgun-private-api-token
+mailgun = "example"
+# ok: mailgun-private-api-token
+mailgun = "placeholder"

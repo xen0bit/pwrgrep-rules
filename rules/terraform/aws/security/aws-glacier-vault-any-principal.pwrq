@@ -1,5 +1,6 @@
 # rules: aws-glacier-vault-any-principal
 # languages: hcl
+# fixture: terraform/aws-glacier-vault-any-principal.tf
 # from: terraform/aws/security/aws-glacier-vault-any-principal.yaml
 
 . as $root

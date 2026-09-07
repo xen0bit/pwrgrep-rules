@@ -1,5 +1,6 @@
 # rules: express-jwt-not-revoked
 # languages: javascript, typescript
+# fixture: javascript/express-jwt-not-revoked.js
 # from: javascript/express/security/audit/express-jwt-not-revoked.yaml
 
 . as $root

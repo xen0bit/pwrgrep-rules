@@ -1,15 +1,17 @@
 # rules: wp-command-execution-audit
 # languages: php
+# fixture: php/wp-command-execution-audit.php
+#
+# The original call patterns used anonymous holes, which the PHP grammar
+# reads as inline HTML text instead of code, so the rule never fired.
+# Rewritten with a hole in function position plus a where_capture allowlist
+# of the audited names (the eval-use shape); see GUIDE.md.
 # from: php/wordpress-plugins/security/audit/wp-command-execution-audit.yaml
 
-. as $root
-| ( ($root | scan_ast(["*.php"]; [
-      "exec($$$_)",
-      "passthru($$$_)",
-      "shell_exec($$$_)",
-      "system($$$_)"
-    ])) as $all
-    | ( $all | of(["system($$$_)","exec($$$_)","passthru($$$_)","shell_exec($$$_)"])
-        | finding("wp-command-execution-audit";
-            "These functions can lead to command execution if the data inside them is user-controlled.") ) )
+["$F($CODE)", "$F($CODE, $$$_)"] as $calls
+| scan_ast("*.php"; $calls) as $all
+| ($all | of(["$F($CODE)", "$F($CODE, $$$_)"]))
+| where_capture("F"; "^(?:exec|passthru|shell_exec|system)$")
+| finding("wp-command-execution-audit";
+            "These functions can lead to command execution if the data inside them is user-controlled.")
 | report

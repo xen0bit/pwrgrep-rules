@@ -1,5 +1,6 @@
 # rules: insecure-cipher-algorithm-blowfish
 # languages: python
+# fixture: python/insecure-cipher-algorithms-blowfish.py
 # from: python/cryptography/security/insecure-cipher-algorithms-blowfish.yaml
 
 . as $root

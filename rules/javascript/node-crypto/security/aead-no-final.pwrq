@@ -1,5 +1,6 @@
 # rules: aead-no-final
 # languages: javascript, typescript
+# fixture: javascript/aead-no-final.js
 # from: javascript/node-crypto/security/aead-no-final.yaml
 
 . as $root

@@ -1,16 +1,18 @@
 # rules: xml-decoder
 # languages: java
+# fixture: java/xml-decoder.java
 # from: java/lang/security/audit/xml-decoder.yaml
+#
+# Every shape was a method scaffold with statement gaps that match nothing,
+# so the rule never fired. The finding is the construction itself now, kept
+# when its argument is not a literal.
 
 . as $root
 | ( ($root | scan_ast(["*.java"]; [
-      "$X $METHOD($$$_) {\n  $$$_\n  String $STR = \"$$$_\";\n  $$$_\n  new XMLDecoder($STR);\n  $$$_\n}",
-      "$X $METHOD($$$_) {\n  $$$_\n  new XMLDecoder(\"$$$_\");\n  $$$_\n}",
-      "$X $METHOD($$$_) {\n  $$$_\n  new XMLDecoder($$$_);\n  $$$_\n}"
+      "new XMLDecoder($ARG)"
     ])) as $all
-    | ( $all | of(["$X $METHOD($$$_) {\n  $$$_\n  new XMLDecoder($$$_);\n  $$$_\n}"])
-          | not_at($all | of(["$X $METHOD($$$_) {\n  $$$_\n  new XMLDecoder(\"$$$_\");\n  $$$_\n}"]))
-          | not_at($all | of(["$X $METHOD($$$_) {\n  $$$_\n  String $STR = \"$$$_\";\n  $$$_\n  new XMLDecoder($STR);\n  $$$_\n}"]))
+    | ( $all | of(["new XMLDecoder($ARG)"])
+          | where_capture_not("ARG"; "^\"")
         | finding("xml-decoder";
             "XMLDecoder should not be used to parse untrusted data.") ) )
 | report

@@ -1,0 +1,10 @@
+# Gitleaks dropbox-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: dropbox-api-token
+dropbox=abcdefghijklmno
+# ruleid: dropbox-api-token
+dropbox=lmnopqrstuvwxy0
+# ok: dropbox-api-token
+dropbox = "example"
+# ok: dropbox-api-token
+dropbox = "placeholder"

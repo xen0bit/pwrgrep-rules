@@ -1,5 +1,6 @@
 # rules: globals-misuse-code-execution
 # languages: python
+# fixture: python/globals-misuse-code-execution.py
 # from: python/django/security/injection/code/globals-misuse-code-execution.yaml
 
 . as $root

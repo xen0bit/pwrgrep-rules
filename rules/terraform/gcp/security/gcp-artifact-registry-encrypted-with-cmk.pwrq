@@ -1,5 +1,6 @@
 # rules: gcp-artifact-registry-encrypted-with-cmk
 # languages: hcl
+# fixture: terraform/gcp-artifact-registry-encrypted-with-cmk.tf
 # from: terraform/gcp/security/gcp-artifact-registry-encrypted-with-cmk.yaml
 
 . as $root

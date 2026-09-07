@@ -1,5 +1,6 @@
 # rules: ruby-rails-performance-indexes-are-beneficial
 # languages: ruby
+# fixture: ruby/ruby-rails-performance-indexes-are-beneficial.rb
 # from: ruby/rails/performance/ruby-rails-performance-indexes-are-really-beneficial.yaml
 
 . as $root

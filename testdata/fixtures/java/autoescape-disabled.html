@@ -1,0 +1,14 @@
+<html><body>
+<!-- ruleid: autoescape-disabled -->
+<h:outputText value="#{bean.name}" escape="false" />
+<!-- ruleid: autoescape-disabled -->
+<h:outputText value="#{bean.title}" escape="false" />
+<!-- ruleid: autoescape-disabled -->
+<f:verbatim escape="false">hi</f:verbatim>
+<!-- ok: autoescape-disabled -->
+<h:outputText value="#{bean.name}" escape="true" />
+<!-- ok: autoescape-disabled -->
+<h:outputText value="#{bean.name}" />
+<!-- ok: autoescape-disabled -->
+<p>static markup</p>
+</body></html>

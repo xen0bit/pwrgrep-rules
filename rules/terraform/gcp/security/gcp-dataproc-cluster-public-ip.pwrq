@@ -1,5 +1,6 @@
 # rules: gcp-dataproc-cluster-public-ip
 # languages: hcl
+# fixture: terraform/gcp-dataproc-cluster-public-ip.tf
 # from: terraform/gcp/security/gcp-dataproc-cluster-public-ip.yaml
 
 . as $root

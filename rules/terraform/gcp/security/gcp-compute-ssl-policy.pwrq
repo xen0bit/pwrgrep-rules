@@ -1,5 +1,6 @@
 # rules: gcp-compute-ssl-policy
 # languages: hcl
+# fixture: terraform/gcp-compute-ssl-policy.tf
 # from: terraform/gcp/security/gcp-compute-ssl-policy.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: appservice-authentication-enabled
 # languages: hcl
+# fixture: terraform/appservice-authentication-enabled.tf
 # from: terraform/azure/security/appservice/appservice-authentication-enabled.yaml
 
 . as $root

@@ -1,14 +1,16 @@
 # rules: multi-line-message
 # languages: yaml
+# fixture: yaml/semgrep-multi-line-message.yaml
+#
+# Block scalars are invisible to AST patterns and =~/.../ matches every
+# message, so no form distinguished them. Rewritten as a regex over the
+# literal-block indicator. Both globs are scanned.
 # from: yaml/semgrep/multi-line-message.yaml
-
 . as $root
-| ( ($root | scan_ast(["*.yaml"]; [
-      "message: \"=~/[\\\\n\\\\r]/\"",
-      "rules: [$$$_, $RULE, $$$_]"
+| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+      "message:\\s*\\|"
     ])) as $all
-    | ( $all | of(["message: \"=~/[\\\\n\\\\r]/\""])
-          | within($all | of(["rules: [$$$_, $RULE, $$$_]"]))
+    | ( $all | of(["message:\\s*\\|"])
         | finding("multi-line-message";
             "This rule has a multi-line message field, which may display poorly in a terminal.") ) )
 | report

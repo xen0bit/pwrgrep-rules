@@ -1,5 +1,6 @@
 # rules: use-defused-xmlrpc
 # languages: python
+# fixture: python/use-defused-xmlrpc.py
 # from: python/lang/security/use-defused-xmlrpc.yaml
 
 . as $root

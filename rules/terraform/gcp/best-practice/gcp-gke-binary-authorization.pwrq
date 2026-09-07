@@ -1,5 +1,6 @@
 # rules: gcp-gke-binary-authorization
 # languages: hcl
+# fixture: terraform/gcp-gke-binary-authorization.tf
 # from: terraform/gcp/best-practice/gcp-gke-binary-authorization.yaml
 
 . as $root

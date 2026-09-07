@@ -1,5 +1,6 @@
 # rules: azure-mysql-public-access-disabled
 # languages: hcl
+# fixture: terraform/azure-mysql-public-access-disabled.tf
 # from: terraform/azure/security/azure-mysql-public-access-disabled.yaml
 
 . as $root

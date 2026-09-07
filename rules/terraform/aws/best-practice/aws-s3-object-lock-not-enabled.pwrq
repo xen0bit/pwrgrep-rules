@@ -1,5 +1,6 @@
 # rules: aws-s3-object-lock-not-enabled
 # languages: hcl
+# fixture: terraform/aws-s3-object-lock-not-enabled.tf
 # from: terraform/aws/best-practice/aws-s3-object-lock-not-enabled.yaml
 
 . as $root

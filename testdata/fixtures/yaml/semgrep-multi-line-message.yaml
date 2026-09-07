@@ -1,0 +1,30 @@
+rules:
+  - id: m-multi
+    # ruleid: multi-line-message
+    message: |
+      first line
+      second line
+    languages: [python]
+    severity: WARNING
+    pattern: foo($X)
+  - id: m-multi2
+    # ruleid: multi-line-message
+    message: |-
+      alpha
+      beta
+    languages: [python]
+    severity: WARNING
+    pattern: foo2($X)
+  - id: m-folded
+    # ok: multi-line-message
+    message: >-
+      folded onto one visual line here
+    languages: [python]
+    severity: WARNING
+    pattern: bar($X)
+  - id: m-single
+    # ok: multi-line-message
+    message: "one line"
+    languages: [python]
+    severity: WARNING
+    pattern: bar2($X)

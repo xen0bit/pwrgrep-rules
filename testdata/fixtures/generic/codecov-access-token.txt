@@ -1,0 +1,10 @@
+# Gitleaks codecov-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: codecov-access-token
+codecov=abcdefghijklmnopqrstuvwxy0123456
+# ruleid: codecov-access-token
+codecov=lmnopqrstuvwxy0123456789abcdefgh
+# ok: codecov-access-token
+codecov = "example"
+# ok: codecov-access-token
+codecov = "placeholder"

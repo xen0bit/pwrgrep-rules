@@ -1,0 +1,10 @@
+# Gitleaks slack-legacy-workspace-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: slack-legacy-workspace-token
+xoxa-12345678
+# ruleid: slack-legacy-workspace-token
+xoxr-cdefghij
+# ok: slack-legacy-workspace-token
+api_key = "example"
+# ok: slack-legacy-workspace-token
+token = "placeholder"

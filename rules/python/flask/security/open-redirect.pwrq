@@ -1,5 +1,6 @@
 # rules: open-redirect
 # languages: python
+# fixture: python/flask-open-redirect.py
 # from: python/flask/security/open-redirect.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: command-injection-formatted-runtime-call
 # languages: java
+# fixture: java/command-injection-formatted-runtime-call.java
 # from: java/lang/security/audit/command-injection-formatted-runtime-call.yaml
 
 . as $root

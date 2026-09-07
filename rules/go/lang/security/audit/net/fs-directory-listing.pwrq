@@ -1,5 +1,6 @@
 # rules: fs-directory-listing
 # languages: go
+# fixture: go/fs-directory-listing.go
 # from: go/lang/security/audit/net/fs-directory-listing.yaml
 
 . as $root

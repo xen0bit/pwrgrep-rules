@@ -1,5 +1,6 @@
 # rules: django-secure-set-cookie
 # languages: python
+# fixture: python/secure-cookies.py
 # from: python/django/security/audit/secure-cookies.yaml
 
 . as $root

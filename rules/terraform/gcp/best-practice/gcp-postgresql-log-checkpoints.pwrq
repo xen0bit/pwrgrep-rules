@@ -1,5 +1,6 @@
 # rules: gcp-postgresql-log-checkpoints
 # languages: hcl
+# fixture: terraform/gcp-postgresql-log-checkpoints.tf
 # from: terraform/gcp/best-practice/gcp-postgresql-log-checkpoints.yaml
 
 . as $root

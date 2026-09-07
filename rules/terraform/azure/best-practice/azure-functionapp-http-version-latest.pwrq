@@ -1,5 +1,6 @@
 # rules: azure-functionapp-http-version-latest
 # languages: hcl
+# fixture: terraform/azure-functionapp-http-version-latest.tf
 # from: terraform/azure/best-practice/azure-functionapp-http-version-latest.yaml
 
 . as $root

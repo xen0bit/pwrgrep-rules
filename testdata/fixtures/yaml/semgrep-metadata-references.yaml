@@ -1,0 +1,34 @@
+rules:
+  - id: ref-bad
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      # ruleid: metadata-references
+      references: single
+    pattern: qux($X)
+  - id: ref-bad2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      # ruleid: metadata-references
+      references: https://example.com
+    pattern: qux2($X)
+  - id: ref-good
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      # ok: metadata-references
+      references:
+        - https://example.com/a
+    pattern: quux($X)
+  - id: ref-good2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      # ok: metadata-references
+      references: [https://example.com/b]
+    pattern: quux2($X)

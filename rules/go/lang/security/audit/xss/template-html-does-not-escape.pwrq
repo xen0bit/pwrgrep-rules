@@ -1,22 +1,35 @@
 # rules: unsafe-template-type
 # languages: go
+# fixture: go/unsafe-template-type.go
 # from: go/lang/security/audit/xss/template-html-does-not-escape.yaml
+#
+# The constant exclusion read `"$$$_"` as any argument and subtracted every
+# call, so the rule never fired. It names the argument hole and keeps only
+# the pure-literal spelling.
 
 . as $root
 | ( ($root | scan_ast(["*.go"]; [
       "template.$ANY(\"$$$_\" + \"$$$_\")",
       "template.$ANY(\"$$$_\")",
+      "template.CSS($H)",
       "template.CSS($$$_)",
+      "template.HTML($H)",
       "template.HTML($$$_)",
+      "template.HTMLAttr($H)",
       "template.HTMLAttr($$$_)",
+      "template.JS($H)",
       "template.JS($$$_)",
+      "template.JSStr($H)",
       "template.JSStr($$$_)",
+      "template.Srcset($H)",
       "template.Srcset($$$_)",
+      "template.URL($H)",
       "template.URL($$$_)"
     ])) as $all
     | ( $all | of(["template.HTML($$$_)","template.CSS($$$_)","template.HTMLAttr($$$_)","template.JS($$$_)","template.JSStr($$$_)","template.Srcset($$$_)","template.URL($$$_)"])
           | not_at($all | of(["template.$ANY(\"$$$_\" + \"$$$_\")"]))
-          | not_at($all | of(["template.$ANY(\"$$$_\")"]))
+          | not_at(($all | of(["template.HTML($H)","template.CSS($H)","template.HTMLAttr($H)","template.JS($H)","template.JSStr($H)","template.Srcset($H)","template.URL($H)"])
+          | where_capture("H"; "^\".*\"$")))
         | finding("unsafe-template-type";
             "Semgrep could not determine that the argument to 'template.HTML()' is a constant.") ) )
 | report

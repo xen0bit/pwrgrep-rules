@@ -1,0 +1,10 @@
+# Gitleaks asana-client-id: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: asana-client-id
+asana=0123456789012345
+# ruleid: asana-client-id
+asana=1234567890123456
+# ok: asana-client-id
+asana = "example"
+# ok: asana-client-id
+asana = "placeholder"

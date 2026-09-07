@@ -1,5 +1,6 @@
 # rules: azure-batchaccount-uses-keyvault-encrpytion
 # languages: hcl
+# fixture: terraform/azure-batchaccount-uses-keyvault-encrpytion.tf
 # from: terraform/azure/security/azure-batchaccount-uses-keyvault-encrpytion.yaml
 
 . as $root

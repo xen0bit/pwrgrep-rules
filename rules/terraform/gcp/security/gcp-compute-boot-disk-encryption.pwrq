@@ -1,5 +1,6 @@
 # rules: gcp-compute-boot-disk-encryption
 # languages: hcl
+# fixture: terraform/gcp-compute-boot-disk-encryption.tf
 # from: terraform/gcp/security/gcp-compute-boot-disk-encryption.yaml
 
 . as $root

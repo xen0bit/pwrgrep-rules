@@ -1,5 +1,6 @@
 # rules: storage-allow-microsoft-service-bypass
 # languages: hcl
+# fixture: terraform/storage-allow-microsoft-service-bypass.tf
 # from: terraform/azure/security/storage/storage-allow-microsoft-service-bypass.yaml
 
 . as $root

@@ -1,0 +1,10 @@
+# Gitleaks sendbird-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: sendbird-access-token
+sendbird=abcdef0123456789abcdef0123456789abcdef01
+# ruleid: sendbird-access-token
+sendbird=56789abcdef0123456789abcdef0123456789abc
+# ok: sendbird-access-token
+sendbird = "example"
+# ok: sendbird-access-token
+sendbird = "placeholder"

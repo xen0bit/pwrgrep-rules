@@ -1,5 +1,6 @@
 # rules: flask-class-method-get-side-effects
 # languages: python
+# fixture: python/get-class-method-with-side-effects.py
 # from: python/flask/best-practice/get-class-method-with-side-effects.yaml
 
 . as $root

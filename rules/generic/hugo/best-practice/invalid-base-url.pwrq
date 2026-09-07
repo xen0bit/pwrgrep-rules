@@ -1,4 +1,5 @@
 # rules: invalid-base-url
+# fixture: generic/invalid-base-url.txt
 # from: generic/hugo/best-practice/invalid-base-url.yaml
 
 . as $root

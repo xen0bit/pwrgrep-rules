@@ -1,6 +1,6 @@
 # rules: bypass-tls-verification
+# fixture: problem-based-packs/java-bypass-tls-verification.java
 # from: problem-based-packs/insecure-transport/java-stdlib/bypass-tls-verification.yaml
-
 . as $root
 | ( ($root | scan_regex(["*.java"]; [
       "new\\s+X509TrustManager\\(\\)\\s+\\{\\s+[\\s\\S]*?\\s+public\\s+void\\s+checkClientTrusted\\(X509Certificate\\[\\]\\s+certs,\\s+String\\s+authType\\)\\s+\\{[\\s\\S]*?\\}\\s+[\\s\\S]*?\\s+\\}",

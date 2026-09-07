@@ -1,5 +1,6 @@
 # rules: azure-keyvault-recovery-enabled
 # languages: hcl
+# fixture: terraform/azure-keyvault-recovery-enabled.tf
 # from: terraform/azure/best-practice/azure-keyvault-recovery-enabled.yaml
 
 . as $root

@@ -1,0 +1,9 @@
+# Template variables in attributes must be quoted.
+# ruleid: unquoted-attribute-var
+<div class={{ userClass }}>hi</div>
+# ruleid: unquoted-attribute-var
+<span id={{ itemId }}>x</span>
+# ok: unquoted-attribute-var
+<div class="{{ userClass }}">hi</div>
+# ok: unquoted-attribute-var
+<div class='{{ userClass }}'>hi</div>

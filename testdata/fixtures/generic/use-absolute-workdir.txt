@@ -1,0 +1,10 @@
+# Use an absolute working directory. The rule as written matches every
+# such instruction, so the clean lines show neighbouring instructions.
+# ruleid: use-absolute-workdir
+WORKDIR app
+# ruleid: use-absolute-workdir
+WORKDIR build/output
+# ok: use-absolute-workdir
+FROM ubuntu:22.04
+# ok: use-absolute-workdir
+RUN make build

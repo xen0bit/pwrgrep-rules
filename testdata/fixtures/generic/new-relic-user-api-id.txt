@@ -1,0 +1,10 @@
+# Gitleaks new-relic-user-api-id: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: new-relic-user-api-id
+new-relic=abcdefghijklmnopqrstuvwxy0123456789abcdefghijklmnopqrstuvwxy0123
+# ruleid: new-relic-user-api-id
+new-relic=lmnopqrstuvwxy0123456789abcdefghijklmnopqrstuvwxy0123456789abcde
+# ok: new-relic-user-api-id
+new-relic = "example"
+# ok: new-relic-user-api-id
+new-relic = "placeholder"

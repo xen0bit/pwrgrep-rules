@@ -1,0 +1,12 @@
+<%# ruleid: unquoted-attribute %>
+<div class=<%= @cls %>>a</div>
+<%# ruleid: unquoted-attribute %>
+<span id=<%= @ident %>>b</span>
+<%# ruleid: unquoted-attribute %>
+<a href=<%= @url %>>c</a>
+<%# ok: unquoted-attribute %>
+<div class="static">d</div>
+<%# ok: unquoted-attribute %>
+<%# erb comment %>
+<%# ok: unquoted-attribute %>
+<% form_for @user do |f| %>

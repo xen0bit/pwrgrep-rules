@@ -1,5 +1,6 @@
 # rules: gcp-compute-firewall-unrestricted-ingress-21
 # languages: hcl
+# fixture: terraform/gcp-compute-firewall-unrestricted-ingress-21.tf
 # from: terraform/gcp/security/gcp-compute-firewall-unrestricted-ingress-21.yaml
 
 . as $root

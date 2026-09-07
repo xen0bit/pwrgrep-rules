@@ -1,0 +1,32 @@
+rules:
+  - id: bad-key
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    patterns:
+      # ruleid: yaml-key-indentation-check
+      -foo: >-
+        oops
+  - id: bad-key2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    patterns:
+      # ruleid: yaml-key-indentation-check
+      -bar: >-
+        oops
+  - id: good-key
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    patterns:
+      # ok: yaml-key-indentation-check
+      - foo: >-
+        fine
+  - id: good-key2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ok: yaml-key-indentation-check
+    message2: >-
+      fine

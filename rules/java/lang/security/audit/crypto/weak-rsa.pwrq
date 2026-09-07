@@ -1,5 +1,6 @@
 # rules: use-of-weak-rsa-key
 # languages: java
+# fixture: java/use-of-weak-rsa-key.java
 # from: java/lang/security/audit/crypto/weak-rsa.yaml
 
 . as $root

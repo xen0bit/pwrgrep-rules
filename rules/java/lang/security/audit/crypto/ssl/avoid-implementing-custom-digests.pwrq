@@ -1,5 +1,6 @@
 # rules: avoid-implementing-custom-digests
 # languages: java
+# fixture: java/avoid-implementing-custom-digests.java
 # from: java/lang/security/audit/crypto/ssl/avoid-implementing-custom-digests.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: azure-defenderon-container-registry
 # languages: hcl
+# fixture: terraform/azure-defenderon-container-registry.tf
 # from: terraform/azure/best-practice/azure-defenderon-container-registry.yaml
 
 . as $root

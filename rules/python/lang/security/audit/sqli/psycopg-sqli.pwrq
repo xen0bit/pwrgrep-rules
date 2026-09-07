@@ -1,5 +1,6 @@
 # rules: psycopg-sqli
 # languages: python
+# fixture: python/psycopg-sqli.py
 # from: python/lang/security/audit/sqli/psycopg-sqli.yaml
 
 . as $root

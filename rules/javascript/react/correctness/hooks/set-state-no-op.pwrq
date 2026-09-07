@@ -1,5 +1,6 @@
 # rules: calling-set-state-on-current-state
 # languages: javascript
+# fixture: javascript/set-state-no-op.js
 # from: javascript/react/correctness/hooks/set-state-no-op.yaml
 
 . as $root

@@ -1,4 +1,5 @@
 # rules: missing-yum-clean-all
+# fixture: generic/missing-yum-clean-all.txt
 # from: generic/dockerfile/best-practice/missing-yum-clean-all.yaml
 
 . as $root

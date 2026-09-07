@@ -1,5 +1,6 @@
 # rules: dangerous-subinterpreters-run-string-audit
 # languages: python
+# fixture: python/dangerous-subinterpreters-run-string-audit.py
 # from: python/lang/security/audit/dangerous-subinterpreters-run-string-audit.yaml
 
 . as $root

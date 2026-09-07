@@ -1,5 +1,6 @@
 # rules: azure-defenderon-sqlservers
 # languages: hcl
+# fixture: terraform/azure-defenderon-sqlservers.tf
 # from: terraform/azure/best-practice/azure-defenderon-sqlservers.yaml
 
 . as $root

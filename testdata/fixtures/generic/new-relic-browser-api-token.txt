@@ -1,0 +1,10 @@
+# Gitleaks new-relic-browser-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: new-relic-browser-api-token
+new-relic=NRJS-abcdef0123456789abc
+# ruleid: new-relic-browser-api-token
+new-relic=NRJS-56789abcdef01234567
+# ok: new-relic-browser-api-token
+new-relic = "example"
+# ok: new-relic-browser-api-token
+new-relic = "placeholder"

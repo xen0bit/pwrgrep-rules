@@ -1,5 +1,6 @@
 # rules: bad-send
 # languages: ruby
+# fixture: ruby/bad-send.rb
 # from: ruby/lang/security/no-send.yaml
 
 . as $root

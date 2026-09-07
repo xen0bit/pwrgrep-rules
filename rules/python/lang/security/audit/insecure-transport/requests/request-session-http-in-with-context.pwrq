@@ -1,5 +1,6 @@
 # rules: request-session-http-in-with-context
 # languages: python
+# fixture: python/request-session-http-in-with-context.py
 # from: python/lang/security/audit/insecure-transport/requests/request-session-http-in-with-context.yaml
 
 . as $root

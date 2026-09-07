@@ -1,0 +1,10 @@
+# Gitleaks clojars-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: clojars-api-token
+CLOJARS_abcdefghijklmnopqrstuvwxy0123456789abcdefghijklmnopqrstuvwxy
+# ruleid: clojars-api-token
+CLOJARS_lmnopqrstuvwxy0123456789abcdefghijklmnopqrstuvwxy0123456789a
+# ok: clojars-api-token
+api_key = "example"
+# ok: clojars-api-token
+token = "placeholder"

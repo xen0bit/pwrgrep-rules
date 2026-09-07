@@ -1,16 +1,20 @@
 # rules: writable-filesystem-service
+# languages: yaml
+# fixture: yaml/compose-writable-filesystem.yaml
+#
+# The scaffolding spans never enclose, so the rule never fired. Rewritten as
+# a service block without read_only true.
+# Service spans use an indent-anchored block (name plus deeper fields);
+# fixture services keep the standard two/four-space layout.
 # from: yaml/docker-compose/security/writable-filesystem-service.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml"]; [
-      "(?P<SERVICE>\\S+):\\s+[\\s\\S]*?\\s+image:\\s+[\\s\\S]*?\\s+[\\s\\S]*?",
-      "(?P<SERVICE>\\S+):\\s+[\\s\\S]*?\\s+image:\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+read_only:\\s+true",
-      "version:\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+services:\\s+[\\s\\S]*?"
+| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^  (?P<SVC>[A-Za-z_]\\w*):[^\\S\n]*\n((?:    [^\n]*\n?)*)"
     ])) as $all
-    | ( $all | of(["(?P<SERVICE>\\S+):\\s+[\\s\\S]*?\\s+image:\\s+[\\s\\S]*?\\s+[\\s\\S]*?"])
-          | within($all | of(["version:\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+services:\\s+[\\s\\S]*?"]))
-          | not_at($all | of(["(?P<SERVICE>\\S+):\\s+[\\s\\S]*?\\s+image:\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+read_only:\\s+true"]))
-          | focus("SERVICE")
+    | ( $all | of(["(?m)^  (?P<SVC>[A-Za-z_]\\w*):[^\\S\n]*\n((?:    [^\n]*\n?)*)"])
+          | where_text_not("read_only:\\s*true")
+          | focus("SVC")
         | finding("writable-filesystem-service";
-            "Service '$SERVICE' is running with a writable root filesystem.") ) )
+            "Service '$SVC' is running with a writable root filesystem.") ) )
 | report

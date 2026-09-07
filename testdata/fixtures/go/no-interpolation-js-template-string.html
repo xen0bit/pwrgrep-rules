@@ -1,0 +1,17 @@
+<!-- A template variable inside a JavaScript template string runs as code. The
+rule is textual: the script tag needs attributes, and the backtick string
+needs words around the `{{ }}`; plain strings are fine. -->
+<script type="text/javascript">
+<!-- ruleid: no-interpolation-js-template-string -->
+var t = ` val {{ .Name }} end `;
+<!-- ruleid: no-interpolation-js-template-string -->
+var u = ` val {{ .Title }} end `;
+<!-- ruleid: no-interpolation-js-template-string -->
+var v = ` val {{ .Body }} end `;
+<!-- ok: no-interpolation-js-template-string -->
+var s = ` static `;
+</script>
+<!-- ok: no-interpolation-js-template-string -->
+<p>static</p>
+<!-- ok: no-interpolation-js-template-string -->
+<p>{{ .Name }}</p>

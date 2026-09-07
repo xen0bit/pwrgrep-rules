@@ -1,4 +1,5 @@
 # rules: use-of-default-aes
+# fixture: java/use-of-default-aes.java
 # from: java/lang/security/audit/crypto/use-of-default-aes.yaml
 
 . as $root

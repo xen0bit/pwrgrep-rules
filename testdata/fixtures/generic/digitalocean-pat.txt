@@ -1,0 +1,10 @@
+# Gitleaks digitalocean-pat: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: digitalocean-pat
+dop_v1_abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789
+# ruleid: digitalocean-pat
+dop_v1_56789abcdef0123456789abcdef0123456789abcdef0123456789abcdef01234
+# ok: digitalocean-pat
+api_key = "example"
+# ok: digitalocean-pat
+token = "placeholder"

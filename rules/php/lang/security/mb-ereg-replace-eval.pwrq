@@ -1,14 +1,19 @@
 # rules: mb-ereg-replace-eval
 # languages: php
+# fixture: php/mb-ereg-replace-eval.php
+#
+# The "safe" half of the original used "$$$_" for the options literal, but a
+# hole in string position loses its quotes and arity, matching every call -
+# so the subtraction removed the findings as well as the noise. Rewritten as
+# one named-hole pattern with a where_capture_not guard for quoted literals.
 # from: php/lang/security/mb-ereg-replace-eval.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.php"]; [
-      "mb_ereg_replace($PATTERN, $REPL, $STR, \"$$$_\");",
       "mb_ereg_replace($PATTERN, $REPL, $STR, $OPTIONS);"
     ])) as $all
     | ( $all | of(["mb_ereg_replace($PATTERN, $REPL, $STR, $OPTIONS);"])
-          | not_at($all | of(["mb_ereg_replace($PATTERN, $REPL, $STR, \"$$$_\");"]))
+          | where_capture_not("OPTIONS"; "^\".*\"$|^'.*'$")
         | finding("mb-ereg-replace-eval";
             "Calling mb_ereg_replace with user input in the options can lead to arbitrary code execution.") ) )
 | report

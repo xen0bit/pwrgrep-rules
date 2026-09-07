@@ -1,5 +1,6 @@
 # rules: bad-deserialization-env
 # languages: ruby
+# fixture: ruby/bad-deserialization-env.rb
 # from: ruby/lang/security/bad-deserialization-env.yaml
 
 . as $root

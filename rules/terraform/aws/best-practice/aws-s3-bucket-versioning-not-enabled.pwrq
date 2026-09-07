@@ -1,5 +1,6 @@
 # rules: aws-s3-bucket-versioning-not-enabled
 # languages: hcl
+# fixture: terraform/aws-s3-bucket-versioning-not-enabled.tf
 # from: terraform/aws/best-practice/aws-s3-bucket-versioning-not-enabled.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: gcp-gke-kubernetes-rbac-google-groups
 # languages: hcl
+# fixture: terraform/gcp-gke-kubernetes-rbac-google-groups.tf
 # from: terraform/gcp/security/gcp-gke-kubernetes-rbac-google-groups.yaml
 
 . as $root

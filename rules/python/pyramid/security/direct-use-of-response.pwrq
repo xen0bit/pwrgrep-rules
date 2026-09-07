@@ -1,5 +1,6 @@
 # rules: pyramid-direct-use-of-response
 # languages: python
+# fixture: python/direct-use-of-response.py
 # from: python/pyramid/security/direct-use-of-response.yaml
 
 . as $root

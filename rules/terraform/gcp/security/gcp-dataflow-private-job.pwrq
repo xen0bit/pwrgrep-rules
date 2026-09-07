@@ -1,5 +1,6 @@
 # rules: gcp-dataflow-private-job
 # languages: hcl
+# fixture: terraform/gcp-dataflow-private-job.tf
 # from: terraform/gcp/security/gcp-dataflow-private-job.yaml
 
 . as $root

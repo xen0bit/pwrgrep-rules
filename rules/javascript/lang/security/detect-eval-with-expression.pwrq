@@ -1,5 +1,6 @@
 # rules: detect-eval-with-expression
 # languages: javascript, typescript
+# fixture: javascript/detect-eval-with-expression.js
 # from: javascript/lang/security/detect-eval-with-expression.yaml
 
 . as $root

@@ -1,17 +1,24 @@
 # rules: insecure-object-assign
 # languages: javascript, typescript
+# fixture: javascript/insecure-object-assign.js
 # from: javascript/lang/security/insecure-object-assign.yaml
+#
+# The sink used an anonymous hole, so `reaching` never joined a source to
+# it and the rule never fired. It names the merged hole and focuses it, and
+# the static exclusion keeps only the literal spelling.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "JSON.parse(\"$$$_\",$$$_)",
-      "JSON.parse($$$_)",
-      "Object.assign($$$_)"
+      "JSON.parse($DATA)",
+      "JSON.parse($LIT)",
+      "Object.assign($TGT, $VAL)"
     ])) as $all
-    | ( (($all | of(["Object.assign($$$_)"])))
-          | reaching((($all | of(["JSON.parse($$$_)"])
-          | not_at($all | of(["JSON.parse(\"$$$_\",$$$_)"]))));
-              ([]))
-        | finding("insecure-object-assign";
-            "Depending on the context, user control data in `Object.assign` can cause web response to include data that it should not have or can lead to a mass assignment vulnerability.") ) )
+  | ($all | of(["Object.assign($TGT, $VAL)"])
+      | focus("VAL")
+      | reaching(($all | of(["JSON.parse($DATA)"])
+          | not_at(($all | of(["JSON.parse($LIT)"]) | where_capture("LIT"; "^[\"']")))
+        ); []))
+  | finding("insecure-object-assign";
+      "Depending on the context, user control data in `Object.assign` can cause web response to include data that it should not have or can lead to a mass assignment vulnerability.")
+  )
 | report

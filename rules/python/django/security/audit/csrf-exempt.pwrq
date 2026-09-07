@@ -1,5 +1,6 @@
 # rules: no-csrf-exempt
 # languages: python
+# fixture: python/csrf-exempt.py
 # from: python/django/security/audit/csrf-exempt.yaml
 
 . as $root

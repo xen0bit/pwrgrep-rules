@@ -1,5 +1,6 @@
 # rules: insecure-load-balancer-tls-version
 # languages: hcl
+# fixture: terraform/insecure-load-balancer-tls-version.tf
 # from: terraform/aws/security/insecure-load-balancer-tls-version.yaml
 
 . as $root

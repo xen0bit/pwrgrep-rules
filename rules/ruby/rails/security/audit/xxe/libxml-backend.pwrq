@@ -1,5 +1,6 @@
 # rules: libxml-backend
 # languages: ruby
+# fixture: ruby/libxml-backend.rb
 # from: ruby/rails/security/audit/xxe/libxml-backend.yaml
 
 . as $root

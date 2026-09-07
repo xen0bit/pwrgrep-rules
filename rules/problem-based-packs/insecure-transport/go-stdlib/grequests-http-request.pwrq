@@ -1,13 +1,20 @@
 # rules: grequests-http-request
 # languages: go
+# fixture: problem-based-packs/go-grequests-http-request.go
+#
+# The `"=~/http.../"` string guards never match - the matcher has no
+# regex-literal reading - so the rule never fired. Rewritten as direct calls
+# with the URL in a named hole guarded by where_capture (the http-request
+# shape); dot-imported bare calls are out of scope.
 # from: problem-based-packs/insecure-transport/go-stdlib/grequests-http-request.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.go"]; [
-      "$FUNC($$$_,\"=~/[hH][tT][tT][pP]://.*/\", $$$_)",
-      "grequests.$FUNC($$$_,\"=~/[hH][tT][tT][pP]://.*/\", $$$_)"
+      "grequests.$FUNC($URL)",
+      "grequests.$FUNC($URL,$OPTS)"
     ])) as $all
-    | ( $all | of(["grequests.$FUNC($$$_,\"=~/[hH][tT][tT][pP]://.*/\", $$$_)","$FUNC($$$_,\"=~/[hH][tT][tT][pP]://.*/\", $$$_)"])
+    | ( $all | of(["grequests.$FUNC($URL)","grequests.$FUNC($URL,$OPTS)"])
+          | where_capture("URL"; "http://")
           | where_capture("FUNC"; "^(?:(Get|Head|Post|Put|Delete|Patch|Options|Req|DoRegularRequest))")
         | finding("grequests-http-request";
             "Checks for requests to http (unencrypted) sites using grequests, a popular HTTP client library.") ) )

@@ -1,0 +1,39 @@
+# A push trigger without a branches filter runs on every branch.
+name: a
+# ruleid: semgrep-github-action-push-without-branches
+on: push
+jobs:
+  b:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo hi
+---
+name: b
+on:
+  # ruleid: semgrep-github-action-push-without-branches
+  push:
+jobs:
+  b:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo hi
+---
+name: c
+on:
+  # ok: semgrep-github-action-push-without-branches
+  push:
+    branches: [main]
+jobs:
+  b:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo hi
+---
+name: d
+# ok: semgrep-github-action-push-without-branches
+on: pull_request
+jobs:
+  b:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo hi

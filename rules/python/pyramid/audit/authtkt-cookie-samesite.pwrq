@@ -1,5 +1,6 @@
 # rules: pyramid-authtkt-cookie-samesite
 # languages: python
+# fixture: python/authtkt-cookie-samesite.py
 # from: python/pyramid/audit/authtkt-cookie-samesite.yaml
 
 . as $root

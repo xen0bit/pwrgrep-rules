@@ -1,5 +1,6 @@
 # rules: azure-vmscale-sets-auto-os-image-patching-enabled
 # languages: hcl
+# fixture: terraform/azure-vmscale-sets-auto-os-image-patching-enabled.tf
 # from: terraform/azure/best-practice/azure-vmscale-sets-auto-os-image-patching-enabled.yaml
 
 . as $root

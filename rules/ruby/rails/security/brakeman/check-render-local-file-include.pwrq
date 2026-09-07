@@ -1,5 +1,6 @@
 # rules: check-render-local-file-include
 # languages: ruby
+# fixture: ruby/check-render-local-file-include.rb
 # from: ruby/rails/security/brakeman/check-render-local-file-include.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: gcp-postgresql-log-temp
 # languages: hcl
+# fixture: terraform/gcp-postgresql-log-temp.tf
 # from: terraform/gcp/best-practice/gcp-postgresql-log-temp.yaml
 
 . as $root

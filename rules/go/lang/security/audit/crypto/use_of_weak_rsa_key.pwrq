@@ -1,5 +1,6 @@
 # rules: use-of-weak-rsa-key
 # languages: go
+# fixture: go/use-of-weak-rsa-key.go
 # from: go/lang/security/audit/crypto/use_of_weak_rsa_key.yaml
 
 . as $root

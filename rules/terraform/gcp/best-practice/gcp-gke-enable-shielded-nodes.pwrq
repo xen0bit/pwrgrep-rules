@@ -1,5 +1,6 @@
 # rules: gcp-gke-enable-shielded-nodes
 # languages: hcl
+# fixture: terraform/gcp-gke-enable-shielded-nodes.tf
 # from: terraform/gcp/best-practice/gcp-gke-enable-shielded-nodes.yaml
 
 . as $root

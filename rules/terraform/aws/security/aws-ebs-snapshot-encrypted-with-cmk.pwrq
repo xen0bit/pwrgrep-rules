@@ -1,5 +1,6 @@
 # rules: aws-ebs-snapshot-encrypted-with-cmk
 # languages: hcl
+# fixture: terraform/aws-ebs-snapshot-encrypted-with-cmk.tf
 # from: terraform/aws/security/aws-ebs-snapshot-encrypted-with-cmk.yaml
 
 . as $root

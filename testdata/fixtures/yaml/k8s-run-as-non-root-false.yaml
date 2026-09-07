@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad1
+spec:
+  containers:
+    # ruleid: run-as-non-root-container-level
+    - name: app
+      image: nginx
+      securityContext:
+        runAsNonRoot: false
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad2
+spec:
+  containers:
+    # ruleid: run-as-non-root-container-level
+    - name: sidecar
+      image: redis
+      securityContext:
+        runAsNonRoot: false
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good1
+spec:
+  containers:
+    # ok: run-as-non-root-container-level
+    - name: app
+      image: nginx
+      securityContext:
+        runAsNonRoot: true
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good2
+spec:
+  containers:
+    # ok: run-as-non-root-container-level
+    - name: app
+      image: nginx
+      securityContext:
+        runAsUser: 1000
+        runAsNonRoot: true

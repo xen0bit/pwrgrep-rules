@@ -1,0 +1,25 @@
+rules:
+  - id: uses-bad
+    message: "m"
+    # ruleid: lang-consistency-dockerfile
+    languages: [docker]
+    severity: WARNING
+    pattern: foo($X)
+  - id: uses-bad2
+    message: "m"
+    # ruleid: lang-consistency-dockerfile
+    languages: [docker, dockerfile]
+    severity: WARNING
+    pattern: foo2($X)
+  - id: uses-good
+    message: "m"
+    # ok: lang-consistency-dockerfile
+    languages: [dockerfile]
+    severity: WARNING
+    pattern: bar($X)
+  - id: uses-good2
+    message: "m"
+    # ok: lang-consistency-dockerfile
+    languages: [dockerfile, container]
+    severity: WARNING
+    pattern: bar2($X)

@@ -1,0 +1,16 @@
+{# Django template variable with the safeseq filter. #}
+{# safeseq marks every item safe, rendering caller input unescaped. Note: #}
+{# the rule needs whitespace after the pipe, so the vulnerable cases use #}
+{# the spaced spelling; unfiltered or escaped output is the fix. #}
+{# ruleid: template-var-unescaped-with-safeseq #}
+{{ items| safeseq }}
+{# ruleid: template-var-unescaped-with-safeseq #}
+{{ rows| safeseq }}
+{# ruleid: template-var-unescaped-with-safeseq #}
+<ul>{{ entries| safeseq }}</ul>
+{# ok: template-var-unescaped-with-safeseq #}
+{{ items }}
+{# ok: template-var-unescaped-with-safeseq #}
+{{ rows|escape }}
+{# ok: template-var-unescaped-with-safeseq #}
+{{ entries|join:", " }}

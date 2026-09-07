@@ -1,18 +1,22 @@
 # rules: metadata-references
 # languages: yaml
+# fixture: yaml/semgrep-metadata-references.yaml
+#
+# The scalar form used an anonymous hole, which never matches scalar values,
+# so the rule never fired. Rewritten with a named hole; the list form is
+# excluded by name.
 # from: yaml/semgrep/metadata-references.yaml
-
 . as $root
-| ( ($root | scan_ast(["*.yaml"]; [
+| ( ($root | scan_ast(["*.yaml","*.yml"]; [
       "metadata: $$$_",
-      "references: $$$_",
-      "references: [$$$_]",
+      "references: $REF",
+      "references: [$REF]",
       "rules: $$$_"
     ])) as $all
-    | ( $all | of(["references: $$$_"])
+    | ( $all | of(["references: $REF"])
           | within($all | of(["rules: $$$_"]))
           | within($all | of(["metadata: $$$_"]))
-          | not_at($all | of(["references: [$$$_]"]))
+          | not_at($all | of(["references: [$REF]"]))
         | finding("metadata-references";
             "The references in rule metadata should always be a list, even if there's only one.") ) )
 | report

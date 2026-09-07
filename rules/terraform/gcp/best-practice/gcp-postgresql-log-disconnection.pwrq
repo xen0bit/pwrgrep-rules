@@ -1,5 +1,6 @@
 # rules: gcp-postgresql-log-disconnection
 # languages: hcl
+# fixture: terraform/gcp-postgresql-log-disconnection.tf
 # from: terraform/gcp/best-practice/gcp-postgresql-log-disconnection.yaml
 
 . as $root

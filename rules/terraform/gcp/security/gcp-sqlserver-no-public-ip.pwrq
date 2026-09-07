@@ -1,5 +1,6 @@
 # rules: gcp-sqlserver-no-public-ip
 # languages: hcl
+# fixture: terraform/gcp-sqlserver-no-public-ip.tf
 # from: terraform/gcp/security/gcp-sqlserver-no-public-ip.yaml
 
 . as $root

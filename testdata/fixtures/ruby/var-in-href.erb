@@ -1,0 +1,15 @@
+<%# A template variable in an anchor's href lets an attacker inject a
+javascript: URL. The rule is textual: attributes keep spaces around `=`, so
+the flagged lines keep that shape; static links are fine. %>
+<%# ruleid: var-in-href %>
+<a class="x" href = "<%= @url %>" >click</a>
+<%# Merged into the previous match; left unmarked on purpose. %>
+<a class="x" href = "<%= @target %>" >go</a>
+<%# ruleid: var-in-href %>
+<a class="x" href = "<%= @next %>" >more</a>
+<%# ok: var-in-href %>
+<a class="x" href = "/static" >static</a>
+<%# ok: var-in-href %>
+<a class="x" href = '/about' >about</a>
+<%# ok: var-in-href %>
+<p>no anchor here</p>

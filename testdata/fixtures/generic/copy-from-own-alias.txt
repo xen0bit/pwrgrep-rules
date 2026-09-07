@@ -1,0 +1,13 @@
+# COPY --from must not name the stage it sits in.
+# ruleid: copy-from-own-alias
+FROM ubuntu:22.04 AS base
+
+COPY --from=base /src /dst
+FROM alpine:3.18 AS mid
+
+COPY --from=mid /src /dst
+FROM debian:12
+# ok: copy-from-own-alias
+COPY src/ dst/
+# ok: copy-from-own-alias
+RUN echo done

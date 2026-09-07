@@ -1,5 +1,6 @@
 # rules: jwt-python-none-alg
 # languages: python
+# fixture: python/jwt-none-alg.py
 # from: python/jwt/security/jwt-none-alg.yaml
 
 . as $root

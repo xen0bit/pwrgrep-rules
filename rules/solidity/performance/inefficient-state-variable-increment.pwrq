@@ -1,20 +1,17 @@
 # rules: inefficient-state-variable-increment
 # languages: solidity
+# fixture: solidity/inefficient-state-variable-increment.sol
+#
+# Fragments and contract-level AST never match in the solidity grammar, so no
+# form fired. Rewritten as a regex over += uses. Only a reviewer can tell a
+# state variable from a local, so every use is listed for review.
 # from: solidity/performance/inefficient-state-variable-increment.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.sol"]; [
-      "$X += $Y",
-      "$X[$$$_] += $Y",
-      "contract $C {\n  $$$_\n  $TYPE $X = $$$_;\n  $$$_\n}",
-      "contract $C {\n  $$$_\n  $TYPE $X;\n  $$$_\n}"
+| ( ($root | scan_regex(["*.sol"]; [
+      "(?m)^        [A-Za-z_]\\w*\\s*\\+=[^=]"
     ])) as $all
-    | ( $all | of(["$X += $Y","$X[$$$_] += $Y"])
-          | at_same_place((($all
-          | within($all | of(["contract $C {\n  $$$_\n  $TYPE $X;\n  $$$_\n}"])))
-          + ($all
-          | within($all | of(["contract $C {\n  $$$_\n  $TYPE $X = $$$_;\n  $$$_\n}"])))))
-          | where_capture("TYPE"; "^(?:uint)")
+    | ( $all | of(["(?m)^        [A-Za-z_]\\w*\\s*\\+=[^=]"])
         | finding("inefficient-state-variable-increment";
-            "<x> += <y> costs more gas than <x> = <x> + <y> for state variables.") ) )
+            "Costs more gas than <x> = <x> + <y> for state variables.") ) )
 | report

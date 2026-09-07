@@ -1,0 +1,10 @@
+# Gitleaks github-app-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: github-app-token
+ghu_123456789abcdefghijklmnopqrstuvwxyAB
+# ruleid: github-app-token
+ghs_cdefghijklmnopqrstuvwxyABCDEFGHIJKLM
+# ok: github-app-token
+api_key = "example"
+# ok: github-app-token
+token = "placeholder"

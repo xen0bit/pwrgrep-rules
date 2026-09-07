@@ -1,5 +1,6 @@
 # rules: azure-storage-account-disable-public-access
 # languages: hcl
+# fixture: terraform/azure-storage-account-disable-public-access.tf
 # from: terraform/azure/security/azure-storage-account-disable-public-access.yaml
 
 . as $root

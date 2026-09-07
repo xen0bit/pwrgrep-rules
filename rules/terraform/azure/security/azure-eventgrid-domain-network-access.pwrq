@@ -1,5 +1,6 @@
 # rules: azure-eventgrid-domain-network-access
 # languages: hcl
+# fixture: terraform/azure-eventgrid-domain-network-access.tf
 # from: terraform/azure/security/azure-eventgrid-domain-network-access.yaml
 
 . as $root

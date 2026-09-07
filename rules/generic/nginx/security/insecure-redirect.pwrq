@@ -1,4 +1,5 @@
 # rules: insecure-redirect
+# fixture: generic/insecure-redirect.txt
 # from: generic/nginx/security/insecure-redirect.yaml
 
 . as $root

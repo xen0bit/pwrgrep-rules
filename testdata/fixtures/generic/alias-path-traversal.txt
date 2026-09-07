@@ -1,0 +1,23 @@
+# A path without a trailing slash above an alias directive traverses upwards.
+# A directive follows the alias line: the block pattern needs trailing
+# content before the closing brace.
+# ruleid: alias-path-traversal
+location /static {
+  alias /var/www/static/;
+  autoindex off;
+}
+# ok: alias-path-traversal
+location /static/ {
+  alias /var/www/static/;
+  autoindex off;
+}
+# ruleid: alias-path-traversal
+location /images {
+  alias /var/www/images/;
+  autoindex off;
+}
+# ok: alias-path-traversal
+location /health {
+  proxy_pass http://example.com/;
+  autoindex off;
+}

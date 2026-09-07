@@ -1,5 +1,6 @@
 # rules: dangerous-asyncio-shell
 # languages: python
+# fixture: python/dangerous-asyncio-shell.py
 # from: python/aws-lambda/security/dangerous-asyncio-shell.yaml
 
 . as $root

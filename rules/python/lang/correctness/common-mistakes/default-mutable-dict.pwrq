@@ -1,5 +1,6 @@
 # rules: default-mutable-dict
 # languages: python
+# fixture: python/default-mutable-dict.py
 # from: python/lang/correctness/common-mistakes/default-mutable-dict.yaml
 
 . as $root

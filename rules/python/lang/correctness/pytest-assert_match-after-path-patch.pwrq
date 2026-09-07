@@ -1,5 +1,6 @@
 # rules: pytest-assert_match-after-path-patch
 # languages: python
+# fixture: python/pytest-assert_match-after-path-patch.py
 # from: python/lang/correctness/pytest-assert_match-after-path-patch.yaml
 
 . as $root

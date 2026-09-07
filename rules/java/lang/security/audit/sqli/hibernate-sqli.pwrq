@@ -1,5 +1,6 @@
 # rules: hibernate-sqli
 # languages: java
+# fixture: java/hibernate-sqli.java
 # from: java/lang/security/audit/sqli/hibernate-sqli.yaml
 
 ["$R.getParameter($$$_)", "$R.getHeader($$$_)", "$R.getQueryString()", "$R.getCookies()", "$R.getParameterValues($$$_)"] as $src

@@ -1,5 +1,6 @@
 # rules: no-set-ciphers
 # languages: python
+# fixture: python/no-set-ciphers.py
 # from: python/lang/security/audit/insecure-transport/ssl/no-set-ciphers.yaml
 
 . as $root

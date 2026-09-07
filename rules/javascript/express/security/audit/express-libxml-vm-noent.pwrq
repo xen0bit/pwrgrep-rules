@@ -1,5 +1,6 @@
 # rules: express-libxml-vm-noent
 # languages: javascript, typescript
+# fixture: javascript/express-libxml-vm-noent.js
 # from: javascript/express/security/audit/express-libxml-vm-noent.yaml
 
 . as $root

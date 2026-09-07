@@ -1,5 +1,6 @@
 # rules: user-eval
 # languages: python
+# fixture: python/django-user-eval.py
 # from: python/django/security/injection/code/user-eval.yaml
 
 . as $root

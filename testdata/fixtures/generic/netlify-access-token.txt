@@ -1,0 +1,10 @@
+# Gitleaks netlify-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: netlify-access-token
+netlify=abcdefghijklmnopqrstuvwxy0123456789=_-ab
+# ruleid: netlify-access-token
+netlify=lmnopqrstuvwxy0123456789=_-abcdefghijklm
+# ok: netlify-access-token
+netlify = "example"
+# ok: netlify-access-token
+netlify = "placeholder"

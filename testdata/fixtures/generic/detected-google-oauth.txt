@@ -1,0 +1,9 @@
+# CWE-798: Google OAuth client URL.
+# ruleid: detected-google-oauth-url
+123456789012-abcdef1234567890abcdef1234567890.apps.googleusercontent.com
+# ruleid: detected-google-oauth-url
+987654321098-ZYXWVU9876543210zyxwvu9876543210.apps.googleusercontent.com
+# ok: detected-google-oauth-url
+example.apps.googleusercontent.com
+# ok: detected-google-oauth-url
+oauth_url = "example"

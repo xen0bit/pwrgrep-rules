@@ -1,4 +1,5 @@
 # rules: jwt-go-none-algorithm
+# fixture: go/jwt-go-none-algorithm.go
 # from: go/jwt-go/security/jwt-none-alg.yaml
 
 . as $root

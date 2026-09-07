@@ -1,5 +1,6 @@
 # rules: useless-if-conditional, useless-if-body
 # languages: python
+# fixture: python/useless-ifelse.py
 # from: python/lang/maintainability/useless-ifelse.yaml
 
 . as $root

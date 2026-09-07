@@ -1,14 +1,20 @@
 # rules: openssl-cbc-static-iv
 # languages: php
+# fixture: php/openssl-cbc-static-iv.php
+#
+# The IV position used "$$$_", which matches anything - including a random
+# per-message IV - so every CBC call was flagged. Rewritten with a named $IV
+# hole guarded to quoted literals; the method guard is unchanged.
 # from: php/lang/security/openssl-cbc-static-iv.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.php"]; [
-      "openssl_decrypt($D, $M, $K, $FLAGS, \"$$$_\",$$$_);",
-      "openssl_encrypt($D, $M, $K, $FLAGS, \"$$$_\",$$$_);"
+      "openssl_decrypt($D, $M, $K, $FLAGS, $IV, $$$_);",
+      "openssl_encrypt($D, $M, $K, $FLAGS, $IV, $$$_);"
     ])) as $all
-    | ( $all | of(["openssl_encrypt($D, $M, $K, $FLAGS, \"$$$_\",$$$_);","openssl_decrypt($D, $M, $K, $FLAGS, \"$$$_\",$$$_);"])
+    | ( $all | of(["openssl_encrypt($D, $M, $K, $FLAGS, $IV, $$$_);","openssl_decrypt($D, $M, $K, $FLAGS, $IV, $$$_);"])
           | where_capture("M"; "^(?:.*-CBC)")
+          | where_capture("IV"; "^['\"]")
         | finding("openssl-cbc-static-iv";
             "Static IV used with AES in CBC mode.") ) )
 | report

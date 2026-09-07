@@ -1,4 +1,5 @@
 # rules: contains-bidirectional-characters
+# fixture: generic/bidi.txt
 # from: generic/unicode/security/bidi.yml
 
 . as $root

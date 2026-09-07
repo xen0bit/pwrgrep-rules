@@ -1,5 +1,6 @@
 # rules: js-open-redirect-from-function
 # languages: javascript, typescript
+# fixture: javascript/js-open-redirect-from-function.js
 # from: javascript/browser/security/open-redirect-from-function.yaml
 
 . as $root

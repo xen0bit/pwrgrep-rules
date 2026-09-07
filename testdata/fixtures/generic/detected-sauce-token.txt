@@ -1,0 +1,9 @@
+# CWE-798: Sauce Labs token.
+# ruleid: detected-sauce-token
+sauce = "abcdef12-3456-7890-abcd-ef1234567890"
+# ruleid: detected-sauce-token
+sauce_user = "09876543-21fe-dcba-9876-543210fedcba"
+# ok: detected-sauce-token
+sauce = "example"
+# ok: detected-sauce-token
+# sauce credentials live in the CI secret store

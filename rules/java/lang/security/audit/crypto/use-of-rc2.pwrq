@@ -1,5 +1,6 @@
 # rules: use-of-rc2
 # languages: java
+# fixture: java/use-of-rc2.java
 # from: java/lang/security/audit/crypto/use-of-rc2.yaml
 
 . as $root

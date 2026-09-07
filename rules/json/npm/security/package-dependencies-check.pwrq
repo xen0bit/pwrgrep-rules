@@ -1,4 +1,10 @@
 # rules: package-dependencies-check
+# fixture: json/package-dependencies-check.json
+#
+# The version patterns (pinned-exact, range, latest) were double-escaped in
+# the port, so they only matched backslash-escaped JSON and the rule never
+# fired on a real package.json. Rewritten single-escaped like the sibling
+# block patterns; the range shape now keys on a leading ^ ~ - x < > = marker.
 # from: json/npm/security/package-dependencies-check.yml
 
 . as $root
@@ -8,11 +14,11 @@
       "\"devDependencies\":\\s+\\{\\s+[\\s\\S]*?\\s+\\}",
       "\"optionalDependencies\":\\s+\\{\\s+[\\s\\S]*?\\s+\\}",
       "\"peerDependencies\":\\s+\\{\\s+[\\s\\S]*?\\s+\\}",
-      "\\\\\"\\[\\\\w\\\\\\-\\.\\]\\*\\\\\"\\\\s\\*:\\\\s\\*\\\\\"\\[\\\\d\\.\\]\\+\\-\\[\\\\w\\.\\]\\+\\\\\"",
-      "\\\\\"\\[\\\\w\\\\\\-\\.\\]\\*\\\\\"\\\\s\\*:\\\\s\\*\\\\\"\\[\\^~\\\\\\-\\\\\\^><=\\\\\"x\\]\\*\\[~\\\\\\-\\\\\\^><=x\\]\\+\\.\\*\\\\\"",
-      "\\\\\"\\[\\\\w\\\\\\-\\.\\]\\*\\\\\"\\\\s\\*:\\\\s\\*\\\\\"latest\\\\\""
+      "\"[\\w\\-\\.]*\"\\s*:\\s*\"[\\d\\.]+\\-[\\w\\.]+\"",
+      "\"[\\w\\-\\.]+\"\\s*:\\s*\"[\\^~\\-><=x][^\"]*\"",
+      "\"[\\w\\-\\.]*\"\\s*:\\s*\"latest\""
     ])) as $all
-    | ( $all | of(["\\\\\"\\[\\\\w\\\\\\-\\.\\]\\*\\\\\"\\\\s\\*:\\\\s\\*\\\\\"latest\\\\\"","\\\\\"\\[\\\\w\\\\\\-\\.\\]\\*\\\\\"\\\\s\\*:\\\\s\\*\\\\\"\\[\\^~\\\\\\-\\\\\\^><=\\\\\"x\\]\\*\\[~\\\\\\-\\\\\\^><=x\\]\\+\\.\\*\\\\\""])
+    | ( $all | of(["\"[\\w\\-\\.]*\"\\s*:\\s*\"latest\"","\"[\\w\\-\\.]+\"\\s*:\\s*\"[\\^~\\-><=x][^\"]*\""])
           | at_same_place((($all
           | within($all | of(["\"dependencies\":\\s+\\{\\s+[\\s\\S]*?\\s+\\}"])))
           + ($all
@@ -21,7 +27,7 @@
           | within($all | of(["\"optionalDependencies\":\\s+\\{\\s+[\\s\\S]*?\\s+\\}"])))
           + ($all
           | within($all | of(["\"peerDependencies\":\\s+\\{\\s+[\\s\\S]*?\\s+\\}"])))))
-          | not_at($all | of(["\\\\\"\\[\\\\w\\\\\\-\\.\\]\\*\\\\\"\\\\s\\*:\\\\s\\*\\\\\"\\[\\\\d\\.\\]\\+\\-\\[\\\\w\\.\\]\\+\\\\\""]))
+          | not_at($all | of(["\"[\\w\\-\\.]*\"\\s*:\\s*\"[\\d\\.]+\\-[\\w\\.]+\""]))
           | outside($all | of(["\"_shrinkwrap\":\\s+\\{\\s+[\\s\\S]*?\\s+\\}"]))
         | finding("package-dependencies-check";
             "Package dependencies with variant versions may lead to dependency hijack and confusion attacks.") ) )

@@ -1,5 +1,6 @@
 # rules: dangerous-interactive-code-run-audit
 # languages: python
+# fixture: python/dangerous-code-run-audit.py
 # from: python/lang/security/audit/dangerous-code-run-audit.yaml
 
 . as $root

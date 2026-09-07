@@ -1,5 +1,6 @@
 # rules: gcp-postgresql-log-connection
 # languages: hcl
+# fixture: terraform/gcp-postgresql-log-connection.tf
 # from: terraform/gcp/best-practice/gcp-postgresql-log-connection.yaml
 
 . as $root

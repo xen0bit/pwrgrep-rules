@@ -1,0 +1,10 @@
+# Gitleaks grafana-api-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: grafana-api-key
+eyJrIjoiABCDEFGHIJKLMNOPQRSTUVWXYabcdefghijklmnopqrstuvwxy0123456789ABCDEFGHIJ
+# ruleid: grafana-api-key
+eyJrIjoiLMNOPQRSTUVWXYabcdefghijklmnopqrstuvwxy0123456789ABCDEFGHIJKLMNOPQRSTU
+# ok: grafana-api-key
+api_key = "example"
+# ok: grafana-api-key
+token = "placeholder"

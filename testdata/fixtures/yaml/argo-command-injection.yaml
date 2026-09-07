@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: script-
+spec:
+  entrypoint: s
+  arguments:
+    parameters:
+      - name: msg
+        value: hello
+  templates:
+    - name: s
+      script:
+        image: python:3
+        command: [python]
+        # ruleid: argo-workflow-parameter-command-injection
+        source: |
+          print("{{inputs.parameters.msg}}")
+    - name: t
+      script:
+        image: python:3
+        command: [bash]
+        # ruleid: argo-workflow-parameter-command-injection
+        source: |
+          echo "{{inputs.parameters.msg}}"
+    - name: u
+      script:
+        image: python:3
+        command: [python]
+        # ok: argo-workflow-parameter-command-injection
+        source: |
+          print("static")
+    - name: v
+      container:
+        image: python:3
+        # ok: argo-workflow-parameter-command-injection
+        command: [echo, hello]

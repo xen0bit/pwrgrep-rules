@@ -1,4 +1,5 @@
 # rules: missing-csrf-protection
+# fixture: ruby/missing-csrf-protection.rb
 # from: ruby/lang/security/missing-csrf-protection.yaml
 
 . as $root

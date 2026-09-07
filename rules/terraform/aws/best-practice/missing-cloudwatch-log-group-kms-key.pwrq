@@ -1,5 +1,6 @@
 # rules: missing-cloudwatch-log-group-kms-key
 # languages: hcl
+# fixture: terraform/missing-cloudwatch-log-group-kms-key.tf
 # from: terraform/aws/best-practice/missing-cloudwatch-log-group-kms-key.yaml
 
 . as $root

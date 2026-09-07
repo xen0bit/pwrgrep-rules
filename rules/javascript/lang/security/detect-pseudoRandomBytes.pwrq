@@ -1,5 +1,6 @@
 # rules: detect-pseudoRandomBytes
 # languages: javascript, typescript
+# fixture: javascript/detect-pseudoRandomBytes.js
 # from: javascript/lang/security/detect-pseudoRandomBytes.yaml
 
 . as $root

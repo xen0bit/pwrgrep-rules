@@ -1,5 +1,6 @@
 # rules: psycopg-sqli
 # languages: python
+# fixture: python/psycopg-sqli.py
 # from: python/aws-lambda/security/psycopg-sqli.yaml
 
 . as $root

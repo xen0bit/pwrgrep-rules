@@ -1,0 +1,30 @@
+rules:
+  - id: decon-bad
+    message: "m"
+    languages: [javascript]
+    severity: WARNING
+    patterns:
+      # ruleid: missing-deconstructed-value
+      - pattern-inside: const {...} = $X
+  - id: decon-bad2
+    message: "m"
+    languages: [javascript]
+    severity: WARNING
+    patterns:
+      # ruleid: missing-deconstructed-value
+      - pattern-inside: let {a} = $Y
+  - id: decon-ok
+    message: "m"
+    languages: [javascript]
+    severity: WARNING
+    patterns:
+      # ok: missing-deconstructed-value
+      - pattern-inside: foo($X)
+  - id: decon-either
+    message: "m"
+    languages: [javascript]
+    severity: WARNING
+    patterns:
+      # ok: missing-deconstructed-value
+      - pattern-either:
+          - const {...} = $X

@@ -1,5 +1,6 @@
 # rules: azure-sqlserver-email-alerts-enabled
 # languages: hcl
+# fixture: terraform/azure-sqlserver-email-alerts-enabled.tf
 # from: terraform/azure/best-practice/azure-sqlserver-email-alerts-enabled.yaml
 
 . as $root

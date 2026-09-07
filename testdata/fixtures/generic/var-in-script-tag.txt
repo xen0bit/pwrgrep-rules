@@ -1,0 +1,16 @@
+# Template variables inside script bodies run as code.
+<script type = "text/javascript">
+# ruleid: var-in-script-tag
+var greeting = "{{ userName }}";
+</script>
+<script type = "text/javascript">
+# ruleid: var-in-script-tag
+var token = "{{ csrfToken }}";
+</script>
+# ok: var-in-script-tag
+<script type = "text/template">
+var label = "hello";
+</script>
+# ok: var-in-script-tag
+<script src = "https://cdn.example.com/app.js">
+</script>

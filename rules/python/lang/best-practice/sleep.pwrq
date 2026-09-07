@@ -1,4 +1,5 @@
 # rules: arbitrary-sleep
+# fixture: python/sleep.py
 # from: python/lang/best-practice/sleep.yaml
 
 . as $root

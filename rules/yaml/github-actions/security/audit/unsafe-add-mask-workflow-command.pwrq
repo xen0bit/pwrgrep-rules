@@ -1,8 +1,8 @@
 # rules: unsafe-add-mask-workflow-command
+# fixture: yaml/gh-unsafe-add-mask.yaml
 # from: yaml/github-actions/security/audit/unsafe-add-mask-workflow-command.yaml
-
 . as $root
-| ( ($root | scan_regex(["*.yaml"]; [
+| ( ($root | scan_regex(["*.yaml","*.yml"]; [
       "::add\\-mask::"
     ])) as $all
     | ( $all | of(["::add\\-mask::"])

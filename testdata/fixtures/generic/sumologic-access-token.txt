@@ -1,0 +1,10 @@
+# Gitleaks sumologic-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: sumologic-access-token
+sumo=abcdefghijklmnopqrstuvwxy0123456789abcdefghijklmnopqrstuvwxy0123
+# ruleid: sumologic-access-token
+sumo=lmnopqrstuvwxy0123456789abcdefghijklmnopqrstuvwxy0123456789abcde
+# ok: sumologic-access-token
+sumo = "example"
+# ok: sumologic-access-token
+sumo = "placeholder"

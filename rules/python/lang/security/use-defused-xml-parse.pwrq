@@ -1,5 +1,6 @@
 # rules: use-defused-xml-parse
 # languages: python
+# fixture: python/use-defused-xml-parse.py
 # from: python/lang/security/use-defused-xml-parse.yaml
 
 . as $root

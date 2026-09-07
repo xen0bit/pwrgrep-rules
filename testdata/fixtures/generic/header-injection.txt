@@ -1,0 +1,24 @@
+# A path parameter reflected into add_header splits responses.
+# Matches span groups of blocks, so findings land on blocks one and four.
+# ruleid: header-injection
+location / <user>  {
+    add_header X-User $user ;
+}
+location / <team>  {
+    add_header X-Team $team ;
+}
+location / <lang>  {
+    add_header X-Lang $lang ;
+}
+# ruleid: header-injection
+location / <region>  {
+    add_header X-Region $region ;
+}
+# ok: header-injection
+location /static {
+    add_header X-Frame-Options "SAMEORIGIN";
+}
+# ok: header-injection
+location / {
+    proxy_pass http://example.com/ ;
+}

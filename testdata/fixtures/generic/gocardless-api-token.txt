@@ -1,0 +1,10 @@
+# Gitleaks gocardless-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: gocardless-api-token
+gocardless=live_abcdefghijklmnopqrstuvwxy0123456789-_=ab
+# ruleid: gocardless-api-token
+gocardless=live_lmnopqrstuvwxy0123456789-_=abcdefghijklm
+# ok: gocardless-api-token
+gocardless = "example"
+# ok: gocardless-api-token
+gocardless = "placeholder"

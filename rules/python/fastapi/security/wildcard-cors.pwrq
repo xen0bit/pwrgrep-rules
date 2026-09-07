@@ -1,5 +1,6 @@
 # rules: wildcard-cors
 # languages: python
+# fixture: python/wildcard-cors.py
 # from: python/fastapi/security/wildcard-cors.yaml
 
 . as $root

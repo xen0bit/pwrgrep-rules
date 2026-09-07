@@ -1,0 +1,10 @@
+# Gitleaks slack-user-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: slack-user-token
+xoxp-1234567890-1234567890-1234567890-GHIJKLMNOPQRSTUVWXY012345678
+# ruleid: slack-user-token
+xoxe-2345678901-2345678901-2345678901-RSTUVWXY0123456789-abcdefghi
+# ok: slack-user-token
+api_key = "example"
+# ok: slack-user-token
+token = "placeholder"

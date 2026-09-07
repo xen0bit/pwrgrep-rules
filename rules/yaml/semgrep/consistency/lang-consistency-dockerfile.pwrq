@@ -1,14 +1,19 @@
 # rules: lang-consistency-dockerfile
+# languages: yaml
+# fixture: yaml/semgrep-lang-consistency-dockerfile.yaml
+#
+# The bare token never equals a bracketed or listed language, so the rule
+# never fired. The guard now accepts bracket, comma and space boundaries.
 # from: yaml/semgrep/consistency/lang-consistency-dockerfile.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml"]; [
+| ( ($root | scan_regex(["*.yaml","*.yml"]; [
       "(?P<X>\\S+)",
-      "languages:\\s+[\\s\\S]*?"
+      "languages:\\s+[^\\n]*"
     ])) as $all
     | ( $all | of(["(?P<X>\\S+)"])
-          | within($all | of(["languages:\\s+[\\s\\S]*?"]))
-          | where_capture("X"; "^(docker)$")
+          | within($all | of(["languages:\\s+[^\\n]*"]))
+          | where_capture("X"; "(?:\\[|,| )(docker)(?:\\]|,| |$)")
         | finding("lang-consistency-dockerfile";
             "Found '$X' in language config which diverges from semgrep.dev normalization.") ) )
 | report

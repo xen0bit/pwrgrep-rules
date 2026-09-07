@@ -1,0 +1,10 @@
+# Gitleaks airtable-api-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: airtable-api-key
+airtable=abcdefghijklmnopq
+# ruleid: airtable-api-key
+airtable=lmnopqrstuvwxy012
+# ok: airtable-api-key
+airtable = "example"
+# ok: airtable-api-key
+airtable = "placeholder"

@@ -1,13 +1,17 @@
 # rules: seccomp-confinement-disabled
+# languages: yaml
+# fixture: yaml/k8s-seccomp-disabled.yaml
+#
+# The scaffolding spans never enclose, so the rule never fired. Rewritten as
+# direct seccomp-off matches (profile type and legacy annotation).
 # from: yaml/kubernetes/security/seccomp-confinement-disabled.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml"]; [
-      "containers:\\s+[\\s\\S]*?",
-      "image:\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+securityContext:\\s+[\\s\\S]*?\\s+seccompProfile:\\s+unconfined"
+| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+      "seccompProfile:[^\n]*\n\\s*type:\\s*Unconfined",
+      "seccomp[^:\n]*:\\s*unconfined"
     ])) as $all
-    | ( $all | of(["image:\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+securityContext:\\s+[\\s\\S]*?\\s+seccompProfile:\\s+unconfined"])
-          | within($all | of(["containers:\\s+[\\s\\S]*?"]))
+    | ( $all | of(["seccompProfile:[^\n]*\n\\s*type:\\s*Unconfined","seccomp[^:\n]*:\\s*unconfined"])
         | finding("seccomp-confinement-disabled";
             "Container is explicitly disabling seccomp confinement.") ) )
 | report

@@ -1,5 +1,6 @@
 # rules: improper-list-concat
 # languages: python
+# fixture: python/improper-list-concat.py
 # from: python/lang/maintainability/improper-list-concat.yaml
 
 . as $root

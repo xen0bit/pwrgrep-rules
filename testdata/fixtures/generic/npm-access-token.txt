@@ -1,0 +1,10 @@
+# Gitleaks npm-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: npm-access-token
+npm_abcdefghijklmnopqrstuvwxy0123456789a
+# ruleid: npm-access-token
+npm_lmnopqrstuvwxy0123456789abcdefghijkl
+# ok: npm-access-token
+api_key = "example"
+# ok: npm-access-token
+token = "placeholder"

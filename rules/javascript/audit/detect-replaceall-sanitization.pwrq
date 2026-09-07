@@ -1,5 +1,6 @@
 # rules: detect-replaceall-sanitization
 # languages: javascript, typescript
+# fixture: javascript/detect-replaceall-sanitization.js
 # from: javascript/audit/detect-replaceall-sanitization.yaml
 
 . as $root

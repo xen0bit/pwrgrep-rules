@@ -1,14 +1,21 @@
 # rules: api-key-in-query-parameter
+# languages: yaml
+# fixture: yaml/openapi-api-key-in-query-parameter.yaml
+#
+# The scheme-to-components spans never enclose, so the check never ran.
+# Rewritten as a scheme-block match with text guards for apiKey and
+# in-query, in files carrying an OpenAPI 3 version.
 # from: yaml/openapi/security/api-key-in-query-parameter.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml"]; [
-      "(?P<SECURITY_SCHEME>\\S+):\\s+[\\s\\S]*?\\s+type:\\s+apiKey\\s+[\\s\\S]*?\\s+in:\\s+query",
-      "openapi:\\s+(?P<VERSION>\\S+)\\s+[\\s\\S]*?\\s+components:\\s+[\\s\\S]*?\\s+securitySchemes:\\s+[\\s\\S]*?"
+| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^    (?P<SCHEME>\\w+):[^\\S\n]*\n((?:      [^\n]*\n?)*)",
+      "openapi:\\s*3"
     ])) as $all
-    | ( $all | of(["(?P<SECURITY_SCHEME>\\S+):\\s+[\\s\\S]*?\\s+type:\\s+apiKey\\s+[\\s\\S]*?\\s+in:\\s+query"])
-          | within($all | of(["openapi:\\s+(?P<VERSION>\\S+)\\s+[\\s\\S]*?\\s+components:\\s+[\\s\\S]*?\\s+securitySchemes:\\s+[\\s\\S]*?"]))
-          | where_capture("VERSION"; "^(?:3.*)")
+    | ( $all | of(["(?m)^    (?P<SCHEME>\\w+):[^\\S\n]*\n((?:      [^\n]*\n?)*)"])
+          | where_text("type:\\s*apiKey")
+          | where_text("in:\\s*query")
+          | in_files_with($all | of(["openapi:\\s*3"]))
         | finding("api-key-in-query-parameter";
-            "The $SECURITY_SCHEME security scheme passes an API key in a query parameter.") ) )
+            "The $SCHEME security scheme passes an API key in a query parameter.") ) )
 | report

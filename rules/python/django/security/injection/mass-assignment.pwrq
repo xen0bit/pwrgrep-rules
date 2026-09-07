@@ -1,5 +1,6 @@
 # rules: mass-assignment
 # languages: python
+# fixture: python/mass-assignment.py
 # from: python/django/security/injection/mass-assignment.yaml
 
 . as $root

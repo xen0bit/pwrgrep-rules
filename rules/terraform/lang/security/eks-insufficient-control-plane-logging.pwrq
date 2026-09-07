@@ -1,5 +1,6 @@
 # rules: eks-insufficient-control-plane-logging
 # languages: hcl
+# fixture: terraform/eks-insufficient-control-plane-logging.tf
 # from: terraform/lang/security/eks-insufficient-control-plane-logging.yaml
 
 . as $root

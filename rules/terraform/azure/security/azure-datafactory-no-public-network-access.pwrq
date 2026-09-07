@@ -1,5 +1,6 @@
 # rules: azure-datafactory-no-public-network-access
 # languages: hcl
+# fixture: terraform/azure-datafactory-no-public-network-access.tf
 # from: terraform/azure/security/azure-datafactory-no-public-network-access.yaml
 
 . as $root

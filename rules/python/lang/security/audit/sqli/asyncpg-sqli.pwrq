@@ -1,5 +1,6 @@
 # rules: asyncpg-sqli
 # languages: python
+# fixture: python/asyncpg-sqli.py
 # from: python/lang/security/audit/sqli/asyncpg-sqli.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: potential-dos-via-decompression-bomb
 # languages: go
+# fixture: go/potential-dos-via-decompression-bomb.go
 # from: go/lang/security/decompression_bomb.yaml
 
 . as $root

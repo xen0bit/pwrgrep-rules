@@ -1,9 +1,9 @@
 # rules: slow-pattern-general-func
 # languages: yaml
+# fixture: yaml/semgrep-slow-general-function.yaml
 # from: yaml/semgrep/slow-pattern-general-function.yaml
-
 . as $root
-| ( ($root | scan_ast(["*.yaml"]; [
+| ( ($root | scan_ast(["*.yaml","*.yml"]; [
       "\"javascript\"",
       "\"typescript\"",
       "languages: [$$$_,\"javascript\",$$$_]\n$$$_",

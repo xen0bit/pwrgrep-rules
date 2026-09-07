@@ -1,0 +1,10 @@
+# Gitleaks databricks-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: databricks-api-token
+dapiabcdefgh0123456789abcdefgh012345
+# ruleid: databricks-api-token
+dapi3456789abcdefgh0123456789abcdefg
+# ok: databricks-api-token
+api_key = "example"
+# ok: databricks-api-token
+token = "placeholder"

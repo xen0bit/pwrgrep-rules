@@ -1,5 +1,6 @@
 # rules: avoid-render-text
 # languages: ruby
+# fixture: ruby/avoid-render-text.rb
 # from: ruby/rails/security/audit/xss/avoid-render-text.yaml
 
 . as $root

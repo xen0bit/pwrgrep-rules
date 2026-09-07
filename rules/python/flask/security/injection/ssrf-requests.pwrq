@@ -1,5 +1,6 @@
 # rules: ssrf-requests
 # languages: python
+# fixture: python/ssrf-requests.py
 # from: python/flask/security/injection/ssrf-requests.yaml
 
 . as $root

@@ -1,0 +1,9 @@
+# CWE-798: SoftLayer API key.
+# ruleid: detected-softlayer-api-key
+softlayer_api_key = "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
+# ruleid: detected-softlayer-api-key
+softlayer = "0987654321fedcba0987654321fedcba0987654321fedcba0987654321fedcba09"
+# ok: detected-softlayer-api-key
+softlayer_api_key = "example"
+# ok: detected-softlayer-api-key
+# softlayer key is read from the vault at deploy time

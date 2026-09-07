@@ -1,0 +1,33 @@
+rules:
+  - id: cwe-bad
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      # ruleid: metadata-cwe
+      cwe: "bad format"
+    pattern: foo($X)
+  - id: cwe-bad2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      # ruleid: metadata-cwe
+      cwe: "CWE-798"
+    pattern: foo2($X)
+  - id: cwe-good
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      # ok: metadata-cwe
+      cwe: "CWE-798: Use of Hard-coded Credentials"
+    pattern: bar($X)
+  - id: cwe-good2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      # ok: metadata-cwe
+      cwe: "CWE-79: Cross-site Scripting"
+    pattern: bar2($X)

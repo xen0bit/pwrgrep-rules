@@ -1,5 +1,6 @@
 # rules: azure-postgresql-ssl-enforcement-enabled
 # languages: hcl
+# fixture: terraform/azure-postgresql-ssl-enforcement-enabled.tf
 # from: terraform/azure/best-practice/azure-postgresql-ssl-enforcement-enabled.yaml
 
 . as $root

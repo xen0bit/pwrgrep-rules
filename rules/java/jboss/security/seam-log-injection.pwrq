@@ -1,5 +1,6 @@
 # rules: seam-log-injection
 # languages: java
+# fixture: java/seam-log-injection.java
 # from: java/jboss/security/seam-log-injection.yaml
 
 . as $root

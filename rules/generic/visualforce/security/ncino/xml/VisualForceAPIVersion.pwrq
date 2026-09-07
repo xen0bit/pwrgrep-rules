@@ -1,14 +1,18 @@
 # rules: visualforce-page-api-version
+# fixture: generic/visualforce-page-api-version.txt
+#
+# The translated version patterns are character classes as literals
+# (`[>][0-9].[0-9][<]`), which no XML contains; the rule could never fire.
+# They are replaced with the version ranges they describe, read as text
+# inside the apiVersion element.
 # from: generic/visualforce/security/ncino/xml/VisualForceAPIVersion.yaml
 
 . as $root
 | ( ($root | scan_regex(["*.page-meta.xml"]; [
       "<apiVersion[\\s\\S]*?\\/apiVersion>",
-      "\\[>\\]\\[0\\-9\\]\\.\\[0\\-9\\]\\[<\\]",
-      "\\[>\\]\\[1\\-4\\]\\[0\\-9\\]\\.\\[0\\-9\\]\\[<\\]",
-      "\\[>\\]\\[5\\]\\[0\\-4\\]\\.\\[0\\-9\\]\\[<\\]"
+      ">\\s*(?:[0-9]|[1-4][0-9]|5[0-4])\\.[0-9]+\\s*<"
     ])) as $all
-    | ( $all | of(["\\[>\\]\\[0\\-9\\]\\.\\[0\\-9\\]\\[<\\]","\\[>\\]\\[1\\-4\\]\\[0\\-9\\]\\.\\[0\\-9\\]\\[<\\]","\\[>\\]\\[5\\]\\[0\\-4\\]\\.\\[0\\-9\\]\\[<\\]"])
+    | ( $all | of([">\\s*(?:[0-9]|[1-4][0-9]|5[0-4])\\.[0-9]+\\s*<"])
           | within($all | of(["<apiVersion[\\s\\S]*?\\/apiVersion>"]))
         | finding("visualforce-page-api-version";
             "Visualforce Pages must use API version 55 or higher for required use of the cspHeader attribute set to true.") ) )

@@ -1,0 +1,9 @@
+# CWE-798: Picatic API key.
+# ruleid: detected-picatic-api-key
+sk_live_abcdef1234567890abcdef1234567890
+# ruleid: detected-picatic-api-key
+sk_live_0987654321fedcba0987654321fedcba09
+# ok: detected-picatic-api-key
+sk_test_abcdef1234567890abcdef1234567890
+# ok: detected-picatic-api-key
+picatic_key = "example"

@@ -1,5 +1,6 @@
 # rules: gcp-build-workers-private
 # languages: hcl
+# fixture: terraform/gcp-build-workers-private.tf
 # from: terraform/gcp/security/gcp-build-workers-private.yaml
 
 . as $root

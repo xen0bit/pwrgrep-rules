@@ -1,5 +1,6 @@
 # rules: use-onetoonefield
 # languages: python
+# fixture: python/use-onetoonefield.py
 # from: python/django/best-practice/use-onetoonefield.yaml
 
 . as $root

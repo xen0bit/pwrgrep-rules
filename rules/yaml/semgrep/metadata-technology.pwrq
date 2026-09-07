@@ -1,24 +1,21 @@
 # rules: metadata-technology
+# languages: yaml
+# fixture: yaml/semgrep-metadata-technology.yaml
+#
+# Rule-list spans never enclose per-rule matches, so the form never fired.
+# Rewritten as a greedy rule block (id line plus following four-space lines,
+# which ends at the next rule) with text guards.
+# Join-mode inner rules are out of scope.
 # from: yaml/semgrep/metadata-technology.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml"]; [
-      "(?P<RULE>\\S+)",
-      "\\-\\s+[\\s\\S]*?\\s+mode:\\s+join",
-      "id:\\s+(?P<OUTER_RULEID>\\S+)\\s+[\\s\\S]*?\\s+metadata:\\s+[\\s\\S]*?\\s+technology:\\s+\\-\\s+[\\s\\S]*?",
-      "id:\\s+(?P<OUTER_RULEID>\\S+)\\s+mode:\\s+join\\s+join:\\s+rules:\\s+\\[\\s+[\\s\\S]*?,\\s+(?P<INNER_RULE>\\S+),\\s+[\\s\\S]*?\\]\\s+[\\s\\S]*?\\s+[\\s\\S]*?",
-      "id:\\s+[\\s\\S]*?\\s+[\\s\\S]*?",
-      "id:\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+metadata:\\s+[\\s\\S]*?\\s+technology:\\s+\\-\\s+[\\s\\S]*?",
-      "rules:\\s+\\[[\\s\\S]*?,\\s+(?P<RULE>\\S+),\\s+[\\s\\S]*?\\]"
+| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^  - id:\\s*(?P<RULEID>\\S+)[^\n]*\n((?:    [^\n]*\n?)*)"
     ])) as $all
-    | ( ($all | of(["(?P<RULE>\\S+)"])
-          | at_same_place(($all | of(["id:\\s+[\\s\\S]*?\\s+[\\s\\S]*?"])))
-          | outside($all | of(["\\-\\s+[\\s\\S]*?\\s+mode:\\s+join"]))
-          | within($all | of(["rules:\\s+\\[[\\s\\S]*?,\\s+(?P<RULE>\\S+),\\s+[\\s\\S]*?\\]"]))
-          | not_at($all | of(["id:\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+metadata:\\s+[\\s\\S]*?\\s+technology:\\s+\\-\\s+[\\s\\S]*?"])))
-          + ($all
-          | in_files_with($all | of(["id:\\s+(?P<OUTER_RULEID>\\S+)\\s+mode:\\s+join\\s+join:\\s+rules:\\s+\\[\\s+[\\s\\S]*?,\\s+(?P<INNER_RULE>\\S+),\\s+[\\s\\S]*?\\]\\s+[\\s\\S]*?\\s+[\\s\\S]*?"]))
-          | not_at($all | of(["id:\\s+(?P<OUTER_RULEID>\\S+)\\s+[\\s\\S]*?\\s+metadata:\\s+[\\s\\S]*?\\s+technology:\\s+\\-\\s+[\\s\\S]*?"])))
+    | ( $all | of(["(?m)^  - id:\\s*(?P<RULEID>\\S+)[^\n]*\n((?:    [^\n]*\n?)*)"])
+          | where_text_not("technology:")
+          | where_text_not("mode:\\s*join")
+          | focus("RULEID")
         | finding("metadata-technology";
             "This Semgrep rule is missing a 'technology' field in the 'metadata'.") ) )
 | report

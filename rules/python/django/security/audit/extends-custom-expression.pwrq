@@ -1,5 +1,6 @@
 # rules: extends-custom-expression
 # languages: python
+# fixture: python/extends-custom-expression.py
 # from: python/django/security/audit/extends-custom-expression.yaml
 
 . as $root

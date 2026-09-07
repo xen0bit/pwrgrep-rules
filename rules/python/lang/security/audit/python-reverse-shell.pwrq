@@ -1,5 +1,6 @@
 # rules: python-reverse-shell
 # languages: python
+# fixture: python/python-reverse-shell.py
 # from: python/lang/security/audit/python-reverse-shell.yaml
 
 . as $root

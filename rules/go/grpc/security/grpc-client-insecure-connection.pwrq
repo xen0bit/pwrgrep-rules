@@ -1,5 +1,6 @@
 # rules: grpc-client-insecure-connection
 # languages: go
+# fixture: go/grpc-client-insecure-connection.go
 # from: go/grpc/security/grpc-client-insecure-connection.yaml
 
 . as $root

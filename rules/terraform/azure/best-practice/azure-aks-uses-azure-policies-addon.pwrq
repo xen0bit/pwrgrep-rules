@@ -1,5 +1,6 @@
 # rules: azure-aks-uses-azure-policies-addon
 # languages: hcl
+# fixture: terraform/azure-aks-uses-azure-policies-addon.tf
 # from: terraform/azure/best-practice/azure-aks-uses-azure-policies-addon.yaml
 
 . as $root

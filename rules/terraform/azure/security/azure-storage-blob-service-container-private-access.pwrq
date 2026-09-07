@@ -1,5 +1,6 @@
 # rules: azure-storage-blob-service-container-private-access
 # languages: hcl
+# fixture: terraform/azure-storage-blob-service-container-private-access.tf
 # from: terraform/azure/security/azure-storage-blob-service-container-private-access.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: functionapp-authentication-enabled
 # languages: hcl
+# fixture: terraform/functionapp-authentication-enabled.tf
 # from: terraform/azure/security/functionapp/functionapp-authentication-enabled.yaml
 
 . as $root

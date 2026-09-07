@@ -1,5 +1,6 @@
 # rules: rails-skip-forgery-protection
 # languages: ruby
+# fixture: ruby/rails-skip-forgery-protection.rb
 # from: ruby/rails/security/audit/rails-skip-forgery-protection.yaml
 
 . as $root

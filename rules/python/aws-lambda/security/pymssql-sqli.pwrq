@@ -1,5 +1,6 @@
 # rules: pymssql-sqli
 # languages: python
+# fixture: python/pymssql-sqli.py
 # from: python/aws-lambda/security/pymssql-sqli.yaml
 
 . as $root

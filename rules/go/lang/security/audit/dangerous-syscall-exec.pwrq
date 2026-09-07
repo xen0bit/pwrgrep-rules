@@ -1,4 +1,5 @@
 # rules: dangerous-syscall-exec
+# fixture: go/dangerous-syscall-exec.go
 # from: go/lang/security/audit/dangerous-syscall-exec.yaml
 
 . as $root

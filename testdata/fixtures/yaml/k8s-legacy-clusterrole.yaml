@@ -1,0 +1,20 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: bad
+rules:
+  - apiGroups: [""]
+    # ruleid: legacy-api-clusterrole-excessive-permissions
+    resources: ["*"]
+    # ruleid: legacy-api-clusterrole-excessive-permissions
+    verbs: ["*"]
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: good
+data:
+  # ok: legacy-api-clusterrole-excessive-permissions
+  key: value
+  # ok: legacy-api-clusterrole-excessive-permissions
+  other: data

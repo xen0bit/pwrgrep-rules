@@ -1,16 +1,19 @@
 # rules: missing-dnf-clean-all
 # languages: dockerfile
+# fixture: dockerfile/missing-dnf-clean-all.dockerfile
+#
+# RUN-shell AST holes never fire (the shell line is one opaque literal in the
+# dockerfile grammar), so the original `RUN $$$_ dnf $$$` minus
+# `&& dnf clean all` is rewritten as a single-line regex with a
+# where_text_not guard. Globs widened to cover *.dockerfile fixtures too.
 # from: dockerfile/best-practice/missing-dnf-clean-all.yaml
 
 . as $root
-| ( ($root | scan_ast(["Dockerfile*"]; [
-      "RUN $$$_ && \\ dnf clean all",
-      "RUN $$$_ && dnf clean all",
-      "RUN $$$_ dnf $$$_"
+| ( ($root | scan_regex(["Dockerfile*","*.dockerfile"]; [
+      "RUN[^\\n]*dnf\\s+(install|update|upgrade|groupinstall)[^\\n]*"
     ])) as $all
-    | ( $all | of(["RUN $$$_ dnf $$$_"])
-          | outside($all | of(["RUN $$$_ && dnf clean all"]))
-          | outside($all | of(["RUN $$$_ && \\ dnf clean all"]))
+    | ( $all | of(["RUN[^\\n]*dnf\\s+(install|update|upgrade|groupinstall)[^\\n]*"])
+          | where_text_not("dnf clean all")
         | finding("missing-dnf-clean-all";
             "This dnf command does not end with '&& dnf clean all'.") ) )
 | report

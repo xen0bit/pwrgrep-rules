@@ -1,0 +1,10 @@
+# Gitleaks yandex-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: yandex-access-token
+yandex=t1.A.BCDEFGHIJKLMNOPQRSTUVWXY0123456789abcdefghijklmnopqrstuvwxy_-ABCDEFGHIJKLMNOPQRSTUVWXY
+# ruleid: yandex-access-token
+yandex=t1.L.MNOPQRSTUVWXY0123456789abcdefghijklmnopqrstuvwxy_-ABCDEFGHIJKLMNOPQRSTUVWXY0123456789a
+# ok: yandex-access-token
+yandex = "example"
+# ok: yandex-access-token
+yandex = "placeholder"

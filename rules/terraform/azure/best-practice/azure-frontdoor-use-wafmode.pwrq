@@ -1,5 +1,6 @@
 # rules: azure-frontdoor-use-wafmode
 # languages: hcl
+# fixture: terraform/azure-frontdoor-use-wafmode.tf
 # from: terraform/azure/best-practice/azure-frontdoor-use-wafmode.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: azure-mariadb-sslenforcement-enabled
 # languages: hcl
+# fixture: terraform/azure-mariadb-sslenforcement-enabled.tf
 # from: terraform/azure/best-practice/azure-mariadb-sslenforcement-enabled.yaml
 
 . as $root

@@ -1,0 +1,33 @@
+rules:
+  - id: cat-miss
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ruleid: metadata-category
+    metadata:
+      confidence: HIGH
+    pattern: foo($X)
+  - id: cat-miss2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ruleid: metadata-category
+    metadata:
+      owasp: "A01:2021"
+    pattern: foo2($X)
+  - id: cat-have
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ok: metadata-category
+    metadata:
+      category: security
+    pattern: bar($X)
+  - id: cat-have2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ok: metadata-category
+    metadata:
+      category: correctness
+    pattern: bar2($X)

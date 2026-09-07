@@ -1,0 +1,12 @@
+<%# ruleid: avoid-html-safe %>
+<%= @name.html_safe %>
+<%# ruleid: avoid-html-safe %>
+<%= @title.html_safe %>
+<%# ruleid: avoid-html-safe %>
+<%= @body.html_safe %>
+<%# ok: avoid-html-safe %>
+<p>static markup</p>
+<%# ok: avoid-html-safe %>
+<%= h @name %>
+<%# ok: avoid-html-safe %>
+<% form_for @user do |f| %>

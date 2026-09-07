@@ -1,5 +1,6 @@
 # rules: flask-wtf-csrf-disabled
 # languages: python
+# fixture: python/wtf-csrf-disabled.py
 # from: python/flask/security/audit/wtf-csrf-disabled.yaml
 
 . as $root

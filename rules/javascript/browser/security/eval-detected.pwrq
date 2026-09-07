@@ -1,14 +1,18 @@
 # rules: eval-detected
 # languages: javascript, typescript
+# fixture: javascript/eval-detected.js
 # from: javascript/browser/security/eval-detected.yaml
+#
+# The static exclusion read its hole as any value and subtracted every
+# call. It keeps only the literal spelling now.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "eval(\"$$$_\")",
+      "eval($E)",
       "eval($$$_)"
     ])) as $all
     | ( $all | of(["eval($$$_)"])
-          | not_at($all | of(["eval(\"$$$_\")"]))
+          | not_at(($all | of(["eval($E)"]) | where_capture("E"; "^[\"']")))
         | finding("eval-detected";
             "Detected the use of eval().") ) )
 | report

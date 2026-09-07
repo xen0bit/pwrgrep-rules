@@ -1,5 +1,6 @@
 # rules: incorrect-default-permission
 # languages: go
+# fixture: go/incorrect-default-permission.go
 # from: go/lang/correctness/permissions/file_permission.yaml
 
 . as $root

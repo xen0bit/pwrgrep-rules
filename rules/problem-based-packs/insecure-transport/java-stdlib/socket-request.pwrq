@@ -1,14 +1,24 @@
 # rules: socket-request
 # languages: java
+# fixture: problem-based-packs/java-socket-request.java
+#
+# The `"=~/.../"` string guards never match and untyped `$X = new ...`
+# declarations never match typed Java, so the rule never fired. Rewritten with
+# typed declarations and the URL in a named hole guarded by where_capture.
 # from: problem-based-packs/insecure-transport/java-stdlib/socket-request.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.java"]; [
-      "$SOCKET = new Socket(\"=~/[hH][tT][tT][pP]://.*/\", $$$_);\n$$$_\n$OUT = new PrintWriter($SOCKET.getOutputStream($$$_), $$$_);\n$$$_\n$OUT.$FUNC($$$_);",
-      "$SOCKET = new Socket(\"=~/[tT][eE][lL][nN][eE][tT]://.*/\", $$$_);\n$$$_\n$OUT = new PrintWriter($SOCKET.getOutputStream($$$_), $$$_);\n$$$_\n$OUT.$FUNC($$$_);",
-      "$SOCKET = new Socket(\"=~/^[fF][tT][pP]://.*/\", $$$_);\n$$$_\n$OUT = new PrintWriter($SOCKET.getOutputStream($$$_), $$$_);\n$$$_\n$OUT.$FUNC($$$_);"
+      "Socket $SOCKET = new Socket($HOST, $PORT);
+$$$_
+PrintWriter $OUT = new PrintWriter($SOCKET.getOutputStream($$$_), $$$_);
+$OUT.$FUNC($$$_);"
     ])) as $all
-    | ( $all | of(["$SOCKET = new Socket(\"=~/[tT][eE][lL][nN][eE][tT]://.*/\", $$$_);\n$$$_\n$OUT = new PrintWriter($SOCKET.getOutputStream($$$_), $$$_);\n$$$_\n$OUT.$FUNC($$$_);","$SOCKET = new Socket(\"=~/^[fF][tT][pP]://.*/\", $$$_);\n$$$_\n$OUT = new PrintWriter($SOCKET.getOutputStream($$$_), $$$_);\n$$$_\n$OUT.$FUNC($$$_);","$SOCKET = new Socket(\"=~/[hH][tT][tT][pP]://.*/\", $$$_);\n$$$_\n$OUT = new PrintWriter($SOCKET.getOutputStream($$$_), $$$_);\n$$$_\n$OUT.$FUNC($$$_);"])
+    | ( $all | of(["Socket $SOCKET = new Socket($HOST, $PORT);
+$$$_
+PrintWriter $OUT = new PrintWriter($SOCKET.getOutputStream($$$_), $$$_);
+$OUT.$FUNC($$$_);"])
+          | where_capture("HOST"; "(?:http|telnet|ftp)://")
         | finding("socket-request";
             "Insecure transport rules to catch socket connections to http, telnet, and ftp servers.") ) )
 | report

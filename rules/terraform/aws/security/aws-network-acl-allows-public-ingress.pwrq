@@ -1,5 +1,6 @@
 # rules: aws-network-acl-allows-public-ingress
 # languages: hcl
+# fixture: terraform/aws-network-acl-allows-public-ingress.tf
 # from: terraform/aws/security/aws-network-acl-allows-public-ingress.yaml
 
 . as $root

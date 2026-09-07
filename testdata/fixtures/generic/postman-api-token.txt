@@ -1,0 +1,10 @@
+# Gitleaks postman-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: postman-api-token
+PMAK-abcdef0123456789abcdef01-23456789abcdef0123456789abcdef0123
+# ruleid: postman-api-token
+PMAK-56789abcdef0123456789abc-def0123456789abcdef0123456789abcde
+# ok: postman-api-token
+api_key = "example"
+# ok: postman-api-token
+token = "placeholder"

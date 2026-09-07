@@ -1,0 +1,10 @@
+# Gitleaks typeform-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: typeform-api-token
+typeform=tfp_abcdefghijklmnopqrstuvwxy0123456789-_.=abcdefghijklmnopqrst
+# ruleid: typeform-api-token
+typeform=tfp_lmnopqrstuvwxy0123456789-_.=abcdefghijklmnopqrstuvwxy012345
+# ok: typeform-api-token
+typeform = "example"
+# ok: typeform-api-token
+typeform = "placeholder"

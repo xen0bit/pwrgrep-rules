@@ -1,14 +1,19 @@
 # rules: curl-eval
 # languages: yaml
+# fixture: yaml/gh-curl-eval-extra.yaml
+#
+# The run: matches carried no curl filter, so every run step flagged.
+# A where_capture guard on the shell text restores the curl-pipe check.
+# Both globs are scanned.
 # from: yaml/github-actions/security/curl-eval.yaml
-
 . as $root
-| ( ($root | scan_ast(["*.yaml"]; [
+| ( ($root | scan_ast(["*.yaml","*.yml"]; [
       "- run: $$$_\n  $$$_",
       "run: $SHELL",
       "steps: [$$$_]"
     ])) as $all
     | ( $all | of(["run: $SHELL"])
+          | where_capture("SHELL"; "curl[^\n]*\\|")
           | within($all | of(["steps: [$$$_]"]))
           | within($all | of(["- run: $$$_\n  $$$_"]))
         | finding("curl-eval";

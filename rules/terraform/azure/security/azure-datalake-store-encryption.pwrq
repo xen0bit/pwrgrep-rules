@@ -1,5 +1,6 @@
 # rules: azure-datalake-store-encryption
 # languages: hcl
+# fixture: terraform/azure-datalake-store-encryption.tf
 # from: terraform/azure/security/azure-datalake-store-encryption.yaml
 
 . as $root

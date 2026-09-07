@@ -1,5 +1,6 @@
 # rules: unchecked-subprocess-call
 # languages: python
+# fixture: python/unchecked-returns.py
 # from: python/lang/correctness/unchecked-returns.yaml
 
 . as $root

@@ -1,0 +1,9 @@
+# CWE-798: Stripe restricted API key.
+# ruleid: detected-stripe-restricted-api-key
+rk_live_abcdef1234567890ABCDEF12
+# ruleid: detected-stripe-restricted-api-key
+rk_live_0987654321ZYXWVU09876543
+# ok: detected-stripe-restricted-api-key
+rk_test_abcdef1234567890ABCDEF12
+# ok: detected-stripe-restricted-api-key
+stripe_key = "example"

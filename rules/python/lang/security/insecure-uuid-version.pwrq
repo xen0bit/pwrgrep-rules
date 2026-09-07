@@ -1,5 +1,6 @@
 # rules: insecure-uuid-version
 # languages: python
+# fixture: python/insecure-uuid-version.py
 # from: python/lang/security/insecure-uuid-version.yaml
 
 . as $root

@@ -1,0 +1,10 @@
+# Gitleaks gitlab-pat: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: gitlab-pat
+glpat-0123456789abcdefghij
+# ruleid: gitlab-pat
+glpat-bcdefghijklmnopqrstu
+# ok: gitlab-pat
+api_key = "example"
+# ok: gitlab-pat
+token = "placeholder"

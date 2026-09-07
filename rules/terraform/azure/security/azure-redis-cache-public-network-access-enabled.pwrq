@@ -1,5 +1,6 @@
 # rules: azure-redis-cache-public-network-access-enabled
 # languages: hcl
+# fixture: terraform/azure-redis-cache-public-network-access-enabled.tf
 # from: terraform/azure/security/azure-redis-cache-public-network-access-enabled.yaml
 
 . as $root

@@ -1,0 +1,10 @@
+# Gitleaks mailgun-pub-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: mailgun-pub-key
+mailgun=pubkey-abcdef0123456789abcdef0123456789
+# ruleid: mailgun-pub-key
+mailgun=pubkey-56789abcdef0123456789abcdef01234
+# ok: mailgun-pub-key
+mailgun = "example"
+# ok: mailgun-pub-key
+mailgun = "placeholder"

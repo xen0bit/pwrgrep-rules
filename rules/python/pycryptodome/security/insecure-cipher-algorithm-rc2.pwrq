@@ -1,5 +1,6 @@
 # rules: insecure-cipher-algorithm-rc2
 # languages: python
+# fixture: python/insecure-cipher-algorithm-rc2.py
 # from: python/pycryptodome/security/insecure-cipher-algorithm-rc2.yaml
 
 . as $root

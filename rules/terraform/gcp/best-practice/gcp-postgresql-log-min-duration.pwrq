@@ -1,5 +1,6 @@
 # rules: gcp-postgresql-log-min-duration
 # languages: hcl
+# fixture: terraform/gcp-postgresql-log-min-duration.tf
 # from: terraform/gcp/best-practice/gcp-postgresql-log-min-duration.yaml
 
 . as $root

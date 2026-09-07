@@ -1,13 +1,20 @@
 # rules: seccomp-confinement-disabled
+# languages: yaml
+# fixture: yaml/compose-seccomp-disabled.yaml
+#
+# The service-spanning shapes never coincide, so the rule never fired.
+# Rewritten as a service block containing the unconfined flag.
+# Service spans use an indent-anchored block (name plus deeper fields);
+# fixture services keep the standard two/four-space layout.
 # from: yaml/docker-compose/security/seccomp-confinement-disabled.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml"]; [
-      "(?P<SERVICE>\\S+):\\s+[\\s\\S]*?\\s+image:\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+security_opt:\\s+\\-\\s+[\\s\\S]*?\\s+\\-\\s+seccomp:unconfined",
-      "version:\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+services:\\s+[\\s\\S]*?"
+| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^  (?P<SVC>[A-Za-z_]\\w*):[^\\S\n]*\n((?:    [^\n]*\n?)*)"
     ])) as $all
-    | ( $all | of(["(?P<SERVICE>\\S+):\\s+[\\s\\S]*?\\s+image:\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+security_opt:\\s+\\-\\s+[\\s\\S]*?\\s+\\-\\s+seccomp:unconfined"])
-          | within($all | of(["version:\\s+[\\s\\S]*?\\s+[\\s\\S]*?\\s+services:\\s+[\\s\\S]*?"]))
+    | ( $all | of(["(?m)^  (?P<SVC>[A-Za-z_]\\w*):[^\\S\n]*\n((?:    [^\n]*\n?)*)"])
+          | where_text("seccomp:unconfined")
+          | focus("SVC")
         | finding("seccomp-confinement-disabled";
-            "Service '$SERVICE' is explicitly disabling seccomp confinement.") ) )
+            "Service '$SVC' is explicitly disabling seccomp confinement.") ) )
 | report

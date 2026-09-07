@@ -1,5 +1,6 @@
 # rules: gcp-gke-nodepool-auto-upgrade-enabled
 # languages: hcl
+# fixture: terraform/gcp-gke-nodepool-auto-upgrade-enabled.tf
 # from: terraform/gcp/best-practice/gcp-gke-nodepool-auto-upgrade-enabled.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: twiml-injection
 # languages: python
+# fixture: python/twiml-injection.py
 # from: python/twilio/security/twiml-injection.yaml
 
 . as $root

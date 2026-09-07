@@ -1,5 +1,6 @@
 # rules: unsafe-argon2-config
 # languages: javascript, typescript
+# fixture: javascript/unsafe-argon2-config.js
 # from: javascript/argon2/security/unsafe-argon2-config.yaml
 
 . as $root

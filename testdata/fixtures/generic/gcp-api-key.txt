@@ -1,0 +1,10 @@
+# Gitleaks gcp-api-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: gcp-api-key
+AIza0123456789ABCDEFGHIJKLMNOPQRSTUVWXY
+# ruleid: gcp-api-key
+AIzaBCDEFGHIJKLMNOPQRSTUVWXYabcdefghijk
+# ok: gcp-api-key
+api_key = "example"
+# ok: gcp-api-key
+token = "placeholder"

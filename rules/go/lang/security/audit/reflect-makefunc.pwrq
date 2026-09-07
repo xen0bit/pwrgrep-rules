@@ -1,5 +1,6 @@
 # rules: reflect-makefunc
 # languages: go
+# fixture: go/reflect-makefunc.go
 # from: go/lang/security/audit/reflect-makefunc.yaml
 
 . as $root

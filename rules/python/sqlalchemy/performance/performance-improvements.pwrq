@@ -1,5 +1,6 @@
 # rules: len-all-count, batch-import
 # languages: python
+# fixture: python/performance-improvements.py
 # from: python/sqlalchemy/performance/performance-improvements.yaml
 
 . as $root

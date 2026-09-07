@@ -1,22 +1,30 @@
 # rules: no-direct-write-to-responsewriter
 # languages: go
+# fixture: go/no-direct-write-to-responsewriter.go
 # from: go/lang/security/audit/xss/no-direct-write-to-responsewriter.yaml
+#
+# The handler scaffolds put `$$$_` ellipses around the ResponseWriter
+# parameter, which match no parameter list; the `within` never held and the
+# rule never fired. They name the two-parameter handler shapes now.
+#
+# The `[]byte("...")` exclusion reads any `[]byte(...)` argument, so only a
+# bare-variable write reaches the finding.
 
 . as $root
 | ( ($root | scan_ast(["*.go"]; [
       "$WRITER.Write($$$_)",
       "$WRITER.Write([]byte(\"$$$_\"))",
       "(*$WRITER).Write($$$_)",
-      "func $HANDLER($$$_, $WRITER *http.ResponseWriter, $$$_) {\n  $$$_\n}",
-      "func $HANDLER($$$_, $WRITER http.ResponseWriter, $$$_) {\n  $$$_\n}",
-      "func($$$_, $WRITER http.ResponseWriter, $$$_) {\n  $$$_\n}"
+      "func $HANDLER($W http.ResponseWriter, $R *http.Request) { $$$BODY }",
+      "func $HANDLER($W *http.ResponseWriter, $R *http.Request) { $$$BODY }",
+      "func($W http.ResponseWriter, $R *http.Request) { $$$BODY }"
     ])) as $all
     | ( ($all
-          | within($all | of(["func $HANDLER($$$_, $WRITER http.ResponseWriter, $$$_) {\n  $$$_\n}"])))
+          | within($all | of(["func $HANDLER($W http.ResponseWriter, $R *http.Request) { $$$BODY }"])))
           + ($all
-          | within($all | of(["func $HANDLER($$$_, $WRITER *http.ResponseWriter, $$$_) {\n  $$$_\n}"])))
+          | within($all | of(["func $HANDLER($W *http.ResponseWriter, $R *http.Request) { $$$BODY }"])))
           + ($all
-          | within($all | of(["func($$$_, $WRITER http.ResponseWriter, $$$_) {\n  $$$_\n}"])))
+          | within($all | of(["func($W http.ResponseWriter, $R *http.Request) { $$$BODY }"])))
           | at_same_place(($all | of(["$WRITER.Write($$$_)","(*$WRITER).Write($$$_)"])))
           | not_at($all | of(["$WRITER.Write([]byte(\"$$$_\"))"]))
         | finding("no-direct-write-to-responsewriter";

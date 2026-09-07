@@ -1,5 +1,6 @@
 # rules: gcp-bigquery-private-table-iam-binding
 # languages: hcl
+# fixture: terraform/gcp-bigquery-private-table-iam-binding.tf
 # from: terraform/gcp/security/gcp-bigquery-private-table-iam-binding.yaml
 
 . as $root

@@ -1,14 +1,21 @@
 # rules: jjwt-none-alg
 # languages: java
+# fixture: java/jjwt-none-alg.java
 # from: java/jjwt/security/jwt-none-alg.yaml
+#
+# Only the fully-qualified builder was read, which imported code never
+# spells. The short name is asked beside it. The signed-form exclusion was a
+# method scaffold whose gaps never held; a signed chain encloses its own
+# builder, so the exclusion reads the chain instead.
 
 . as $root
 | ( ($root | scan_ast(["*.java"]; [
-      "$RETURNTYPE $FUNC($$$_) {\n  $$$_\n  $JWTS.signWith($$$_);\n  $$$_\n}",
+      "$JWTS.signWith($KEY)",
+      "Jwts.builder();",
       "io.jsonwebtoken.Jwts.builder();"
     ])) as $all
-    | ( $all | of(["io.jsonwebtoken.Jwts.builder();"])
-          | outside($all | of(["$RETURNTYPE $FUNC($$$_) {\n  $$$_\n  $JWTS.signWith($$$_);\n  $$$_\n}"]))
+    | ( $all | of(["Jwts.builder();","io.jsonwebtoken.Jwts.builder();"])
+          | outside($all | of(["$JWTS.signWith($KEY)"]))
         | finding("jjwt-none-alg";
             "Detected use of the 'none' algorithm in a JWT token.") ) )
 | report

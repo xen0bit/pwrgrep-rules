@@ -1,5 +1,6 @@
 # rules: azure-defenderon-appservices
 # languages: hcl
+# fixture: terraform/azure-defenderon-appservices.tf
 # from: terraform/azure/best-practice/azure-defenderon-appservices.yaml
 
 . as $root

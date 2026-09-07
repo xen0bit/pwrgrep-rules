@@ -1,23 +1,16 @@
 # rules: slow-pattern-top-ellipsis
 # languages: yaml
+# fixture: yaml/semgrep-slow-top-ellipsis.yaml
+#
+# Block-scalar values are invisible to AST patterns (only the key matched),
+# so the sandwich form never fired. Rewritten as a regex over a pattern
+# block whose first line is an ellipsis. Both globs are scanned.
 # from: yaml/semgrep/slow-pattern-top-ellipsis.yaml
-
 . as $root
-| ( ($root | scan_ast(["*.yaml"]; [
-      "pattern-inside: $X",
-      "pattern-not-inside: $X",
-      "pattern-not: $X",
-      "pattern: $X"
+| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+      "pattern:\\s*\\|\\s*\\n\\s*\\.\\.\\."
     ])) as $all
-    | ( ($all
-          | within($all | of(["pattern-inside: $X"])))
-          + ($all
-          | within($all | of(["pattern-not-inside: $X"])))
-          + ($all
-          | within($all | of(["pattern: $X"])))
-          + ($all
-          | within($all | of(["pattern-not: $X"])))
-          | where_text("\\|\\s*\\n\\s*\\.\\.\\.\\s*\\n[^\\n]*\\n\\s*\\.\\.\\.")
+    | ( $all | of(["pattern:\\s*\\|\\s*\\n\\s*\\.\\.\\."])
         | finding("slow-pattern-top-ellipsis";
             "Using the ellipsis operator `...` at the top of the pattern drastically slows down the rule performance.") ) )
 | report

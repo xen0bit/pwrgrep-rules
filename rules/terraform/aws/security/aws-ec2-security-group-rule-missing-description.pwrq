@@ -1,5 +1,6 @@
 # rules: aws-ec2-security-group-rule-missing-description
 # languages: hcl
+# fixture: terraform/aws-ec2-security-group-rule-missing-description.tf
 # from: terraform/aws/security/aws-ec2-security-group-rule-missing-description.yaml
 
 . as $root

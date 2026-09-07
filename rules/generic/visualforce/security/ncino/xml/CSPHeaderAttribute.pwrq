@@ -1,4 +1,5 @@
 # rules: csp-header-attribute
+# fixture: generic/CSPHeaderAttribute.txt
 # from: generic/visualforce/security/ncino/xml/CSPHeaderAttribute.yaml
 
 . as $root

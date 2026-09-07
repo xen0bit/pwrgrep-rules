@@ -1,5 +1,6 @@
 # rules: gcm-no-tag-length
 # languages: javascript, typescript
+# fixture: javascript/gcm-no-tag-length.js
 # from: javascript/node-crypto/security/gcm-no-tag-length.yaml
 
 . as $root

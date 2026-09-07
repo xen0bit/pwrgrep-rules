@@ -1,5 +1,6 @@
 # rules: aws-athena-client-can-disable-workgroup-encryption
 # languages: hcl
+# fixture: terraform/aws-athena-client-can-disable-workgroup-encryption.tf
 # from: terraform/aws/security/aws-athena-client-can-disable-workgroup-encryption.yaml
 
 . as $root

@@ -1,15 +1,21 @@
 # rules: superfluid-ctx-injection
 # languages: solidity
+# fixture: solidity/superfluid-ctx-injection.sol
+#
+# Fragments never match in the solidity grammar and holes do not span
+# statements, so no form fired. Rewritten as a regex over decodeCtx(ctx)
+# with the file-level isCtxValid check kept gapless. A file carrying the
+# check suppresses every finding, so the fixed form cannot share a fixture.
+# Selector strings ("...") can no longer gate the check.
 # from: solidity/security/superfluid-ctx-injection.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.sol"]; [
-      "\"$$$_\"",
-      "$T.decodeCtx(ctx);",
-      "require($T.isCtxValid($$$_), \"$$$_\");\n$$$_"
+| ( ($root | scan_regex(["*.sol"]; [
+      "decodeCtx\\s*\\(\\s*ctx\\s*\\)",
+      "isCtxValid\\s*\\("
     ])) as $all
-    | ( $all | of(["$T.decodeCtx(ctx);"])
-          | in_files_without($all | of(["require($T.isCtxValid($$$_), \"$$$_\");\n$$$_","\"$$$_\""]))
+    | ( $all | of(["decodeCtx\\s*\\(\\s*ctx\\s*\\)"])
+          | in_files_without($all | of(["isCtxValid\\s*\\("]))
         | finding("superfluid-ctx-injection";
             "A specially crafted calldata may be used to impersonate other accounts") ) )
 | report

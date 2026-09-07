@@ -1,5 +1,6 @@
 # rules: cookie-missing-secure-flag
 # languages: java
+# fixture: java/cookie-missing-secure-flag.java
 # from: java/lang/security/audit/cookie-missing-secure-flag.yaml
 
 . as $root

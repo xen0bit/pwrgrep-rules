@@ -1,0 +1,36 @@
+rules:
+  - id: conf-miss
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ruleid: metadata-confidence
+    metadata:
+      category: security
+      impact: LOW
+    pattern: foo($X)
+  - id: conf-miss2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ruleid: metadata-confidence
+    metadata:
+      category: security
+      likelihood: HIGH
+    pattern: foo2($X)
+  - id: conf-have
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ok: metadata-confidence
+    metadata:
+      category: security
+      confidence: HIGH
+    pattern: bar($X)
+  - id: conf-other-cat
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ok: metadata-confidence
+    metadata:
+      category: correctness
+    pattern: bar2($X)

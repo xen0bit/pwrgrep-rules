@@ -1,5 +1,6 @@
 # rules: appservice-enable-http2
 # languages: hcl
+# fixture: terraform/appservice-enable-http2.tf
 # from: terraform/azure/security/appservice/appservice-enable-http2.yaml
 
 . as $root

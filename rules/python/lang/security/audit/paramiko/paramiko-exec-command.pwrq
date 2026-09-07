@@ -1,5 +1,6 @@
 # rules: paramiko-exec-command
 # languages: python
+# fixture: python/paramiko-exec-command.py
 # from: python/lang/security/audit/paramiko/paramiko-exec-command.yaml
 
 . as $root

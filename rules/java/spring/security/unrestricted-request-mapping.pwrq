@@ -1,5 +1,6 @@
 # rules: unrestricted-request-mapping
 # languages: java
+# fixture: java/unrestricted-request-mapping.java
 # from: java/spring/security/unrestricted-request-mapping.yaml
 
 . as $root

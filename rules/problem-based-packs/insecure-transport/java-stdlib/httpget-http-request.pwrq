@@ -1,14 +1,23 @@
 # rules: httpget-http-request
 # languages: java
+# fixture: problem-based-packs/java-httpget-http-request.java
+#
+# The `"=~/.../"` string guards never match and untyped `$X = new ...`
+# declarations never match typed Java, so the rule never fired. Rewritten with
+# typed declarations and the URL in a named hole guarded by where_capture.
 # from: problem-based-packs/insecure-transport/java-stdlib/httpget-http-request.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.java"]; [
-      "\"=~/[Hh][Tt][Tt][Pp]://.*/\"",
-      "$R = new HttpGet(\"=~/[Hh][Tt][Tt][Pp]://.*/\");\n$$$_\n$CLIENT. $$$_ .execute($R, $$$_);"
+      "HttpGet $R = new HttpGet($URL);
+$$$_
+$C.execute($R);",
+      "$C.execute(new HttpGet($URL));"
     ])) as $all
-    | ( $all | of(["\"=~/[Hh][Tt][Tt][Pp]://.*/\""])
-          | within($all | of(["$R = new HttpGet(\"=~/[Hh][Tt][Tt][Pp]://.*/\");\n$$$_\n$CLIENT. $$$_ .execute($R, $$$_);"]))
+    | ( $all | of(["HttpGet $R = new HttpGet($URL);
+$$$_
+$C.execute($R);","$C.execute(new HttpGet($URL));"])
+          | where_capture("URL"; "http://")
         | finding("httpget-http-request";
             "Detected an HTTP request sent via HttpGet.") ) )
 | report

@@ -1,19 +1,19 @@
 # rules: github-script-injection
 # languages: yaml
+# fixture: yaml/gh-script-injection.yaml
+#
+# AST step spans never enclose their script lines, and the port dropped
+# the interpolation check, so the rule never fired. Rewritten as a regex over
+# the github-script step block (dash plus deeper-indented fields) with a text
+# guard for ${{ }} interpolation.
 # from: yaml/github-actions/security/github-script-injection.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.yaml"]; [
-      "script: $SHELL",
-      "steps: [$$$_]",
-      "uses: $ACTION\n$$$_",
-      "with:\n  $$$_\n  script: $$$_\n  $$$_"
+| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^      -\\s+uses:\\s*actions/github-script@[^\n]*((?:\n        [^\n]*)*)"
     ])) as $all
-    | ( $all | of(["script: $SHELL"])
-          | within($all | of(["steps: [$$$_]"]))
-          | in_files_with($all | of(["uses: $ACTION\n$$$_"]))
-          | within($all | of(["with:\n  $$$_\n  script: $$$_\n  $$$_"]))
-          | where_capture("ACTION"; "^(?:actions/github-script@.*)")
+    | ( $all | of(["(?m)^      -\\s+uses:\\s*actions/github-script@[^\n]*((?:\n        [^\n]*)*)"])
+          | where_text("script:[^\n]*\\$\\{\\{")
         | finding("github-script-injection";
-            "Using variable interpolation `${{...}}` with `github` context data in a `actions/github-script`'s `script:` step could allow an attacker to inject their own code into the runner.") ) )
+            "Using variable interpolation `${{...}}` with `github` context data in a `actions/github-script's `script:` step could allow an attacker to inject their own code into the runner.") ) )
 | report

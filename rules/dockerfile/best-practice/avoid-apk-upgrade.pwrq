@@ -1,12 +1,18 @@
 # rules: avoid-apk-upgrade
 # languages: dockerfile
+# fixture: dockerfile/avoid-apk-upgrade.dockerfile
+#
+# RUN-shell AST holes never fire (the shell line is one opaque literal in the
+# dockerfile grammar), so the original `RUN $$$_ apk upgrade $$$` is rewritten
+# as a regex over the text, like avoid-apt-get-upgrade. Globs widened to cover
+# *.dockerfile fixtures too.
 # from: dockerfile/best-practice/avoid-apk-upgrade.yaml
 
 . as $root
-| ( ($root | scan_ast(["Dockerfile*"]; [
-      "RUN $$$_ apk upgrade $$$_"
+| ( ($root | scan_regex(["Dockerfile*","*.dockerfile"]; [
+      "apk\\s+upgrade"
     ])) as $all
-    | ( $all | of(["RUN $$$_ apk upgrade $$$_"])
+    | ( $all | of(["apk\\s+upgrade"])
         | finding("avoid-apk-upgrade";
             "Packages in base images should be up-to-date, removing the need for 'apk upgrade'.") ) )
 | report

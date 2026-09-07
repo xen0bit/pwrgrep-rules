@@ -1,28 +1,21 @@
 # rules: missing-language-field
+# languages: yaml
+# fixture: yaml/semgrep-missing-language-field.yaml
+#
+# Rule-list spans never enclose per-rule matches, so the form never fired.
+# Rewritten as a greedy rule block (id line plus following four-space lines,
+# which ends at the next rule) with text guards; join-mode rules are out of
+# scope.
 # from: yaml/semgrep/missing-language-field.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml"]; [
-      "(?P<INNER_RULE>\\S+)",
-      "(?P<OUTER_RULE>\\S+)",
-      "\\-\\s+[\\s\\S]*?\\s+languages:\\s+[\\s\\S]*?",
-      "\\-\\s+[\\s\\S]*?\\s+mode:\\s+join",
-      "\\-\\s+languages:\\s+[\\s\\S]*?\\s+[\\s\\S]*?",
-      "id:\\s+(?P<OUTER_RULEID>\\S+)\\s+mode:\\s+join\\s+join:\\s+rules:\\s+\\[\\s+[\\s\\S]*?,\\s+(?P<INNER_RULE>\\S+),\\s+[\\s\\S]*?\\]\\s+[\\s\\S]*?\\s+[\\s\\S]*?",
-      "id:\\s+(?P<RULEID>\\S+)",
-      "rules:\\s+\\[[\\s\\S]*?,\\s+(?P<RULE>\\S+),\\s+[\\s\\S]*?\\]",
-      "rules:\\s+\\[\\s+[\\s\\S]*?,\\s+(?P<OUTER_RULE>\\S+),\\s+[\\s\\S]*?\\]"
+| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^  - id:\\s*(?P<RULEID>\\S+)[^\n]*\n((?:    [^\n]*\n?)*)"
     ])) as $all
-    | ( ($all | of(["id:\\s+(?P<RULEID>\\S+)"])
-          | within($all | of(["rules:\\s+\\[[\\s\\S]*?,\\s+(?P<RULE>\\S+),\\s+[\\s\\S]*?\\]"]))
-          | outside($all | of(["\\-\\s+[\\s\\S]*?\\s+languages:\\s+[\\s\\S]*?"]))
-          | outside($all | of(["\\-\\s+[\\s\\S]*?\\s+mode:\\s+join"])))
-          + ($all | of(["id:\\s+(?P<RULEID>\\S+)"])
-          | within($all | of(["rules:\\s+\\[\\s+[\\s\\S]*?,\\s+(?P<OUTER_RULE>\\S+),\\s+[\\s\\S]*?\\]"]))
-          | within($all | of(["(?P<OUTER_RULE>\\S+)"]))
-          | in_files_with($all | of(["id:\\s+(?P<OUTER_RULEID>\\S+)\\s+mode:\\s+join\\s+join:\\s+rules:\\s+\\[\\s+[\\s\\S]*?,\\s+(?P<INNER_RULE>\\S+),\\s+[\\s\\S]*?\\]\\s+[\\s\\S]*?\\s+[\\s\\S]*?"]))
-          | within($all | of(["(?P<INNER_RULE>\\S+)"]))
-          | outside($all | of(["\\-\\s+languages:\\s+[\\s\\S]*?\\s+[\\s\\S]*?"])))
+    | ( $all | of(["(?m)^  - id:\\s*(?P<RULEID>\\S+)[^\n]*\n((?:    [^\n]*\n?)*)"])
+          | where_text_not("\n    languages:")
+          | where_text_not("mode:\\s*join")
+          | focus("RULEID")
         | finding("missing-language-field";
             "Please include a 'languages' field for your rule $RULEID!") ) )
 | report

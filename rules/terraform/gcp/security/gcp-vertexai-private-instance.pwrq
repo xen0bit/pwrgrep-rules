@@ -1,5 +1,6 @@
 # rules: gcp-vertexai-private-instance
 # languages: hcl
+# fixture: terraform/gcp-vertexai-private-instance.tf
 # from: terraform/gcp/security/gcp-vertexai-private-instance.yaml
 
 . as $root

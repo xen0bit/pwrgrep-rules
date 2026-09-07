@@ -1,24 +1,30 @@
 # rules: rest-http-client-support
 # languages: javascript
+# fixture: problem-based-packs/js-rest-http-client-support.js
+#
+# The `"=~/http.../"` string guards never match, the `;\n$$$_` gaps do
+# not span statements, `$C = require(...)` never matches with a hole, and the
+# `{...,url:...}` object forms never match, so the rule never fired.
+# Rewritten as direct axios/got/node-rest-client calls with the URL in a
+# named hole guarded by where_capture; file scoping uses the literal require
+# spellings, which do match.
 # from: problem-based-packs/insecure-transport/js-node/rest-http-client-support.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.js"]; [
-      "$C = require('axios');\n$$$_",
-      "$C = require('got');\n$$$_",
-      "$C(\"=~/http://.*/\", $$$_)",
-      "$C({$$$_,url: \"=~/http://.*/\"})",
-      "$C.$REQ(\"=~/http://.*/\", $$$_)",
-      "$C.$REQ({$$$_,url: \"=~/http://.*/\"})",
-      "$CLIENT = require('node-rest-client').Client;\n$$$_\n$C = new $CLIENT();\n$$$_"
+      "$C($URL,$O)",
+      "$C($URL)",
+      "$C.$REQ($URL,$O)",
+      "$C.$REQ($URL)",
+      "require('axios')",
+      "require('got')",
+      "require('node-rest-client')"
     ])) as $all
-    | ( ($all
-          | in_files_with($all | of(["$CLIENT = require('node-rest-client').Client;\n$$$_\n$C = new $CLIENT();\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["$C = require('axios');\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["$C = require('got');\n$$$_"])))
-          | at_same_place(($all | of(["$C.$REQ(\"=~/http://.*/\", $$$_)","$C(\"=~/http://.*/\", $$$_)","$C({$$$_,url: \"=~/http://.*/\"})","$C.$REQ({$$$_,url: \"=~/http://.*/\"})"])))
+    | ( (($all | of(["$C($URL,$O)","$C($URL)","$C.$REQ($URL,$O)","$C.$REQ($URL)"])
+          | at_same_place((($all | in_files_with($all | of(["require('axios')"])))
+          + ($all | in_files_with($all | of(["require('got')"])))
+          + ($all | in_files_with($all | of(["require('node-rest-client')"])))))
+          | where_capture("URL"; "http://"))
         | finding("rest-http-client-support";
-            "Checks for requests to http (unencrypted) sites using some of node js's most popular REST/HTTP libraries, including node-rest-client, axios, and got.") ) )
+            "Checks for requests to http (unencrypted) sites using some of node js's most popular REST/HTTP libraries, including node-rest-client, axios, and got.") ) ) )
 | report

@@ -1,0 +1,11 @@
+# Gitleaks slack-config-access-token: invented provider-shaped values.
+# Fixtures are excluded from secret scanning, so shapes stay realistic. The
+# token body is 163-166 uppercase alphanumerics; both lines use 165.
+# ruleid: slack-config-access-token
+token = "xoxe.xoxb-1-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+# ruleid: slack-config-access-token
+token = "xoxe.xoxp-2-BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+# ok: slack-config-access-token
+token = "example"
+# ok: slack-config-access-token
+token = "placeholder"

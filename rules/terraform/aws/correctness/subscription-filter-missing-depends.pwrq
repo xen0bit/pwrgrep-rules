@@ -1,5 +1,6 @@
 # rules: subscription-filter-missing-depends
 # languages: hcl
+# fixture: terraform/subscription-filter-missing-depends.tf
 # from: terraform/aws/correctness/subscription-filter-missing-depends.yaml
 
 . as $root

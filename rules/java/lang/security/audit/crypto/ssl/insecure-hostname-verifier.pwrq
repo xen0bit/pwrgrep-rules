@@ -1,4 +1,5 @@
 # rules: insecure-hostname-verifier
+# fixture: java/insecure-hostname-verifier.java
 # from: java/lang/security/audit/crypto/ssl/insecure-hostname-verifier.yaml
 
 . as $root

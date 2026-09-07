@@ -1,5 +1,6 @@
 # rules: missing-throttle-config
 # languages: python
+# fixture: python/missing-throttle-config.py
 # from: python/django/security/audit/django-rest-framework/missing-throttle-config.yaml
 
 . as $root

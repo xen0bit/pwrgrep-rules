@@ -1,19 +1,20 @@
 # rules: basic-arithmetic-underflow
 # languages: solidity
+# fixture: solidity/basic-arithmetic-underflow.sol
+#
+# Value flow from parameters cannot be followed textually, and fragments never
+# match in the solidity grammar, so the taint form never fired. Rewritten as
+# an audit over spaced subtractions in assignments and returns; the reviewer
+# confirms whether an operand is attacker-influenced. The spaces keep --,
+# -=, == and hyphen words quiet.
 # from: solidity/security/basic-arithmetic-underflow.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.sol"]; [
-      "$Y - $X",
-      "function $F($$$_, $X, $$$_) external { $$$_ }",
-      "function $F($$$_, $X, $$$_) public { $$$_ }"
+| ( ($root | scan_regex(["*.sol"]; [
+      "\\w\\s*=\\s*[^;]*?\\s-\\s[^;]*;",
+      "return\\s[^;]*?\\s-\\s[^;]*;"
     ])) as $all
-    | ( (($all | of(["$Y - $X"])))
-          | reaching(((($all
-          | within($all | of(["function $F($$$_, $X, $$$_) external { $$$_ }"])))
-          + ($all
-          | within($all | of(["function $F($$$_, $X, $$$_) public { $$$_ }"])))));
-              ([]))
+    | ( $all | of(["\\w\\s*=\\s*[^;]*?\\s-\\s[^;]*;","return\\s[^;]*?\\s-\\s[^;]*;"])
         | finding("basic-arithmetic-underflow";
             "Possible arithmetic underflow") ) )
 | report

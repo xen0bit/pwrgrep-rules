@@ -1,5 +1,6 @@
 # rules: dangerous-annotations-usage
 # languages: python
+# fixture: python/dangerous-annotations-usage.py
 # from: python/lang/security/audit/dangerous-annotations-usage.yaml
 
 . as $root

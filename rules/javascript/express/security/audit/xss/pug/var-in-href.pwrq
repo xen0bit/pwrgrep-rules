@@ -1,5 +1,6 @@
 # rules: var-in-href
 # from: javascript/express/security/audit/xss/pug/var-in-href.yaml
+# fixture: javascript/var-in-href-pug.js
 
 . as $root
 | ( ($root | scan_regex(["*.pug"]; [

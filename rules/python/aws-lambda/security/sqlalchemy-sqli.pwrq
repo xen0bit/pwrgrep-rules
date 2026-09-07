@@ -1,5 +1,6 @@
 # rules: sqlalchemy-sqli
 # languages: python
+# fixture: python/sqlalchemy-sqli.py
 # from: python/aws-lambda/security/sqlalchemy-sqli.yaml
 
 . as $root

@@ -1,0 +1,10 @@
+# Gitleaks prefect-api-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: prefect-api-token
+pnu_abcdefghijklmnopqrstuvwxy0123456789a
+# ruleid: prefect-api-token
+pnu_lmnopqrstuvwxy0123456789abcdefghijkl
+# ok: prefect-api-token
+api_key = "example"
+# ok: prefect-api-token
+token = "placeholder"

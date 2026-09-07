@@ -1,5 +1,6 @@
 # rules: azure-storage-account-enables-secure-transfer
 # languages: hcl
+# fixture: terraform/azure-storage-account-enables-secure-transfer.tf
 # from: terraform/azure/best-practice/azure-storage-account-enables-secure-transfer.yaml
 
 . as $root

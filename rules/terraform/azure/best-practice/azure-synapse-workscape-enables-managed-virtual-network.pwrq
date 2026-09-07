@@ -1,5 +1,6 @@
 # rules: azure-synapse-workscape-enables-managed-virtual-network
 # languages: hcl
+# fixture: terraform/azure-synapse-workscape-enables-managed-virtual-network.tf
 # from: terraform/azure/best-practice/azure-synapse-workscape-enables-managed-virtual-network.yaml
 
 . as $root

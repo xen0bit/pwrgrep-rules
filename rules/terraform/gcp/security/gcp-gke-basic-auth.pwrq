@@ -1,5 +1,6 @@
 # rules: gcp-gke-basic-auth
 # languages: hcl
+# fixture: terraform/gcp-gke-basic-auth.tf
 # from: terraform/gcp/security/gcp-gke-basic-auth.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: insufficient-rsa-key-size
 # languages: python
+# fixture: python/cryptography-insufficient-rsa-key-size.py
 # from: python/cryptography/security/insufficient-rsa-key-size.yaml
 
 . as $root

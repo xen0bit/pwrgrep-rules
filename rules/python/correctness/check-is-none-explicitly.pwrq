@@ -1,5 +1,6 @@
 # rules: check-is-none-explicitly
 # languages: python
+# fixture: python/check-is-none-explicitly.py
 # from: python/correctness/check-is-none-explicitly.yaml
 
 . as $root

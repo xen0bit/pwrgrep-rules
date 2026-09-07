@@ -1,0 +1,14 @@
+<%# `raw` renders its argument without escaping. Flag it inside output tags;
+plain output (and static markup) is fine. %>
+<%# ruleid: avoid-raw %>
+<%= raw @name %>
+<%# ruleid: avoid-raw %>
+<%= raw @title %>
+<%# ruleid: avoid-raw %>
+<%= raw @body %>
+<%# ok: avoid-raw %>
+<%= h @name %>
+<%# ok: avoid-raw %>
+<%= @title %>
+<%# ok: avoid-raw %>
+<p>static markup</p>

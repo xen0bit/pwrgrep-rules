@@ -1,5 +1,6 @@
 # rules: aws-lambda-x-ray-tracing-not-active
 # languages: hcl
+# fixture: terraform/aws-lambda-x-ray-tracing-not-active.tf
 # from: terraform/aws/security/aws-lambda-x-ray-tracing-not-active.yaml
 
 . as $root

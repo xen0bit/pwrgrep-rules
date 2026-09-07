@@ -1,0 +1,10 @@
+# Gitleaks adobe-client-id: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: adobe-client-id
+adobe=abcdef0123456789abcdef0123456789
+# ruleid: adobe-client-id
+adobe=56789abcdef0123456789abcdef01234
+# ok: adobe-client-id
+adobe = "example"
+# ok: adobe-client-id
+adobe = "placeholder"

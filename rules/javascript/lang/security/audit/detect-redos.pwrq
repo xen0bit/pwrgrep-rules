@@ -1,5 +1,6 @@
 # rules: detect-redos
 # languages: javascript, typescript
+# fixture: javascript/detect-redos.js
 # from: javascript/lang/security/audit/detect-redos.yaml
 
 . as $root

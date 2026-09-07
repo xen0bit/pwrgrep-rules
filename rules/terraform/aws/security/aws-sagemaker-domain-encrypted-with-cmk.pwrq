@@ -1,5 +1,6 @@
 # rules: aws-sagemaker-domain-encrypted-with-cmk
 # languages: hcl
+# fixture: terraform/aws-sagemaker-domain-encrypted-with-cmk.tf
 # from: terraform/aws/security/aws-sagemaker-domain-encrypted-with-cmk.yaml
 
 . as $root

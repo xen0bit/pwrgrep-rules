@@ -1,5 +1,6 @@
 # rules: azure-postgresql-server-public-access-disabled
 # languages: hcl
+# fixture: terraform/azure-postgresql-server-public-access-disabled.tf
 # from: terraform/azure/security/azure-postgresql-server-public-access-disabled.yaml
 
 . as $root

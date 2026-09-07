@@ -1,4 +1,5 @@
 # rules: missing-internal
+# fixture: generic/missing-internal.txt
 # from: generic/nginx/security/missing-internal.yaml
 
 . as $root

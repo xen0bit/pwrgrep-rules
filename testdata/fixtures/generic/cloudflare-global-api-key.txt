@@ -1,0 +1,10 @@
+# Gitleaks cloudflare-global-api-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: cloudflare-global-api-key
+cloudflare=abcdef0123456789abcdef0123456789abcde
+# ruleid: cloudflare-global-api-key
+cloudflare=56789abcdef0123456789abcdef0123456789
+# ok: cloudflare-global-api-key
+cloudflare = "example"
+# ok: cloudflare-global-api-key
+cloudflare = "placeholder"

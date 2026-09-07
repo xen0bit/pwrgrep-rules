@@ -1,5 +1,6 @@
 # rules: aws-athena-workgroup-unencrypted
 # languages: hcl
+# fixture: terraform/aws-athena-workgroup-unencrypted.tf
 # from: terraform/aws/security/aws-athena-workgroup-unencrypted.yaml
 
 . as $root

@@ -1,18 +1,23 @@
 # rules: no-printf-in-responsewriter
 # languages: go
+# fixture: go/no-printf-in-responsewriter.go
 # from: go/lang/security/audit/xss/no-printf-in-responsewriter.yaml
+#
+# The handler scaffolds put `$$$_` ellipses around the ResponseWriter
+# parameter, which match no parameter list; the `within` never held and the
+# rule never fired. They name the two-parameter handler shape now.
 
 . as $root
 | ( ($root | scan_ast(["*.go"]; [
-      "$WRITER.Write($PWRQDEEP1, $$$_)",
-      "func $HANDLER($$$_, $WRITER http.ResponseWriter, $$$_) {\n  $$$_\n}",
-      "func($$$_, $WRITER http.ResponseWriter, $$$_) {\n  $$$_\n}"
+      "$WRITER.Write($PWRQDEEP1)",
+      "func $HANDLER($W http.ResponseWriter, $R *http.Request) { $$$BODY }",
+      "func($W http.ResponseWriter, $R *http.Request) { $$$BODY }"
     ])) as $all
     | ( ($all
-          | within($all | of(["func $HANDLER($$$_, $WRITER http.ResponseWriter, $$$_) {\n  $$$_\n}"])))
+          | within($all | of(["func $HANDLER($W http.ResponseWriter, $R *http.Request) { $$$BODY }"])))
           + ($all
-          | within($all | of(["func($$$_, $WRITER http.ResponseWriter, $$$_) {\n  $$$_\n}"])))
-          | at_same_place(($all | of(["$WRITER.Write($PWRQDEEP1, $$$_)"])
+          | within($all | of(["func($W http.ResponseWriter, $R *http.Request) { $$$BODY }"])))
+          | at_same_place(($all | of(["$WRITER.Write($PWRQDEEP1)"])
           | where_capture_ast("PWRQDEEP1"; "fmt.$PRINTF($$$_)")))
         | finding("no-printf-in-responsewriter";
             "Detected 'printf' or similar in 'http.ResponseWriter.write()'.") ) )

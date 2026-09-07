@@ -1,5 +1,6 @@
 # rules: aws-insecure-cloudfront-distribution-tls-version
 # languages: hcl
+# fixture: terraform/aws-insecure-cloudfront-distribution-tls-version.tf
 # from: terraform/aws/security/aws-cloudfront-insecure-tls.yaml
 
 . as $root

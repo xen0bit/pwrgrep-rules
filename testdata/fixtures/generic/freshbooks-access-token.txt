@@ -1,0 +1,10 @@
+# Gitleaks freshbooks-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: freshbooks-access-token
+freshbooks=abcdefghijklmnopqrstuvwxy0123456789abcdefghijklmnopqrstuvwxy0123
+# ruleid: freshbooks-access-token
+freshbooks=lmnopqrstuvwxy0123456789abcdefghijklmnopqrstuvwxy0123456789abcde
+# ok: freshbooks-access-token
+freshbooks = "example"
+# ok: freshbooks-access-token
+freshbooks = "placeholder"

@@ -1,5 +1,6 @@
 # rules: avoid-tainted-file-access
 # languages: ruby
+# fixture: ruby/avoid-tainted-file-access.rb
 # from: ruby/rails/security/audit/avoid-tainted-file-access.yaml
 
 . as $root

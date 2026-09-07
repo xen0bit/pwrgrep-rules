@@ -1,5 +1,6 @@
 # rules: string-concat
 # languages: python
+# fixture: python/string-concat.py
 # from: python/sh/security/string-concat.yaml
 
 . as $root

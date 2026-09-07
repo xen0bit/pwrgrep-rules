@@ -1,5 +1,6 @@
 # rules: aws-workspaces-user-volume-unencrypted
 # languages: hcl
+# fixture: terraform/aws-workspaces-user-volume-unencrypted.tf
 # from: terraform/aws/security/aws-workspaces-user-volume-unencrypted.yaml
 
 . as $root

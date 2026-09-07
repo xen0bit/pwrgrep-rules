@@ -1,5 +1,6 @@
 # rules: check-permit-attributes-medium
 # languages: ruby
+# fixture: ruby/check-permit-attributes-medium.rb
 # from: ruby/rails/security/brakeman/check-permit-attributes-medium.yaml
 
 . as $root

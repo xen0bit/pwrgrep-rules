@@ -1,5 +1,6 @@
 # rules: azure-keyvault-enables-firewall-rules-settings
 # languages: hcl
+# fixture: terraform/azure-keyvault-enables-firewall-rules-settings.tf
 # from: terraform/azure/best-practice/azure-keyvault-enables-firewall-rules-settings.yaml
 
 . as $root

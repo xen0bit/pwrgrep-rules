@@ -1,5 +1,6 @@
 # rules: unencrypted-socket
 # languages: java
+# fixture: java/unencrypted-socket.java
 # from: java/lang/security/audit/crypto/unencrypted-socket.yaml
 
 . as $root

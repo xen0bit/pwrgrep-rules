@@ -1,15 +1,44 @@
 # rules: spring-http-request
 # languages: java
+# fixture: problem-based-packs/java-spring-http-request.java
+#
+# The `"=~/http.../"` string guards never match and untyped declarations
+# never match typed Java, so the rule never fired. Rewritten with typed
+# declarations and the URL in named holes guarded by where_capture; the
+# assigned-literal form guards the assigned text ($U), since a variable use
+# carries no scheme.
 # from: problem-based-packs/insecure-transport/java-spring/spring-http-request.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.java"]; [
-      "$RESTTEMP = new RestTemplate($$$_);\n$$$_\n$RESTTEMP.$FUNC(\"=~/[hH][tT][tT][pP]://.*/\", $$$_);",
-      "$RESTTEMP = new RestTemplate($$$_);\n$$$_\n$URL = new URI($$$_, \"=~/[hH][tT][tT][pP]://.*/\", $$$_);\n$$$_\n$RESTTEMP.$FUNC($URL, $$$_);",
-      "$RESTTEMP = new RestTemplate($$$_);\n$$$_\nString $URL = \"=~/[hH][tT][tT][pP]://.*/\";\n$$$_\n$RESTTEMP.$FUNC($URL, $$$_);"
+      "RestTemplate $RESTTEMP = new RestTemplate($$$_);
+$$$_
+$RESTTEMP.$FUNC($URL, $$$_);",
+      "RestTemplate $RESTTEMP = new RestTemplate($$$_);
+$$$_
+String $URL = $U;
+$$$_
+$RESTTEMP.$FUNC($URL, $$$_);",
+      "RestTemplate $RESTTEMP = new RestTemplate($$$_);
+$$$_
+URI $URL = new URI($URI);
+$$$_
+$RESTTEMP.$FUNC($URL, $$$_);"
     ])) as $all
-    | ( $all | of(["$RESTTEMP = new RestTemplate($$$_);\n$$$_\n$RESTTEMP.$FUNC(\"=~/[hH][tT][tT][pP]://.*/\", $$$_);","$RESTTEMP = new RestTemplate($$$_);\n$$$_\nString $URL = \"=~/[hH][tT][tT][pP]://.*/\";\n$$$_\n$RESTTEMP.$FUNC($URL, $$$_);","$RESTTEMP = new RestTemplate($$$_);\n$$$_\n$URL = new URI($$$_, \"=~/[hH][tT][tT][pP]://.*/\", $$$_);\n$$$_\n$RESTTEMP.$FUNC($URL, $$$_);"])
+    | ( (($all | of(["RestTemplate $RESTTEMP = new RestTemplate($$$_);
+$$$_
+$RESTTEMP.$FUNC($URL, $$$_);"]) | where_capture("URL"; "http://"))
+          + ($all | of(["RestTemplate $RESTTEMP = new RestTemplate($$$_);
+$$$_
+String $URL = $U;
+$$$_
+$RESTTEMP.$FUNC($URL, $$$_);"]) | where_capture("U"; "http://"))
+          + ($all | of(["RestTemplate $RESTTEMP = new RestTemplate($$$_);
+$$$_
+URI $URL = new URI($URI);
+$$$_
+$RESTTEMP.$FUNC($URL, $$$_);"]) | where_capture("URI"; "http://"))
           | where_capture("FUNC"; "^(?:(delete|doExecute|exchange|getForEntity|getForObject|headForHeaders|optionsForAllow|patchForObject|postForEntity|postForLocation|postForObject|put))")
         | finding("spring-http-request";
-            "Checks for requests sent via Java Spring RestTemplate API to http:// URLS.") ) )
+            "Checks for requests sent via Java Spring RestTemplate API to http:// URLS.") ) ) )
 | report

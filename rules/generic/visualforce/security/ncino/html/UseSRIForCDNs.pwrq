@@ -1,4 +1,5 @@
 # rules: use-SRI-for-CDNs
+# fixture: generic/UseSRIForCDNs.txt
 # from: generic/visualforce/security/ncino/html/UseSRIForCDNs.yaml
 
 . as $root

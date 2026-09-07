@@ -1,5 +1,6 @@
 # rules: avoid-v-html
 # from: javascript/vue/security/audit/xss/templates/avoid-v-html.yaml
+# fixture: javascript/avoid-v-html.js
 
 . as $root
 | ( ($root | scan_regex(["*.vue"]; [

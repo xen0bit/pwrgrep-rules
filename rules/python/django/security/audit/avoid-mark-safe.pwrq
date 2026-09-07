@@ -1,5 +1,6 @@
 # rules: avoid-mark-safe
 # languages: python
+# fixture: python/avoid-mark-safe.py
 # from: python/django/security/audit/avoid-mark-safe.yaml
 
 . as $root

@@ -1,0 +1,20 @@
+name: t
+on: push
+jobs:
+  b:
+    runs-on: ubuntu-latest
+    steps:
+      # ruleid: github-script-injection
+      - uses: actions/github-script@v6
+        with:
+          script: return "${{ github.event.comment.body }}"
+      # ruleid: github-script-injection
+      - uses: actions/github-script@v6
+        with:
+          script: core.setOutput("x", "${{ github.event.issue.number }}")
+      # ok: github-script-injection
+      - uses: actions/github-script@v6
+        with:
+          script: return 1
+      # ok: github-script-injection
+      - uses: actions/checkout@v3

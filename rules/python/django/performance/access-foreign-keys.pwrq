@@ -1,5 +1,6 @@
 # rules: access-foreign-keys
 # languages: python
+# fixture: python/access-foreign-keys.py
 # from: python/django/performance/access-foreign-keys.yaml
 
 . as $root

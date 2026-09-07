@@ -1,5 +1,6 @@
 # rules: aws-ec2-launch-configuration-root-block-device-unencrypted
 # languages: hcl
+# fixture: terraform/aws-ec2-launch-configuration-root-block-device-unencrypted.tf
 # from: terraform/aws/security/aws-ec2-launch-configuration-root-block-device-unencrypted.yml
 
 . as $root

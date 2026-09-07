@@ -1,5 +1,6 @@
 # rules: cookie-serialization
 # languages: ruby
+# fixture: ruby/cookie-serialization.rb
 # from: ruby/lang/security/cookie-serialization.yaml
 
 . as $root

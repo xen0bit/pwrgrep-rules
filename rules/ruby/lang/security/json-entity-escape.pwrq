@@ -1,5 +1,6 @@
 # rules: json-entity-escape
 # languages: ruby
+# fixture: ruby/json-entity-escape.rb
 # from: ruby/lang/security/json-entity-escape.yaml
 
 . as $root

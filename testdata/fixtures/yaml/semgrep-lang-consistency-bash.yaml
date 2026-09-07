@@ -1,0 +1,25 @@
+rules:
+  - id: uses-sh
+    message: "m"
+    # ruleid: lang-consistency-bash
+    languages: [sh]
+    severity: WARNING
+    pattern: foo($X)
+  - id: uses-sh2
+    message: "m"
+    # ruleid: lang-consistency-bash
+    languages: [sh, python]
+    severity: WARNING
+    pattern: foo2($X)
+  - id: uses-bash
+    message: "m"
+    # ok: lang-consistency-bash
+    languages: [bash]
+    severity: WARNING
+    pattern: bar($X)
+  - id: uses-py
+    message: "m"
+    # ok: lang-consistency-bash
+    languages: [py, js]
+    severity: WARNING
+    pattern: bar2($X)

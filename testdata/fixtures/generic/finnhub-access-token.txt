@@ -1,0 +1,10 @@
+# Gitleaks finnhub-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: finnhub-access-token
+finnhub=abcdefghijklmnopqrst
+# ruleid: finnhub-access-token
+finnhub=lmnopqrstuvwxy012345
+# ok: finnhub-access-token
+finnhub = "example"
+# ok: finnhub-access-token
+finnhub = "placeholder"

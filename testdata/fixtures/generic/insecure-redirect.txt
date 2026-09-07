@@ -1,0 +1,12 @@
+# Forwarding to plain http leaks the request path; only lines without a
+# forward are clean.
+server {
+    # ruleid: insecure-redirect
+    rewrite ^/old http://example.com/new redirect;
+    # ruleid: insecure-redirect
+    rewrite ^/legacy http://example.com/legacy redirect;
+    # ok: insecure-redirect
+    return 301 https://$host$request_uri;
+    # ok: insecure-redirect
+    listen 80;
+}

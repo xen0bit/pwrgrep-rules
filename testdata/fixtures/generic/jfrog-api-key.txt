@@ -1,0 +1,10 @@
+# Gitleaks jfrog-api-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: jfrog-api-key
+jfrog=abcdefghijklmnopqrstuvwxy0123456789abcdefghijklmnopqrstuvwxy0123456789abc
+# ruleid: jfrog-api-key
+jfrog=lmnopqrstuvwxy0123456789abcdefghijklmnopqrstuvwxy0123456789abcdefghijklmn
+# ok: jfrog-api-key
+jfrog = "example"
+# ok: jfrog-api-key
+jfrog = "placeholder"

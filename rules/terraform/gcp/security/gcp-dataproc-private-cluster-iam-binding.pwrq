@@ -1,5 +1,6 @@
 # rules: gcp-dataproc-private-cluster-iam-binding
 # languages: hcl
+# fixture: terraform/gcp-dataproc-private-cluster-iam-binding.tf
 # from: terraform/gcp/security/gcp-dataproc-private-cluster-iam-binding.yaml
 
 . as $root

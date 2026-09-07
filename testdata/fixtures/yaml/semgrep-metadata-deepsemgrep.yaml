@@ -1,0 +1,34 @@
+rules:
+  - id: deep-bad
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      # ruleid: metadata-deepsemgrep
+      deepsemgrep: true
+    pattern: foo($X)
+  - id: deep-bad2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      # ruleid: metadata-deepsemgrep
+      deepsemgrep: true
+    pattern: foo2($X)
+  - id: deep-good
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      # ok: metadata-deepsemgrep
+      interfile: true
+    pattern: bar($X)
+  - id: deep-good2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    # ok: metadata-deepsemgrep
+    metadata:
+      category: security
+    pattern: bar2($X)

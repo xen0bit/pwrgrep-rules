@@ -1,5 +1,6 @@
 # rules: weak-ssl-version
 # languages: python
+# fixture: python/weak-ssl-version.py
 # from: python/lang/security/audit/weak-ssl-version.yaml
 
 . as $root

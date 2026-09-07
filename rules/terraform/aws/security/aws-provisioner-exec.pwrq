@@ -1,5 +1,6 @@
 # rules: aws-provisioner-exec
 # languages: hcl
+# fixture: terraform/aws-provisioner-exec.tf
 # from: terraform/aws/security/aws-provisioner-exec.yaml
 
 . as $root

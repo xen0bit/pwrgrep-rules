@@ -1,0 +1,10 @@
+# Gitleaks heroku-api-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: heroku-api-key
+heroku=01234567-89ab-cdef-0123-456789abcdef
+# ruleid: heroku-api-key
+heroku=bcdef012-3456-789a-bcde-f0123456789a
+# ok: heroku-api-key
+heroku = "example"
+# ok: heroku-api-key
+heroku = "placeholder"

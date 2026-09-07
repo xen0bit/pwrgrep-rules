@@ -1,5 +1,6 @@
 # rules: cookie-missing-secure
 # languages: go
+# fixture: go/cookie-missing-secure.go
 # from: go/lang/security/audit/net/cookie-missing-secure.yaml
 
 . as $root

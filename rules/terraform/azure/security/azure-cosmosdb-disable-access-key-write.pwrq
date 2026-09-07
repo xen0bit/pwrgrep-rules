@@ -1,5 +1,6 @@
 # rules: azure-cosmosdb-disable-access-key-write
 # languages: hcl
+# fixture: terraform/azure-cosmosdb-disable-access-key-write.tf
 # from: terraform/azure/security/azure-cosmosdb-disable-access-key-write.yaml
 
 . as $root

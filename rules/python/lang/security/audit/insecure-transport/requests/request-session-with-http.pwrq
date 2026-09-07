@@ -1,5 +1,6 @@
 # rules: request-session-with-http
 # languages: python
+# fixture: python/request-session-with-http.py
 # from: python/lang/security/audit/insecure-transport/requests/request-session-with-http.yaml
 
 . as $root

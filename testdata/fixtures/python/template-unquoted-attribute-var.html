@@ -1,0 +1,15 @@
+{# Flask/Jinja unquoted attribute variable. #}
+{# An unquoted {{ }} in an attribute breaks out with a space. Quoting #}
+{# the attribute is the fix. #}
+{# ruleid: template-unquoted-attribute-var #}
+<div class={{ classes }} >x</div>
+{# ruleid: template-unquoted-attribute-var #}
+<a href={{ url }} >x</a>
+{# ruleid: template-unquoted-attribute-var #}
+<input value={{ preset }} >
+{# ok: template-unquoted-attribute-var #}
+<div class="{{ classes }}">x</div>
+{# ok: template-unquoted-attribute-var #}
+<div class="user">x</div>
+{# ok: template-unquoted-attribute-var #}
+<p>{{ text }}</p>

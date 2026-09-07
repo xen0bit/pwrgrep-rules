@@ -1,5 +1,6 @@
 # rules: non-literal-import
 # languages: python
+# fixture: python/non-literal-import.py
 # from: python/lang/security/audit/non-literal-import.yaml
 
 . as $root

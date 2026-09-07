@@ -1,5 +1,6 @@
 # rules: ajv-allerrors-true
 # languages: javascript, typescript
+# fixture: javascript/ajv-allerrors-true.js
 # from: javascript/ajv/security/audit/ajv-allerrors-true.yaml
 
 . as $root

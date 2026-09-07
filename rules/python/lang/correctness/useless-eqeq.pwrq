@@ -1,5 +1,6 @@
 # rules: useless-eqeq
 # languages: python
+# fixture: python/useless-eqeq.py
 # from: python/lang/correctness/useless-eqeq.yaml
 
 . as $root

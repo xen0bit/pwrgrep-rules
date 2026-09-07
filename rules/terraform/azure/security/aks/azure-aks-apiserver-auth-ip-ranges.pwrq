@@ -1,5 +1,6 @@
 # rules: azure-aks-apiserver-auth-ip-ranges
 # languages: hcl
+# fixture: terraform/azure-aks-apiserver-auth-ip-ranges.tf
 # from: terraform/azure/security/aks/azure-aks-apiserver-auth-ip-ranges.yaml
 
 . as $root

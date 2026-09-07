@@ -1,5 +1,6 @@
 # rules: aws-fsx-ontapfs-encrypted-with-cmk
 # languages: hcl
+# fixture: terraform/aws-fsx-ontapfs-encrypted-with-cmk.tf
 # from: terraform/aws/security/aws-fsx-ontapfs-encrypted-with-cmk.yaml
 
 . as $root

@@ -1,4 +1,5 @@
 # rules: reverseproxy-director
+# fixture: go/reverseproxy-director.go
 # from: go/lang/security/reverseproxy-director.yaml
 
 . as $root

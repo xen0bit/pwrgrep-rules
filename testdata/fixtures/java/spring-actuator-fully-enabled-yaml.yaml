@@ -1,0 +1,16 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        # ruleid: spring-actuator-fully-enabled-yaml
+        include: "*"
+        # ruleid: spring-actuator-fully-enabled-yaml
+        include: "*"
+server:
+  # ok: spring-actuator-fully-enabled-yaml
+  port: 8080
+logging:
+  # ok: spring-actuator-fully-enabled-yaml
+  level: INFO
+# ok: spring-actuator-fully-enabled-yaml
+top: value

@@ -1,14 +1,20 @@
 # rules: redacted-cartel-custom-approval-bug
 # languages: solidity
+# fixture: solidity/redacted-cartel-custom-approval-bug.sol
+#
+# Fragments and gaps never match in the solidity grammar, so no form fired.
+# Rewritten as a regex over the _approve-with-.sub call inside a
+# transferFrom span. Function spans use a lazy regex body without nested
+# braces; fixture functions keep a flat statement list.
 # from: solidity/security/redacted-cartel-custom-approval-bug.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.sol"]; [
-      "_approve($$$_, allowance(sender, recipient).sub(amount, $$$_), $$$_);",
-      "function transferFrom($$$_) {\n$$$_\n}"
+| ( ($root | scan_regex(["*.sol"]; [
+      "_approve\\s*\\([^;]*?\\.sub\\s*\\(",
+      "function\\s+transferFrom\\s*\\([\\s\\S]*?\\)\\s*[^{]*\\{[^}]*\\}"
     ])) as $all
-    | ( $all | of(["_approve($$$_, allowance(sender, recipient).sub(amount, $$$_), $$$_);"])
-          | within($all | of(["function transferFrom($$$_) {\n$$$_\n}"]))
+    | ( $all | of(["_approve\\s*\\([^;]*?\\.sub\\s*\\("])
+          | within($all | of(["function\\s+transferFrom\\s*\\([\\s\\S]*?\\)\\s*[^{]*\\{[^}]*\\}"]))
         | finding("redacted-cartel-custom-approval-bug";
             "transferFrom() can steal allowance of other accounts") ) )
 | report

@@ -1,0 +1,9 @@
+# A hugo baseURL pointing at localhost never serves the built site.
+# ruleid: localhost-base-url
+baseURL = "http://localhost:1313/"
+# ruleid: localhost-base-url
+baseURL = "http://127.0.0.1:1313/"
+# ok: localhost-base-url
+baseURL = "https://example.com/"
+# ok: localhost-base-url
+server = "localhost"

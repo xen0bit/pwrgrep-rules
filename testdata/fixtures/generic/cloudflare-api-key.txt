@@ -1,0 +1,10 @@
+# Gitleaks cloudflare-api-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: cloudflare-api-key
+cloudflare=abcdefghijklmnopqrstuvwxy0123456789_-abc
+# ruleid: cloudflare-api-key
+cloudflare=lmnopqrstuvwxy0123456789_-abcdefghijklmn
+# ok: cloudflare-api-key
+cloudflare = "example"
+# ok: cloudflare-api-key
+cloudflare = "placeholder"

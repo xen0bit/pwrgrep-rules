@@ -1,5 +1,6 @@
 # rules: logging-error-without-handling
 # languages: python
+# fixture: python/logging-error-without-handling.py
 # from: python/lang/best-practice/logging-error-without-handling.yaml
 
 . as $root

@@ -1,13 +1,19 @@
 # rules: openzeppelin-ecdsa-recover-malleable
 # languages: solidity
+# fixture: solidity/openzeppelin-ecdsa-recover-malleable.sol
+#
+# Statement gaps never match in the solidity grammar, and assignment left
+# hand holes do not match either, so the two-step shapes never fired.
+# Rewritten as a regex over a recover call followed by a mapping store;
+# recoveries that are returned rather than stored stay quiet. The $F hole had
+# no regex capture to bind to, so the message is reworded without it.
 # from: solidity/security/openzeppelin-ecdsa-recover-malleable.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.sol"]; [
-      "function $F($$$_, bytes $Y, $$$_) {\n   $$$_\n   $Z = ECDSA.recover($$$_, $Y);\n   $$$_\n   $A[$B][$Y] = $$$_;\n   $$$_\n}",
-      "function $F($$$_, bytes $Y, $$$_) {\n   $$$_\n   $Z = ECDSA.recover($$$_, $Y);\n   $$$_\n   $A[$Y] = $$$_;\n   $$$_\n}"
+| ( ($root | scan_regex(["*.sol"]; [
+      "ECDSA\\.recover\\s*\\([^)]*\\)[^;]*;\\s*\\w+(?:\\[[^\\]]+\\])+\\s*="
     ])) as $all
-    | ( $all | of(["function $F($$$_, bytes $Y, $$$_) {\n   $$$_\n   $Z = ECDSA.recover($$$_, $Y);\n   $$$_\n   $A[$Y] = $$$_;\n   $$$_\n}","function $F($$$_, bytes $Y, $$$_) {\n   $$$_\n   $Z = ECDSA.recover($$$_, $Y);\n   $$$_\n   $A[$B][$Y] = $$$_;\n   $$$_\n}"])
+    | ( $all | of(["ECDSA\\.recover\\s*\\([^)]*\\)[^;]*;\\s*\\w+(?:\\[[^\\]]+\\])+\\s*="])
         | finding("openzeppelin-ecdsa-recover-malleable";
-            "Potential signature malleability in $F") ) )
+            "Potential ECDSA signature malleability: recovered address stored without replay guard") ) )
 | report

@@ -1,5 +1,6 @@
 # rules: azure-securitycenter-standard-pricing
 # languages: hcl
+# fixture: terraform/azure-securitycenter-standard-pricing.tf
 # from: terraform/azure/best-practice/azure-securitycenter-standard-pricing.yaml
 
 . as $root

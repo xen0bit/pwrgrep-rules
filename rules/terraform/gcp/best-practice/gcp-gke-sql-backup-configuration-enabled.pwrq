@@ -1,5 +1,6 @@
 # rules: gcp-gke-sql-backup-configuration-enabled
 # languages: hcl
+# fixture: terraform/gcp-gke-sql-backup-configuration-enabled.tf
 # from: terraform/gcp/best-practice/gcp-gke-sql-backup-configuration-enabled.yaml
 
 . as $root

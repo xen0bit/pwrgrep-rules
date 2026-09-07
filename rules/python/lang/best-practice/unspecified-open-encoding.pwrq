@@ -1,5 +1,6 @@
 # rules: unspecified-open-encoding
 # languages: python
+# fixture: python/unspecified-open-encoding.py
 # from: python/lang/best-practice/unspecified-open-encoding.yaml
 
 . as $root

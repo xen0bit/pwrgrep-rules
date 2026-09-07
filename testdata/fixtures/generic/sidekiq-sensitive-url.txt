@@ -1,0 +1,12 @@
+# Gitleaks sidekiq-sensitive-url: invented provider-shaped values. Fixtures
+# are excluded from secret scanning, so shapes stay realistic. The host must
+# be followed by /, #, ? or :, so values carry a trailing slash as in a
+# Gemfile source line.
+# ruleid: sidekiq-sensitive-url
+source https://abcdef12:345678ab@gems.contribsys.com/
+# ruleid: sidekiq-sensitive-url
+source https://12345678:abcdefab@enterprise.contribsys.com/
+# ok: sidekiq-sensitive-url
+source = "example"
+# ok: sidekiq-sensitive-url
+source = "placeholder"

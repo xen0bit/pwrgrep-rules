@@ -1,5 +1,6 @@
 # rules: insecure-trust-manager
 # languages: java
+# fixture: java/insecure-trust-manager.java
 # from: java/lang/security/audit/crypto/ssl/insecure-trust-manager.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: azure-aks-uses-disk-encryptionset
 # languages: hcl
+# fixture: terraform/azure-aks-uses-disk-encryptionset.tf
 # from: terraform/azure/security/aks/azure-aks-uses-disk-encryptionset.yaml
 
 . as $root

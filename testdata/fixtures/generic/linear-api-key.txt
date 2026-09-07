@@ -1,0 +1,10 @@
+# Gitleaks linear-api-key: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: linear-api-key
+lin_api_abcdefghijklmnopqrstuvwxy0123456789abcde
+# ruleid: linear-api-key
+lin_api_lmnopqrstuvwxy0123456789abcdefghijklmnop
+# ok: linear-api-key
+api_key = "example"
+# ok: linear-api-key
+token = "placeholder"

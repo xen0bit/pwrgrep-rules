@@ -1,5 +1,6 @@
 # rules: check-send-file
 # languages: ruby
+# fixture: ruby/check-send-file.rb
 # from: ruby/rails/security/brakeman/check-send-file.yaml
 
 . as $root

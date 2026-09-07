@@ -1,4 +1,5 @@
 # rules: aws-sqs-queue-policy-wildcard-principal
+# fixture: terraform/aws-sqs-queue-policy-wildcard-principal.tf
 # from: terraform/aws/security/aws-sqs-queue-policy-wildcard-principal.yaml
 
 . as $root

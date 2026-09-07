@@ -1,5 +1,6 @@
 # rules: mongo-client-bad-auth
 # languages: python
+# fixture: python/mongodb.py
 # from: python/pymongo/security/mongodb.yaml
 
 . as $root

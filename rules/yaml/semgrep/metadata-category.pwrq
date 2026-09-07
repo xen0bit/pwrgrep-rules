@@ -1,15 +1,18 @@
 # rules: metadata-category
+# languages: yaml
+# fixture: yaml/semgrep-metadata-category.yaml
+#
+# The id-without-category shape used spans that never coincide, so the rule
+# never fired. Rewritten as a regex over the metadata block with a text
+# guard (fixed four/six-space indent, the semgrep style).
 # from: yaml/semgrep/metadata-category.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml"]; [
-      "\\-\\s+[\\s\\S]*?\\s+metadata:\\s+[\\s\\S]*?\\s+category:\\s+(?P<CATEGORY>\\S+)",
-      "id:\\s+(?P<RULEID>\\S+)",
-      "rules:\\s+\\[[\\s\\S]*?,\\s+(?P<RULE>\\S+),\\s+[\\s\\S]*?\\]"
+| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^    metadata:[^\\S\n]*\n((?:      [^\n]*\n?)*)"
     ])) as $all
-    | ( $all | of(["id:\\s+(?P<RULEID>\\S+)"])
-          | within($all | of(["rules:\\s+\\[[\\s\\S]*?,\\s+(?P<RULE>\\S+),\\s+[\\s\\S]*?\\]"]))
-          | outside($all | of(["\\-\\s+[\\s\\S]*?\\s+metadata:\\s+[\\s\\S]*?\\s+category:\\s+(?P<CATEGORY>\\S+)"]))
+    | ( $all | of(["(?m)^    metadata:[^\\S\n]*\n((?:      [^\n]*\n?)*)"])
+          | where_text_not("category:")
         | finding("metadata-category";
             "This Semgrep rule is missing a valid 'category' field in the 'metadata'.") ) )
 | report

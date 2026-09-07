@@ -1,5 +1,6 @@
 # rules: deno-dangerous-run
 # languages: javascript, typescript
+# fixture: javascript/deno-dangerous-run.js
 # from: javascript/deno/security/audit/deno-dangerous-run.yaml
 
 . as $root

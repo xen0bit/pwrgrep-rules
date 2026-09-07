@@ -1,5 +1,6 @@
 # rules: azure-aks-private-clusters-enabled
 # languages: hcl
+# fixture: terraform/azure-aks-private-clusters-enabled.tf
 # from: terraform/azure/security/aks/azure-aks-private-clusters-enabled.yaml
 
 . as $root

@@ -1,13 +1,18 @@
 # rules: spring-actuator-dangerous-endpoints-enabled-yaml
+# fixture: java/spring-actuator-dangerous-endpoints-enabled-yaml.yaml
 # from: java/spring/security/audit/spring-actuator-non-health-enabled-yaml.yaml
+#
+# The management context ended in an open wildcard, so it matched almost
+# nothing and no include was ever within it. It runs over the indented
+# exposure block now.
 
 . as $root
 | ( ($root | scan_regex(["*.yaml"]; [
       "include:\\s+\\[[\\s\\S]*?,\\s+(?P<ACTUATOR>\\S+),\\s+[\\s\\S]*?\\]",
-      "management:\\s+[\\s\\S]*?\\s+endpoints:\\s+[\\s\\S]*?\\s+web:\\s+[\\s\\S]*?\\s+exposure:\\s+[\\s\\S]*?\\s+include:\\s+[\\s\\S]*?"
+      "management:\\s+[\\s\\S]*?\\s+endpoints:\\s+[\\s\\S]*?\\s+web:\\s+[\\s\\S]*?\\s+exposure:\\s*\\n((?:[ ]+[^\\n]*\\n)+)"
     ])) as $all
     | ( $all | of(["include:\\s+\\[[\\s\\S]*?,\\s+(?P<ACTUATOR>\\S+),\\s+[\\s\\S]*?\\]"])
-          | within($all | of(["management:\\s+[\\s\\S]*?\\s+endpoints:\\s+[\\s\\S]*?\\s+web:\\s+[\\s\\S]*?\\s+exposure:\\s+[\\s\\S]*?\\s+include:\\s+[\\s\\S]*?"]))
+          | within($all | of(["management:\\s+[\\s\\S]*?\\s+endpoints:\\s+[\\s\\S]*?\\s+web:\\s+[\\s\\S]*?\\s+exposure:\\s*\\n((?:[ ]+[^\\n]*\\n)+)"]))
           | where_capture_not("ACTUATOR"; "^\"?(?:health|\\*)\"?$")
         | finding("spring-actuator-dangerous-endpoints-enabled-yaml";
             "Spring Boot Actuator \"$ACTUATOR\" is enabled.") ) )

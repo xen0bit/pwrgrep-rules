@@ -1,0 +1,10 @@
+# Gitleaks etsy-access-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: etsy-access-token
+etsy=abcdefghijklmnopqrstuvwx
+# ruleid: etsy-access-token
+etsy=lmnopqrstuvwxy0123456789
+# ok: etsy-access-token
+etsy = "example"
+# ok: etsy-access-token
+etsy = "placeholder"

@@ -1,5 +1,6 @@
 # rules: import-text-template
 # languages: go
+# fixture: go/import-text-template.go
 # from: go/lang/security/audit/xss/import-text-template.yaml
 
 . as $root

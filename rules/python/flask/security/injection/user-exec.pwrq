@@ -1,5 +1,6 @@
 # rules: exec-injection
 # languages: python
+# fixture: python/flask-user-exec.py
 # from: python/flask/security/injection/user-exec.yaml
 
 . as $root

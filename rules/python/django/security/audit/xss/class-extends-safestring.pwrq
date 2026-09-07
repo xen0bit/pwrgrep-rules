@@ -1,5 +1,6 @@
 # rules: class-extends-safestring
 # languages: python
+# fixture: python/class-extends-safestring.py
 # from: python/django/security/audit/xss/class-extends-safestring.yaml
 
 . as $root

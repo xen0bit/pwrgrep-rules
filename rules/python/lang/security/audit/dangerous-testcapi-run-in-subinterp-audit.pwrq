@@ -1,5 +1,6 @@
 # rules: dangerous-testcapi-run-in-subinterp-audit
 # languages: python
+# fixture: python/dangerous-testcapi-run-in-subinterp-audit.py
 # from: python/lang/security/audit/dangerous-testcapi-run-in-subinterp-audit.yaml
 
 . as $root

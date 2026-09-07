@@ -1,5 +1,6 @@
 # rules: gcp-dns-key-specs-rsasha1
 # languages: hcl
+# fixture: terraform/gcp-dns-key-specs-rsasha1.tf
 # from: terraform/gcp/security/gcp-dns-key-specs-rsasha1.yaml
 
 . as $root

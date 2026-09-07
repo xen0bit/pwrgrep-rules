@@ -1,5 +1,6 @@
 # rules: formathtml-fstring-parameter
 # languages: python
+# fixture: python/formathtml-fstring-parameter.py
 # from: python/django/security/audit/xss/formathtml-fstring-parameter.yaml
 
 . as $root

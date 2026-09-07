@@ -1,5 +1,6 @@
 # rules: context-autoescape-off
 # languages: python
+# fixture: python/context-autoescape-off.py
 # from: python/django/security/audit/xss/context-autoescape-off.yaml
 
 . as $root

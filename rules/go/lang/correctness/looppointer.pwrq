@@ -1,13 +1,21 @@
 # rules: exported_loop_pointer
+# languages: go
+# fixture: go/exported-loop-pointer.go
 # from: go/lang/correctness/looppointer.yaml
+#
+# The translated regexes wrapped their wildcards in literal `<...>` (Semgrep
+# ellipsis syntax), so they matched no valid Go file; with the brackets
+# stripped the multiline wildcards still spanned loops and double-reported
+# lines. The rule now reads the loop structurally and asks whether the body
+# takes an address. It does not check the address is the iteration
+# variable's, so `&w` for an outer `w` inside the body also reads as a match.
 
 . as $root
-| ( ($root | scan_regex(["*.go"]; [
-      "for\\s+_,\\s+(?P<VALUE>\\S+)\\s+:=\\s+range\\s+(?P<SOURCE>\\S+)\\s+\\{\\s+<[\\s\\S]*?\\s+&\\((?P<VALUE>\\S+)\\)\\s+[\\s\\S]*?>\\s+\\}",
-      "for\\s+_,\\s+(?P<VALUE>\\S+)\\s+:=\\s+range\\s+(?P<SOURCE>\\S+)\\s+\\{\\s+<[\\s\\S]*?\\s+(?P<ANYTHING>\\S+)\\([\\s\\S]*?,\\s+<[\\s\\S]*?\\s+&(?P<VALUE>\\S+)\\s+[\\s\\S]*?>,\\s+[\\s\\S]*?\\)\\s+[\\s\\S]*?>\\s+\\}",
-      "for\\s+_,\\s+(?P<VALUE>\\S+)\\s+:=\\s+range\\s+(?P<SOURCE>\\S+)\\s+\\{\\s+<[\\s\\S]*?\\s+func\\(\\)\\s+\\{\\s+<[\\s\\S]*?\\s+&(?P<VALUE>\\S+)\\s+[\\s\\S]*?>\\s+\\}\\s+[\\s\\S]*?>\\s+\\}"
+| ( ($root | scan_ast(["*.go"]; [
+      "for _, $V := range $SRC { $$$B }"
     ])) as $all
-    | ( $all | of(["for\\s+_,\\s+(?P<VALUE>\\S+)\\s+:=\\s+range\\s+(?P<SOURCE>\\S+)\\s+\\{\\s+<[\\s\\S]*?\\s+&\\((?P<VALUE>\\S+)\\)\\s+[\\s\\S]*?>\\s+\\}","for\\s+_,\\s+(?P<VALUE>\\S+)\\s+:=\\s+range\\s+(?P<SOURCE>\\S+)\\s+\\{\\s+<[\\s\\S]*?\\s+func\\(\\)\\s+\\{\\s+<[\\s\\S]*?\\s+&(?P<VALUE>\\S+)\\s+[\\s\\S]*?>\\s+\\}\\s+[\\s\\S]*?>\\s+\\}","for\\s+_,\\s+(?P<VALUE>\\S+)\\s+:=\\s+range\\s+(?P<SOURCE>\\S+)\\s+\\{\\s+<[\\s\\S]*?\\s+(?P<ANYTHING>\\S+)\\([\\s\\S]*?,\\s+<[\\s\\S]*?\\s+&(?P<VALUE>\\S+)\\s+[\\s\\S]*?>,\\s+[\\s\\S]*?\\)\\s+[\\s\\S]*?>\\s+\\}"])
+    | ( $all | of(["for _, $V := range $SRC { $$$B }"])
+          | where_capture_ast("B"; "&$V")
         | finding("exported_loop_pointer";
-            "`$VALUE` is a loop pointer that may be exported from the loop.") ) )
+            "`$V` is a loop pointer that may be exported from the loop.") ) )
 | report

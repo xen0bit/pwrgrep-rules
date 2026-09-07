@@ -1,5 +1,6 @@
 # rules: exec-detected
 # languages: python
+# fixture: python/exec-detected.py
 # from: python/lang/security/audit/exec-detected.yaml
 
 . as $root

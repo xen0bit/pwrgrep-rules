@@ -1,0 +1,14 @@
+# Visualforce pages must opt into the CSP header.
+# The exclusion spans forward, so the clean page comes first.
+# ok: csp-header-attribute
+<apex:page cspHeader="true">
+content
+</apex:page>
+# ruleid: csp-header-attribute
+<apex:page>
+content
+</apex:page>
+# ruleid: csp-header-attribute
+<apex:page>
+more content
+</apex:page>

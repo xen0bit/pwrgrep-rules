@@ -1,5 +1,6 @@
 # rules: appservice-enable-https-only
 # languages: hcl
+# fixture: terraform/appservice-enable-https-only.tf
 # from: terraform/azure/security/appservice/appservice-enable-https-only.yaml
 
 . as $root

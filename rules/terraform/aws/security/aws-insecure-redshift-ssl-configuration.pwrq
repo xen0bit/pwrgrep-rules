@@ -1,5 +1,6 @@
 # rules: aws-insecure-redshift-ssl-configuration
 # languages: hcl
+# fixture: terraform/aws-insecure-redshift-ssl-configuration.tf
 # from: terraform/aws/security/aws-insecure-redshift-ssl-configuration.yaml
 
 . as $root

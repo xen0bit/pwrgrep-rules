@@ -1,16 +1,19 @@
 # rules: metadata-subcategory
+# languages: yaml
+# fixture: yaml/semgrep-metadata-subcategory.yaml
+#
+# The absence halves used multi-line outside spans that never enclose
+# anything, so the rule never fired. Rewritten as a regex over the metadata
+# block with text guards; the security-category scope rides along.
 # from: yaml/semgrep/metadata-subcategory.yaml
 
 . as $root
-| ( ($root | scan_regex(["*.yaml"]; [
-      "metadata:\\s+[\\s\\S]*?\\s+category:\\s+security\\s+[\\s\\S]*?",
-      "metadata:\\s+[\\s\\S]*?\\s+subcategory:\\s+(?P<VALUE>\\S+)",
-      "rules:\\s+[\\s\\S]*?"
+| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^    metadata:[^\\S\n]*\n((?:      [^\n]*\n?)*)"
     ])) as $all
-    | ( $all
-          | within($all | of(["rules:\\s+[\\s\\S]*?"]))
-          | within($all | of(["metadata:\\s+[\\s\\S]*?\\s+category:\\s+security\\s+[\\s\\S]*?"]))
-          | outside($all | of(["metadata:\\s+[\\s\\S]*?\\s+subcategory:\\s+(?P<VALUE>\\S+)"]))
+    | ( $all | of(["(?m)^    metadata:[^\\S\n]*\n((?:      [^\n]*\n?)*)"])
+          | where_text("category:\\s*security")
+          | where_text_not("subcategory:")
         | finding("metadata-subcategory";
             "This Semgrep rule is missing a valid 'subcategory' field in the 'metadata'.") ) )
 | report

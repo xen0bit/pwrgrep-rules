@@ -1,5 +1,6 @@
 # rules: azure-appservice-dotnet-framework-version
 # languages: hcl
+# fixture: terraform/azure-appservice-dotnet-framework-version.tf
 # from: terraform/azure/best-practice/azure-appservice-dotnet-framework-version.yaml
 
 . as $root

@@ -1,17 +1,21 @@
 # rules: ftp-request
 # languages: go
+# fixture: problem-based-packs/go-ftp-request.go
+#
+# The `"=~/^ftp.../"` string guards never match - the matcher has no
+# regex-literal reading - and the `;\n$$$_` gaps do not span Go statements,
+# so no form fired. Rewritten as direct ftp-package calls with named holes;
+# the package only speaks FTP, so no URL guard is needed.
 # from: problem-based-packs/insecure-transport/go-stdlib/ftp-request.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.go"]; [
-      "$URL = \"=~/^[fF][tT][pP]://.*/\"\n$$$_\nftp.Connect($URL)",
-      "$URL = \"=~/^[fF][tT][pP]://.*/\"\n$$$_\nftp.Dial($URL, $$$_)",
-      "$URL = \"=~/^[fF][tT][pP]://.*/\"\n$$$_\nftp.DialTimeout($URL, $$$_)",
-      "ftp.Connect(\"=~/^[fF][tT][pP]://.*/\")",
-      "ftp.Dial(\"=~/^[fF][tT][pP]://.*/\", $$$_)",
-      "ftp.DialTimeout(\"=~/^[fF][tT][pP]://.*/\", $$$_)"
+      "ftp.Connect($URL)",
+      "ftp.Dial($URL)",
+      "ftp.Dial($URL,$OPTS)",
+      "ftp.DialTimeout($URL,$TIMEOUT)"
     ])) as $all
-    | ( $all | of(["ftp.Dial(\"=~/^[fF][tT][pP]://.*/\", $$$_)","ftp.DialTimeout(\"=~/^[fF][tT][pP]://.*/\", $$$_)","ftp.Connect(\"=~/^[fF][tT][pP]://.*/\")","$URL = \"=~/^[fF][tT][pP]://.*/\"\n$$$_\nftp.Dial($URL, $$$_)","$URL = \"=~/^[fF][tT][pP]://.*/\"\n$$$_\nftp.DialTimeout($URL, $$$_)","$URL = \"=~/^[fF][tT][pP]://.*/\"\n$$$_\nftp.Connect($URL)"])
+    | ( $all | of(["ftp.Connect($URL)","ftp.Dial($URL)","ftp.Dial($URL,$OPTS)","ftp.DialTimeout($URL,$TIMEOUT)"])
         | finding("ftp-request";
             "Checks for outgoing connections to ftp servers with the ftp package.") ) )
 | report

@@ -1,4 +1,5 @@
 # rules: var-in-script-tag
+# fixture: generic/var-in-script-tag.txt
 # from: generic/html-templates/security/var-in-script-tag.yaml
 
 . as $root

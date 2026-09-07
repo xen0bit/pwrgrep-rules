@@ -1,5 +1,6 @@
 # rules: gcp-sub-network-private-google-enabled
 # languages: hcl
+# fixture: terraform/gcp-sub-network-private-google-enabled.tf
 # from: terraform/gcp/security/gcp-sub-network-private-google-enabled.yaml
 
 . as $root

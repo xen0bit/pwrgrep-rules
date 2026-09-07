@@ -1,4 +1,5 @@
 # rules: xss-from-unescaped-url-param
+# fixture: generic/XSSFromUnescapedURLParam.txt
 # from: generic/visualforce/security/ncino/vf/XSSFromUnescapedURLParam.yaml
 
 . as $root

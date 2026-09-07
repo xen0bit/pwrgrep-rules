@@ -1,5 +1,6 @@
 # rules: http-response-splitting
 # languages: java
+# fixture: java/http-response-splitting.java
 # from: java/lang/security/audit/http-response-splitting.yaml
 
 . as $root

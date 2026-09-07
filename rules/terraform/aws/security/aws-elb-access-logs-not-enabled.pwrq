@@ -1,5 +1,6 @@
 # rules: aws-elb-access-logs-not-enabled
 # languages: hcl
+# fixture: terraform/aws-elb-access-logs-not-enabled.tf
 # from: terraform/aws/security/aws-elb-access-logs-not-enabled.yaml
 
 . as $root

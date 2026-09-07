@@ -1,5 +1,6 @@
 # rules: system-wildcard-detected
 # languages: python
+# fixture: python/system-wildcard-detected.py
 # from: python/lang/security/audit/system-wildcard-detected.yaml
 
 . as $root

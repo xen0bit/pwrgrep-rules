@@ -1,5 +1,6 @@
 # rules: insecure-cipher-mode-ecb
 # languages: python
+# fixture: python/insecure-cipher-mode-ecb.py
 # from: python/cryptography/security/insecure-cipher-mode-ecb.yaml
 
 . as $root

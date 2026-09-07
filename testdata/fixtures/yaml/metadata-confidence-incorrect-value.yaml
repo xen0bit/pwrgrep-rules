@@ -1,0 +1,37 @@
+rules:
+  - id: conf-bad
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      # ruleid: metadata-confidence-incorrect-value
+      confidence: WRONG
+    pattern: foo($X)
+  - id: conf-bad2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      # ruleid: metadata-confidence-incorrect-value
+      confidence: high
+    pattern: foo2($X)
+  - id: conf-good
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      # ok: metadata-confidence-incorrect-value
+      confidence: HIGH
+    pattern: bar($X)
+  - id: conf-good2
+    message: "m"
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      # ok: metadata-confidence-incorrect-value
+      confidence: MEDIUM
+    pattern: bar2($X)

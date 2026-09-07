@@ -1,5 +1,6 @@
 # rules: detect-angular-translateprovider-translations-method
 # languages: javascript
+# fixture: javascript/detect-third-party-angular-translate.js
 # from: javascript/angular/security/detect-third-party-angular-translate.yaml
 
 . as $root

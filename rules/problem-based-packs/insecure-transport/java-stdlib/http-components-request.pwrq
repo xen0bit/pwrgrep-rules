@@ -1,13 +1,32 @@
 # rules: http-components-request
 # languages: java
+# fixture: problem-based-packs/java-http-components-request.java
+#
+# The `"=~/.../"` string guards never match and untyped `$X = new ...`
+# declarations never match typed Java, so the rule never fired. Rewritten with
+# typed declarations (including a type-position hole for the request type)
+# and the URL in a named hole guarded by where_capture.
 # from: problem-based-packs/insecure-transport/java-stdlib/http-components-request.yaml
 
 . as $root
 | ( ($root | scan_ast(["*.java"]; [
-      "$HTTPCLIENT = HttpClients.$CREATE($$$_);\n$$$_\n$HTTPREQ = new $HTTPFUNC(\"=~/[hH][tT][tT][pP]://.*/\");\n$$$_\n$RESPONSE = $HTTPCLIENT.execute($HTTPREQ);",
-      "$HTTPCLIENT = HttpClients.$CREATE($$$_);\n$$$_\n$RESPONSE = $HTTPCLIENT.execute(new $HTTPFUNC(\"=~/[hH][tT][tT][pP]://.*/\"));"
+      "HttpClient $HTTPCLIENT = HttpClients.$CREATE($$$_);
+$$$_
+$HTTPFUNC $HTTPREQ = new $HTTPFUNC($URL);
+$$$_
+$HTTPCLIENT.execute($HTTPREQ);",
+      "HttpClient $HTTPCLIENT = HttpClients.$CREATE($$$_);
+$$$_
+$HTTPCLIENT.execute(new $HTTPFUNC($URL));"
     ])) as $all
-    | ( $all | of(["$HTTPCLIENT = HttpClients.$CREATE($$$_);\n$$$_\n$HTTPREQ = new $HTTPFUNC(\"=~/[hH][tT][tT][pP]://.*/\");\n$$$_\n$RESPONSE = $HTTPCLIENT.execute($HTTPREQ);","$HTTPCLIENT = HttpClients.$CREATE($$$_);\n$$$_\n$RESPONSE = $HTTPCLIENT.execute(new $HTTPFUNC(\"=~/[hH][tT][tT][pP]://.*/\"));"])
+    | ( $all | of(["HttpClient $HTTPCLIENT = HttpClients.$CREATE($$$_);
+$$$_
+$HTTPFUNC $HTTPREQ = new $HTTPFUNC($URL);
+$$$_
+$HTTPCLIENT.execute($HTTPREQ);","HttpClient $HTTPCLIENT = HttpClients.$CREATE($$$_);
+$$$_
+$HTTPCLIENT.execute(new $HTTPFUNC($URL));"])
+          | where_capture("URL"; "http://")
         | finding("http-components-request";
             "Checks for requests sent via Apache HTTP Components to http:// URLS.") ) )
 | report

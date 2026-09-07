@@ -1,5 +1,6 @@
 # rules: gcp-dataproc-private-cluster-iam-member
 # languages: hcl
+# fixture: terraform/gcp-dataproc-private-cluster-iam-member.tf
 # from: terraform/gcp/security/gcp-dataproc-private-cluster-iam-member.yaml
 
 . as $root

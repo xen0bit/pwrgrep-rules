@@ -1,0 +1,9 @@
+# CWE-798: Snyk API key (UUID shape).
+# ruleid: detected-snyk-api-key
+snyk_token = "abcdef12-3456-7890-abcd-ef1234567890"
+# ruleid: detected-snyk-api-key
+snyk_api_key = "09876543-21fe-dcba-9876-543210fedcba"
+# ok: detected-snyk-api-key
+snyk_token = "example"
+# ok: detected-snyk-api-key
+# snyk key is injected by the CI environment

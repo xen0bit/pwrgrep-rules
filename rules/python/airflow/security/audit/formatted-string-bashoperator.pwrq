@@ -1,5 +1,6 @@
 # rules: formatted-string-bashoperator
 # languages: python
+# fixture: python/formatted-string-bashoperator.py
 # from: python/airflow/security/audit/formatted-string-bashoperator.yaml
 
 . as $root

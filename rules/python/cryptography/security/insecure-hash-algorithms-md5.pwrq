@@ -1,5 +1,6 @@
 # rules: insecure-hash-algorithm-md5
 # languages: python
+# fixture: python/insecure-hash-algorithms-md5.py
 # from: python/cryptography/security/insecure-hash-algorithms-md5.yaml
 
 . as $root

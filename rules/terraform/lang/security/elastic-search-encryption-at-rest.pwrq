@@ -1,5 +1,6 @@
 # rules: elastic-search-encryption-at-rest
 # languages: hcl
+# fixture: terraform/elastic-search-encryption-at-rest.tf
 # from: terraform/lang/security/elastic-search-encryption-at-rest.yaml
 
 . as $root

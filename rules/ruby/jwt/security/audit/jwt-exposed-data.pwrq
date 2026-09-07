@@ -1,15 +1,20 @@
 # rules: ruby-jwt-exposed-data
+# fixture: ruby/ruby-jwt-exposed-data.rb
 # from: ruby/jwt/security/audit/jwt-exposed-data.yaml
+#
+# The def pattern joined names with a bare comma, which standard code
+# never writes, and its middle hole took any non-space, so a two-argument
+# def matched through a comma in its body. Both are tightened.
 
 . as $root
 | ( ($root | scan_regex(["*.rb"]; [
       "JWT\\.encode\\((?P<INPUT>\\S+),[\\s\\S]*?\\)",
-      "def\\s+(?P<FUNC>\\S+)\\([\\s\\S]*?,(?P<INPUT>\\S+),[\\s\\S]*?\\)\\s+[\\s\\S]*?\\s+end",
+      "def\\s+(?P<FUNC>[A-Za-z_][A-Za-z_0-9]*)\\([^\\n]*?,\\s*(?P<INPUT>[A-Za-z_][A-Za-z_0-9]*),[^\\n]*?\\)\\s+[\\s\\S]*?\\s+end",
       "require\\s+'jwt'\\s+[\\s\\S]*?"
     ])) as $all
     | ( $all | of(["JWT\\.encode\\((?P<INPUT>\\S+),[\\s\\S]*?\\)"])
           | in_files_with($all | of(["require\\s+'jwt'\\s+[\\s\\S]*?"]))
-          | within($all | of(["def\\s+(?P<FUNC>\\S+)\\([\\s\\S]*?,(?P<INPUT>\\S+),[\\s\\S]*?\\)\\s+[\\s\\S]*?\\s+end"]))
+          | within($all | of(["def\\s+(?P<FUNC>[A-Za-z_][A-Za-z_0-9]*)\\([^\\n]*?,\\s*(?P<INPUT>[A-Za-z_][A-Za-z_0-9]*),[^\\n]*?\\)\\s+[\\s\\S]*?\\s+end"]))
         | finding("ruby-jwt-exposed-data";
             "The object is passed strictly to jsonwebtoken.sign(...) Make sure that sensitive information is not exposed through JWT token payload.") ) )
 | report

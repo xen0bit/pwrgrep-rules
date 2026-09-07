@@ -1,5 +1,6 @@
 # rules: eval-injection
 # languages: python
+# fixture: python/flask-user-eval.py
 # from: python/flask/security/injection/user-eval.yaml
 
 . as $root

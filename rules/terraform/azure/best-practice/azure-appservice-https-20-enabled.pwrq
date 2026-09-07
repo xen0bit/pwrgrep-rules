@@ -1,5 +1,6 @@
 # rules: azure-appservice-https-20-enabled
 # languages: hcl
+# fixture: terraform/azure-appservice-https-20-enabled.tf
 # from: terraform/azure/best-practice/azure-appservice-https-20-enabled.yaml
 
 . as $root

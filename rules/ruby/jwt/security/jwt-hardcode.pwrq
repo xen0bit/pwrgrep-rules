@@ -1,20 +1,26 @@
 # rules: ruby-jwt-hardcoded-secret
 # languages: ruby
+# fixture: ruby/ruby-jwt-hardcoded-secret.rb
 # from: ruby/jwt/security/jwt-hardcode.yaml
+#
+# The literal-secret branches read `"$$$_"` as any second argument, so every
+# encode and decode fired. They name the hole and keep only the pure-literal
+# spelling.
 
 . as $root
 | ( ($root | scan_ast(["*.rb"]; [
       "$SECRET = \"$$$_\"\n$$$_\nJWT.decode($PAYLOAD,$SECRET,$$$_)",
       "$SECRET = \"$$$_\"\n$$$_\nJWT.encode($PAYLOAD,$SECRET,$$$_)",
       "JWT.decode($PAYLOAD, nil, $$$_, jwks: $$$_, $$$_)",
-      "JWT.decode($PAYLOAD,\"$$$_\",$$$_)",
+      "JWT.decode($PAYLOAD,$S,$$$_)",
       "JWT.decode($PAYLOAD,nil,$$$_)",
       "JWT.encode($PAYLOAD, nil, $$$_ , jwks: $$$_, $$$_)",
-      "JWT.encode($PAYLOAD,\"$$$_\",$$$_)",
+      "JWT.encode($PAYLOAD,$S,$$$_)",
       "JWT.encode($PAYLOAD,nil,$$$_)",
       "require 'jwt'\n$$$_"
     ])) as $all
-    | ( $all | of(["JWT.encode($PAYLOAD,\"$$$_\",$$$_)","JWT.decode($PAYLOAD,\"$$$_\",$$$_)","JWT.encode($PAYLOAD,nil,$$$_)","JWT.decode($PAYLOAD,nil,$$$_)","$SECRET = \"$$$_\"\n$$$_\nJWT.encode($PAYLOAD,$SECRET,$$$_)","$SECRET = \"$$$_\"\n$$$_\nJWT.decode($PAYLOAD,$SECRET,$$$_)"])
+    | ( (($all | of(["JWT.encode($PAYLOAD,$S,$$$_)","JWT.decode($PAYLOAD,$S,$$$_)"]) | where_capture("S"; "^[\"'].*[\"']$"))
+          + ($all | of(["JWT.encode($PAYLOAD,nil,$$$_)","JWT.decode($PAYLOAD,nil,$$$_)","$SECRET = \"$$$_\"\n$$$_\nJWT.encode($PAYLOAD,$SECRET,$$$_)","$SECRET = \"$$$_\"\n$$$_\nJWT.decode($PAYLOAD,$SECRET,$$$_)"])))
           | in_files_with($all | of(["require 'jwt'\n$$$_"]))
           | not_at($all | of(["JWT.encode($PAYLOAD, nil, $$$_ , jwks: $$$_, $$$_)"]))
           | not_at($all | of(["JWT.decode($PAYLOAD, nil, $$$_, jwks: $$$_, $$$_)"]))

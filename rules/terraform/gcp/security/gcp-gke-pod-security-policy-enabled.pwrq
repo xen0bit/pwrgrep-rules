@@ -1,5 +1,6 @@
 # rules: gcp-gke-pod-security-policy-enabled
 # languages: hcl
+# fixture: terraform/gcp-gke-pod-security-policy-enabled.tf
 # from: terraform/gcp/security/gcp-gke-pod-security-policy-enabled.yaml
 
 . as $root

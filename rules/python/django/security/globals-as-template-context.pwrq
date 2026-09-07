@@ -1,5 +1,6 @@
 # rules: globals-as-template-context
 # languages: python
+# fixture: python/globals-as-template-context.py
 # from: python/django/security/globals-as-template-context.yaml
 
 . as $root

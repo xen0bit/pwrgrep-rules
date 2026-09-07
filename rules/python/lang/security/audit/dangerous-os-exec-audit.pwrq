@@ -1,5 +1,6 @@
 # rules: dangerous-os-exec-audit
 # languages: python
+# fixture: python/dangerous-os-exec-audit.py
 # from: python/lang/security/audit/dangerous-os-exec-audit.yaml
 
 . as $root

@@ -1,22 +1,18 @@
 # rules: openai-consequential-action-false
 # languages: yaml
+# fixture: yaml/openapi-consequential-false.yaml
+#
+# Two-line method shapes never match in the yaml grammar, so no form fired.
+# Rewritten as a state-changing-method block with a text guard for the false
+# flag. Blocks use lazy bodies without nested braces.
 # from: yaml/openapi/security/openai-consequential-action-false.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.yaml"]; [
-      "delete:\n  $$$_\n  x-openai-isConsequential: false",
-      "patch:\n  $$$_\n  x-openai-isConsequential: false",
-      "post:\n  $$$_\n  x-openai-isConsequential: false",
-      "put:\n  $$$_\n  x-openai-isConsequential: false"
+| ( ($root | scan_regex(["*.yaml","*.yml"]; [
+      "(?m)^\\s+(?P<METHOD>post|put|patch|delete):[^\\S\n]*((?:\n      [^\n]*)*)"
     ])) as $all
-    | ( ($all
-          | within($all | of(["post:\n  $$$_\n  x-openai-isConsequential: false"])))
-          + ($all
-          | within($all | of(["put:\n  $$$_\n  x-openai-isConsequential: false"])))
-          + ($all
-          | within($all | of(["patch:\n  $$$_\n  x-openai-isConsequential: false"])))
-          + ($all
-          | within($all | of(["delete:\n  $$$_\n  x-openai-isConsequential: false"])))
+    | ( $all | of(["(?m)^\\s+(?P<METHOD>post|put|patch|delete):[^\\S\n]*((?:\n      [^\n]*)*)"])
+          | where_text("x-openai-isConsequential:\\s*false")
         | finding("openai-consequential-action-false";
-            "Found 'x-openai-isConsequential: false' in a state-changing HTTP method: $METHOD $PATH.") ) )
+            "Found 'x-openai-isConsequential: false' in state-changing $METHOD: the operation is marked non-consequential.") ) )
 | report

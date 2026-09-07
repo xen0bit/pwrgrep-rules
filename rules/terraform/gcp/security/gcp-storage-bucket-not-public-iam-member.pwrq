@@ -1,5 +1,6 @@
 # rules: gcp-storage-bucket-not-public-iam-member
 # languages: hcl
+# fixture: terraform/gcp-storage-bucket-not-public-iam-member.tf
 # from: terraform/gcp/security/gcp-storage-bucket-not-public-iam-member.yaml
 
 . as $root

@@ -1,5 +1,6 @@
 # rules: jose-exposed-data
 # languages: javascript, typescript
+# fixture: javascript/jose-exposed-data.js
 # from: javascript/jose/security/audit/jose-exposed-data.yaml
 
 . as $root

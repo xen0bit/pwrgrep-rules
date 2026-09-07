@@ -1,5 +1,6 @@
 # rules: insecure-cipher-algorithm-idea
 # languages: python
+# fixture: python/insecure-cipher-algorithms.py
 # from: python/cryptography/security/insecure-cipher-algorithms.yaml
 
 . as $root

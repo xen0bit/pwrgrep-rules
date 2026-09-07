@@ -1,5 +1,6 @@
 # rules: tempfile-insecure
 # languages: python
+# fixture: python/mktemp.py
 # from: python/lang/correctness/tempfile/mktemp.yaml
 
 . as $root

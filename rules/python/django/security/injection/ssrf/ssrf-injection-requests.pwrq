@@ -1,5 +1,6 @@
 # rules: ssrf-injection-requests
 # languages: python
+# fixture: python/ssrf-injection-requests.py
 # from: python/django/security/injection/ssrf/ssrf-injection-requests.yaml
 
 . as $root

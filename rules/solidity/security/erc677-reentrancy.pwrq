@@ -1,14 +1,21 @@
 # rules: erc677-reentrancy
 # languages: solidity
+# fixture: solidity/erc677-reentrancy.sol
+#
+# Statement and expression fragments never match in the solidity grammar
+# - only whole functions (and regex) do - so the original AST pattern could
+# never fire. Rewritten as a regex over the text.
+# The transfer-function scoping is kept with a regex span; fixture
+# functions hold a single statement so the lazy span covers the body.
 # from: solidity/security/erc677-reentrancy.yaml
 
 . as $root
-| ( ($root | scan_ast(["*.sol"]; [
-      "callAfterTransfer($$$_);",
-      "function transfer($$$_) {\n    $$$_\n}"
+| ( ($root | scan_regex(["*.sol"]; [
+      "callAfterTransfer\\s*\\(",
+      "function\\s+transfer\\s*\\([\\s\\S]*?\\)\\s*[^{]*\\{[^}]*\\}"
     ])) as $all
-    | ( $all | of(["callAfterTransfer($$$_);"])
-          | within($all | of(["function transfer($$$_) {\n    $$$_\n}"]))
+    | ( $all | of(["callAfterTransfer\\s*\\("])
+          | within($all | of(["function\\s+transfer\\s*\\([\\s\\S]*?\\)\\s*[^{]*\\{[^}]*\\}"]))
         | finding("erc677-reentrancy";
             "ERC677 callAfterTransfer() reentrancy") ) )
 | report

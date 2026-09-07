@@ -1,5 +1,6 @@
 # rules: jdo-sqli
 # languages: java
+# fixture: java/jdo-sqli.java
 # from: java/lang/security/audit/sqli/jdo-sqli.yaml
 
 . as $root

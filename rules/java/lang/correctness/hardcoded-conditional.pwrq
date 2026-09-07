@@ -1,5 +1,6 @@
 # rules: hardcoded-conditional
 # languages: java
+# fixture: java/hardcoded-conditional.java
 # from: java/lang/correctness/hardcoded-conditional.yaml
 
 . as $root

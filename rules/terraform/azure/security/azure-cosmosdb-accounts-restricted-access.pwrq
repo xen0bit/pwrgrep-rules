@@ -1,5 +1,6 @@
 # rules: azure-cosmosdb-accounts-restricted-access
 # languages: hcl
+# fixture: terraform/azure-cosmosdb-accounts-restricted-access.tf
 # from: terraform/azure/security/azure-cosmosdb-accounts-restricted-access.yaml
 
 . as $root

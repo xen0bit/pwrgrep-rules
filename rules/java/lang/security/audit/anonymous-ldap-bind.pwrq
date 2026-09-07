@@ -1,12 +1,16 @@
 # rules: anonymous-ldap-bind
 # languages: java
+# fixture: java/anonymous-ldap-bind.java
 # from: java/lang/security/audit/anonymous-ldap-bind.yaml
+#
+# The context was read as a bare assignment, which never matches a
+# declaration with its type. It names the declaration now.
 
 . as $root
 | ( ($root | scan_ast(["*.java"]; [
-      "$ENV.put($CTX.SECURITY_AUTHENTICATION, \"none\");\n$$$_\n$DCTX = new InitialDirContext($ENV, $$$_);"
+      "$ENV.put($CTX.SECURITY_AUTHENTICATION, \"none\");\n$$$_\n$T $DCTX = new InitialDirContext($ENV, $$$_);"
     ])) as $all
-    | ( $all | of(["$ENV.put($CTX.SECURITY_AUTHENTICATION, \"none\");\n$$$_\n$DCTX = new InitialDirContext($ENV, $$$_);"])
+    | ( $all | of(["$ENV.put($CTX.SECURITY_AUTHENTICATION, \"none\");\n$$$_\n$T $DCTX = new InitialDirContext($ENV, $$$_);"])
         | finding("anonymous-ldap-bind";
             "Detected anonymous LDAP bind.") ) )
 | report

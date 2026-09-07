@@ -1,5 +1,6 @@
 # rules: keyvault-ensure-key-expires
 # languages: hcl
+# fixture: terraform/keyvault-ensure-key-expires.tf
 # from: terraform/azure/security/keyvault/keyvault-ensure-key-expires.yaml
 
 . as $root

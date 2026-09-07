@@ -1,5 +1,6 @@
 # rules: avoid-redirect
 # languages: ruby
+# fixture: ruby/avoid-redirect.rb
 # from: ruby/rails/security/audit/xss/avoid-redirect.yaml
 
 . as $root

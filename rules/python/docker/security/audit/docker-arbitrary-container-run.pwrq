@@ -1,5 +1,6 @@
 # rules: docker-arbitrary-container-run
 # languages: python
+# fixture: python/docker-arbitrary-container-run.py
 # from: python/docker/security/audit/docker-arbitrary-container-run.yaml
 
 . as $root

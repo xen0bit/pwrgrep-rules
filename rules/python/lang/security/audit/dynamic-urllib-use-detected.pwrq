@@ -1,5 +1,6 @@
 # rules: dynamic-urllib-use-detected
 # languages: python
+# fixture: python/dynamic-urllib-use-detected.py
 # from: python/lang/security/audit/dynamic-urllib-use-detected.yaml
 
 . as $root

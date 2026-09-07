@@ -1,5 +1,6 @@
 # rules: insecure-deserialization
 # languages: python
+# fixture: python/insecure-deserialization.py
 # from: python/flask/security/insecure-deserialization.yaml
 
 . as $root

@@ -1,0 +1,10 @@
+# Gitleaks planetscale-oauth-token: invented provider-shaped values. Fixtures are
+# excluded from secret scanning, so shapes stay realistic.
+# ruleid: planetscale-oauth-token
+pscale_oauth_abcdefghijklmnopqrstuvwxy0123456
+# ruleid: planetscale-oauth-token
+pscale_oauth_lmnopqrstuvwxy0123456789=-_.abcd
+# ok: planetscale-oauth-token
+api_key = "example"
+# ok: planetscale-oauth-token
+token = "placeholder"

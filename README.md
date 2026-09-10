@@ -1,6 +1,6 @@
 # pwrgrep-rules
 
-The structural rule corpus for [pwrq](https://github.com/xen0bit/pwrq): 2177
+The structural rule corpus for [pwrq](https://github.com/xen0bit/pwrq): 2165
 rules in 27 languages, each one a pwrq query and nothing else.
 
 A rule is a file and a header. There is no schema, no plugin API and nothing to
@@ -119,7 +119,7 @@ shipped, because it takes the whole run down with it.
 
 `--no-smoke` skips it, which is most of the ninety seconds.
 
-Every one of the 2177 rules carries a fixture. In `rules/c`, `rules/kotlin`
+Every one of the 2165 rules carries a fixture. In `rules/c`, `rules/kotlin`
 and `rules/swift` the fixtures are named for the weakness rather than for the
 rule: `testdata/fixtures/c/CWE-134.c` demonstrates every way a C program
 writes an uncontrolled format string, and `c-uncontrolled-format-string` is
@@ -138,6 +138,20 @@ one hand-written CSRF rule that turned out to be the upstream
 `django-no-csrf-token` under a second name, reporting the same lines.
 GUIDE.md says what to check, and why a rule that passes its fixture is not
 yet a rule you can ship.
+
+Twelve more were removed after a run over the seventy most-starred repositories
+on GitHub, where each of them was loud enough that nobody would read the second
+finding: `package-dependencies-check` alone fired 8,351 times across sixteen
+repositories, `insecure-document-method` 2,370 times, the Java `eqeq` 1,903
+times inside a single repository. The rest, in descending order of noise, were
+`detect-pytorch`, `is-not-is-not`, `missing-template-string-indicator`,
+`return-in-init`, `missing-integrity`, the Rust `unsafe-usage`,
+`prototype-pollution-assignment`, `unspecified-open-encoding` and
+`is-function-without-parentheses`. Each passed its own fixture; what none of
+them had was a statement about which files it is about, which is the property
+the section above says separates a rule from a census of the language. There is
+no way to ship a rule switched off - a rule is a file, and the header carries no
+enable bit - so a rule nobody would leave on is a file that goes.
 
 An id belongs to one detection. Several rules may report under it - a framework
 rule for Django and one for Flask both report `tainted-sql-string`, and that is

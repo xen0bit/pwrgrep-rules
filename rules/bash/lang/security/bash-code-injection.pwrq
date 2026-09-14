@@ -3,17 +3,25 @@
 # fixture: bash/CWE-94b.sh
 # from: CWE-94 Code Injection
 #
-# bash eval/source with variable executes injected code.
+# Repair: the rule also reported `source $VAR` and `. $VAR`, which is how a
+# script loads its own config or a virtualenv - 251 findings, and only 4 of
+# the 15 the audit judged were real. eval is the sink; sourcing the program's
+# own file is not. It also absorbed bash-os-command, which reported the same
+# `eval` with a variable under a second id.
 
 . as $root
 | ( ($root | scan_regex(["*.sh"]; [
-      "\\beval\\s+\\$",
-      "\\beval\\s+\"\\$",
-      "\\bsource\\s+\\$",
-      "\\b\\.\\s+\\$"
+      "eval\\s+\\$",
+      "eval\\s+\"\\$",
+      "eval\\s+'\\$",
+      "eval\\s+\\$\\(",
+      "eval\\s+\"\\$\\("
     ])) as $all
-    | ( $all | of(["\\beval\\s+\\$", "\\beval\\s+\"\\$", "\\bsource\\s+\\$", "\\b\\.\\s+\\$"])
+    | ( $all | of(["eval\\s+\\$","eval\\s+\"\\$","eval\\s+'\\$","eval\\s+\\$\\(","eval\\s+\"\\$\\("])
+        | where_text_not("^eval\\s+\"[^\"]*\"\\s*$")
+        | where_text_not("^eval\\s+'[^']*'\\s*$")
         | finding("bash-code-injection";
-            "eval/source with variable executes untrusted code") )
-  )
+            "eval parses its argument as shell code, so a value that came from "
+            + "outside runs as commands; do not eval input, or validate it "
+            + "against a fixed list first") ) )
 | report

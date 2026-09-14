@@ -21,4 +21,6 @@ function safe() {
   console.debug("redacted");
   // ok: js-sensitive-log
   logger.info("done");
+  // ok: js-sensitive-log
+  console.info("secret rotation complete");
 }

@@ -1,9 +1,9 @@
 /* CWE-226: Sensitive Information in Resource Not Removed Before Reuse.
  *
  * memset is the clear a compiler is allowed to delete, so a buffer that held
- * a key and was wiped with it may not have been wiped at all. Which of these
- * buffers held something worth wiping is not in the call, so this rule points
- * at the call and leaves that to the reader.
+ * a key and was wiped with it may not have been wiped at all. A buffer whose
+ * name says nothing about what it held (scratch, buf) is not reported: the
+ * data shows that is mostly ordinary work, and the rule cannot tell.
  */
 #include <string.h>
 #include <strings.h>
@@ -14,7 +14,8 @@ void reuse(unsigned char *key, size_t n)
 
     /* ruleid: insecure-use-memset */
     memset(key, 0, n);
-    /* ruleid: insecure-use-memset */
+    /* The name does not say a secret was here. */
+    /* ok: insecure-use-memset */
     memset(scratch, 0, sizeof scratch);
 
     /* ok: insecure-use-memset */
@@ -23,9 +24,9 @@ void reuse(unsigned char *key, size_t n)
     memset_s(key, n, 0, n);
 }
 void wipe2(char *buf, size_t len) {
-    /* ruleid: insecure-use-memset */
+    /* ok: insecure-use-memset */
     memset(buf, 0, len);
-    /* ruleid: insecure-use-memset */
+    /* ok: insecure-use-memset */
     memset(buf, 0, 32);
 }
 void safe3(char *buf) {

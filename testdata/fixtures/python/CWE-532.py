@@ -31,3 +31,5 @@ def safe():
     logging.info("request processed")
     # ok: python-sensitive-log
     logger.debug("redacted")
+    # ok: python-sensitive-log
+    logger.info("password reset requested")

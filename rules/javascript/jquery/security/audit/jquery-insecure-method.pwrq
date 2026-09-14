@@ -3,9 +3,11 @@
 # fixture: javascript/jquery-insecure-method.js
 # from: javascript/jquery/security/audit/jquery-insecure-method.yaml
 #
-# Repair: dead as written. The literal-argument exclusions read their holes
-# as any value and subtracted every call. The exclusions now keep only
-# fully-quoted text via the argument hole.
+# Repair: the translated rule reported any non-literal argument to jQuery's
+# HTML-writing methods - 477 findings, and 73% of the ones the audit judged
+# had a rationale saying the site was safe, because the argument is usually
+# markup the page built itself. It now requires the value to name a source
+# the page does not own, which is what makes the XSS demonstrable.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
@@ -14,15 +16,11 @@
       "jQuery($$$_).$METHOD($VAR,$$$_)",
       "jQuery.$METHOD($VAR,$$$_)"
     ])) as $all
-    | ( ($all | of(["$.$METHOD($VAR,$$$_)","$($$$_).$METHOD($VAR,$$$_)","jQuery.$METHOD($VAR,$$$_)","jQuery($$$_).$METHOD($VAR,$$$_)"])
-          | not_at(($all | of(["$.$METHOD($VAR,$$$_)"]) | where_capture("VAR"; "^[\"'].*[\"']$")))
-          | not_at(($all | of(["$($$$_).$METHOD($VAR,$$$_)"]) | where_capture("VAR"; "^[\"'].*[\"']$")))
-          | not_at(($all | of(["jQuery.$METHOD($VAR,$$$_)"]) | where_capture("VAR"; "^[\"'].*[\"']$")))
-          | not_at(($all | of(["jQuery($$$_).$METHOD($VAR,$$$_)"]) | where_capture("VAR"; "^[\"'].*[\"']$")))
-          | where_capture("METHOD"; "^(html|append|prepend|wrap|wrapInner|wrapAll|before|after|globalEval|getScript)$"))
-          + ($all | of(["$($$$_).$METHOD($VAR,$$$_)","jQuery($$$_).$METHOD($VAR,$$$_)"])
-          | not_at(($all | of(["$($$$_).$METHOD($VAR,$$$_)","jQuery($$$_).$METHOD($VAR,$$$_)"]) | where_capture("VAR"; "^[\"'].*[\"']$")))
-          | where_capture("METHOD"; "^(appendTo|insertAfter|insertBefore|prependTo)$"))
+    | ( $all | of(["$($$$_).$METHOD($VAR,$$$_)","$.$METHOD($VAR,$$$_)","jQuery($$$_).$METHOD($VAR,$$$_)","jQuery.$METHOD($VAR,$$$_)"])
+          | where_capture("METHOD"; "^(html|append|prepend|wrap|wrapInner|wrapAll|before|after|globalEval|getScript|appendTo|insertAfter|insertBefore|prependTo)$")
+          | where_capture_not("VAR"; "^[\"'][^\"']*[\"']$")
+          | where_capture("VAR"; "(?i)(location|hash|search|query|param|input|value|body|url|uri|referrer|req|request|payload|cookie|user|data|name)")
         | finding("jquery-insecure-method";
-            "User controlled data in a jQuery's `.$METHOD(...)` is an anti-pattern that can lead to XSS vulnerabilities") ) )
+            "jQuery parses `$VAR` as markup, so anything in it that looks like "
+            + "HTML becomes HTML; pass it to `.text()` or sanitise first") ) )
 | report

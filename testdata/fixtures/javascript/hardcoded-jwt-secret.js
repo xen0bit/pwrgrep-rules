@@ -22,6 +22,12 @@ function checkExpiry(token) {
   return payload.exp;
 }
 
+function envSecret(data) {
+  // A secret read at run time is not a hardcoded one.
+  // ok: hardcoded-jwt-secret
+  return jwt.sign(data, process.env.JWT_SECRET, { algorithm: 'HS256' });
+}
+
 function decodeToken(token) {
   // ok: hardcoded-jwt-secret
   return jwt.decode(token);

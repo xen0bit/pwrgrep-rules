@@ -8,9 +8,10 @@
 # credentials.
 
 ["logger.debug($MSG)", "logger.info($MSG)", "logger.warning($MSG)", "logger.error($MSG)", "logging.debug($MSG)", "logging.info($MSG)", "logging.warning($MSG)", "logging.error($MSG)"] as $sinks
-| "(?i)password|passwd|pwd|secret|api_?key|token" as $names
+| "(?i)\\b(password|passwd|pwd|secret|api[_-]?key|token|credential)\\b" as $names
 | scan_ast("*.py"; $sinks) as $all
-| ($all | of($sinks) | where_capture("MSG"; $names))
+| ($all | of($sinks) | where_capture("MSG"; $names)
+| where_capture_not("MSG"; "^[\"'][^\"']*[\"']$"))
 | finding("python-sensitive-log";
     "sensitive data is written to the log; it will be in log files and "
     + "shipped to any log collector — redact it")

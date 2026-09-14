@@ -19,4 +19,6 @@ def safe
   puts "request processed"
   # ok: ruby-sensitive-log
   Rails.logger.info("done")
+  # ok: ruby-sensitive-log
+  logger.info("password reset requested")
 end

@@ -10,12 +10,13 @@ func vulnPointer(x *int) unsafe.Pointer {
 }
 
 func vulnSizeof(x int) uintptr {
-	// ruleid: use-of-unsafe-block
+	// Sizeof/Alignof/Offsetof are compile-time constants, not a cast.
+	// ok: use-of-unsafe-block
 	return unsafe.Sizeof(x)
 }
 
 func vulnOffsetof(x struct{ f int }) uintptr {
-	// ruleid: use-of-unsafe-block
+	// ok: use-of-unsafe-block
 	return unsafe.Offsetof(x.f)
 }
 

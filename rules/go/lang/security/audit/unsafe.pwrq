@@ -2,12 +2,20 @@
 # languages: go
 # fixture: go/use-of-unsafe-block.go
 # from: go/lang/security/audit/unsafe.yaml
+#
+# Repair: the translated rule reported every call in the unsafe package - 762
+# findings, and 59% of the ones the audit judged had a rationale saying the
+# site was safe. Sizeof, Alignof and Offsetof are compile-time constants and
+# step around no type safety; the pointer casts and the arithmetic do.
 
 . as $root
 | ( ($root | scan_ast(["*.go"]; [
       "unsafe.$FUNC($$$_)"
     ])) as $all
     | ( $all | of(["unsafe.$FUNC($$$_)"])
+        | where_capture_not("FUNC"; "^(Sizeof|Alignof|Offsetof)$")
         | finding("use-of-unsafe-block";
-            "Using the unsafe package in Go gives you low-level memory management and many of the strengths of the C language, but also steps around the type safety of Go and can lead to buffer overflows and possible arbitrary code execution by an attacker.") ) )
+            "unsafe.$FUNC steps around Go's type safety, so a bad cast or "
+            + "offset is a buffer overflow the compiler cannot catch; keep the "
+            + "unsafe value inside one function and check every bound") ) )
 | report

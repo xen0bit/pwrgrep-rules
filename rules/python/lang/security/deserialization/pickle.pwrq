@@ -2,33 +2,44 @@
 # languages: python
 # fixture: python/pickle.py
 # from: python/lang/security/deserialization/pickle.yaml
+#
+# Repair: the rule reported every non-literal `loads` - 167 findings, 62% of
+# the judged ones safe - because most pickle here reads the program's own
+# cache, not a stranger's bytes. Deserialising what came from outside is the
+# finding, so the value must name an outside source; a constant, or a local
+# the name says nothing about, is left to the reader.
 
 . as $root
 | ( ($root | scan_ast(["*.py"]; [
-      "_pickle.$FUNC(\"$$$_\")",
-      "_pickle.$FUNC($$$_)",
-      "cPickle.$FUNC(\"$$$_\")",
-      "cPickle.$FUNC($$$_)",
-      "dill.$FUNC(\"$$$_\")",
-      "dill.$FUNC($$$_)",
-      "pickle.$FUNC(\"$$$_\")",
-      "pickle.$FUNC($$$_)",
-      "shelve.$FUNC($$$_)"
+      "pickle.$FUNC($ARG)", "pickle.$FUNC($ARG, $$$_)",
+      "_pickle.$FUNC($ARG)", "_pickle.$FUNC($ARG, $$$_)",
+      "cPickle.$FUNC($ARG)", "cPickle.$FUNC($ARG, $$$_)",
+      "dill.$FUNC($ARG)", "dill.$FUNC($ARG, $$$_)",
+      "shelve.$FUNC($ARG)", "shelve.$FUNC($ARG, $$$_)"
     ])) as $all
-    | ( $all | of(["pickle.$FUNC($$$_)","_pickle.$FUNC($$$_)"])
-          | not_at($all | of(["pickle.$FUNC(\"$$$_\")"]))
-          | not_at($all | of(["_pickle.$FUNC(\"$$$_\")"]))
+    | "(?i)(payload|stream|request|req|input|user|body|file|buf|bytes|recv|response|content|cookie|header|remote|message|msg|socket|network|upload|param|query|arg)" as $external
+    | ( ( $all | of(["pickle.$FUNC($ARG)","pickle.$FUNC($ARG, $$$_)","_pickle.$FUNC($ARG)","_pickle.$FUNC($ARG, $$$_)"])
+          | where_capture("ARG"; $external)
+          | where_capture_not("ARG"; "^[\"']")
         | finding("avoid-pickle";
-            "Avoid using `pickle`, which is known to lead to code execution vulnerabilities.") )
-      + ( $all | of(["cPickle.$FUNC($$$_)"])
-          | not_at($all | of(["cPickle.$FUNC(\"$$$_\")"]))
+            "this rebuilds an object graph from bytes somebody else wrote, and "
+            + "unpickling runs whatever the graph says before you can look at "
+            + "it; read a data format instead") )
+      + ( $all | of(["cPickle.$FUNC($ARG)","cPickle.$FUNC($ARG, $$$_)"])
+          | where_capture("ARG"; $external)
+          | where_capture_not("ARG"; "^[\"']")
         | finding("avoid-cPickle";
-            "Avoid using `cPickle`, which is known to lead to code execution vulnerabilities.") )
-      + ( $all | of(["dill.$FUNC($$$_)"])
-          | not_at($all | of(["dill.$FUNC(\"$$$_\")"]))
+            "cPickle unpickles what somebody else wrote and runs whatever the "
+            + "graph says; read a data format instead") )
+      + ( $all | of(["dill.$FUNC($ARG)","dill.$FUNC($ARG, $$$_)"])
+          | where_capture("ARG"; $external)
+          | where_capture_not("ARG"; "^[\"']")
         | finding("avoid-dill";
-            "Avoid using `dill`, which uses `pickle`, which is known to lead to code execution vulnerabilities.") )
-      + ( $all | of(["shelve.$FUNC($$$_)"])
+            "dill uses pickle, so this runs whatever the data says; read a data "
+            + "format instead") )
+      + ( $all | of(["shelve.$FUNC($ARG)","shelve.$FUNC($ARG, $$$_)"])
+          | where_capture("ARG"; $external)
         | finding("avoid-shelve";
-            "Avoid using `shelve`, which uses `pickle`, which is known to lead to code execution vulnerabilities.") ) )
+            "shelve uses pickle, so this runs whatever the data says; read a "
+            + "data format instead") ) ) )
 | report

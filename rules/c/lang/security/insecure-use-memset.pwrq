@@ -2,12 +2,21 @@
 # languages: c
 # fixture: c/CWE-226.c
 # from: c/lang/security/insecure-use-memset.yaml
+#
+# Repair: the translated rule reported every `memset()` call - 475 findings,
+# and 67% of the ones the audit judged had a rationale saying the site was
+# safe, because wiping a buffer is not itself the finding. What is: a plain
+# `memset()` used to wipe something whose name says it held a secret, which a
+# compiler is allowed to delete as a dead store. `explicit_bzero` and
+# `memset_s` are the calls it may not delete, so they are not this.
 
 . as $root
 | ( ($root | scan_ast(["*.c"]; [
-      "memset($$$VARS)"
+      "memset($BUF, $$$_)"
     ])) as $all
-    | ( $all | of(["memset($$$VARS)"])
+    | ( $all | of(["memset($BUF, $$$_)"])
+        | where_capture("BUF"; "(?i)(key|secret|password|passwd|pwd|token|cred|salt|pin|otp|nonce)")
         | finding("insecure-use-memset";
-            "When handling sensitive information in a buffer, it's important to ensure that the data is securely erased before the buffer is deleted or reused.") ) )
+            "memset is the wipe a compiler may discard as a dead store, so "
+            + "`$BUF` may still hold the secret; use explicit_bzero or memset_s") ) )
 | report

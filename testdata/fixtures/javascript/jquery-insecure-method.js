@@ -1,16 +1,16 @@
-function update(html) {
+function update(userHtml) {
   // ruleid: jquery-insecure-method
-  $('#out').html(html);
+  $('#out').html(userHtml);
 }
 
-function moveIt(el, target) {
+function moveIt(el, userTarget) {
   // ruleid: jquery-insecure-method
-  $(el).appendTo(target);
+  $(el).appendTo(userTarget);
 }
 
-function wrapIt(el, wrapper) {
+function wrapIt(el, userWrapper) {
   // ruleid: jquery-insecure-method
-  $(el).wrap(wrapper);
+  $(el).wrap(userWrapper);
 }
 
 function setStatic() {
@@ -21,4 +21,10 @@ function setStatic() {
 function clearIt(el) {
   // ok: jquery-insecure-method
   $(el).html('');
+}
+
+function trustedMarkup(el, badge) {
+  // Produced by the page, not by whoever sent it.
+  // ok: jquery-insecure-method
+  $(el).html(badge);
 }

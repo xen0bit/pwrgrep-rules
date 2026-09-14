@@ -3,29 +3,27 @@
 # fixture: javascript/prototype-pollution-loop.js
 # from: javascript/lang/security/audit/prototype-pollution/prototype-pollution-loop.yaml
 #
-# Repair: dead as written. The sink spellings `$SMTH = $SMTH[$A]` only match
-# self-read assignments, so real merge loops like `dst[k] = src[k]` never
-# matched. The sink is now `$DST[$KEY] = $VAL` inside `for-in`/`for-of`/
-# `while`/`forEach` shapes, keeping the classic-`for` exclusions.
+# Repair: the translated rule reported every `$DST[$KEY] = $VAL` under any
+# loop - a plain `arr[i] = 0` in a counted loop, a settings write, a local map
+# build - 11,742 findings, and 58% of the ones the audit judged had a
+# rationale saying the site was safe. What pollutes is the merge loop: a copy
+# from one object's key to another's by the same key, inside a keyed loop,
+# which carries `__proto__` when the source has it.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "$DST[$KEY] = $VAL",
-      "$X.forEach(function $NAME($$$_) {$$$_})",
-      "$X.forEach(function $NAME($OBJ, $A,$$$_) {$$$_})",
+      "$DST[$KEY] = $SRC[$KEY]",
       "for ($K in $OBJ) { $$$BODY }",
       "for ($V of $ARR) { $$$BODY }",
-      "while ($COND) { $$$BODY }",
-      "for($A = $S; $$$_; $$$_) {$$$_}",
-      "for(var $A = $S; $$$_; $$$_) {$$$_}"
+      "$X.forEach(function $NAME($KEY, $$$_) {$$$_})",
+      "$X.forEach(($KEY, $$$_) => {$$$_})"
     ])) as $all
-    | ( $all | of(["$DST[$KEY] = $VAL"])
-          | within((($all | of(["for ($K in $OBJ) { $$$BODY }","for ($V of $ARR) { $$$BODY }"]))
-          + ($all | of(["while ($COND) { $$$BODY }"]))
-          + ($all | of(["$X.forEach(function $NAME($$$_) {$$$_})"]))))
-          | outside($all | of(["for(var $A = $S; $$$_; $$$_) {$$$_}"]))
-          | outside($all | of(["for($A = $S; $$$_; $$$_) {$$$_}"]))
-          | outside($all | of(["$X.forEach(function $NAME($OBJ, $A,$$$_) {$$$_})"]))
+    | ( $all | of(["$DST[$KEY] = $SRC[$KEY]"])
+          | within( (($all | of(["for ($K in $OBJ) { $$$BODY }","for ($V of $ARR) { $$$BODY }"]))
+                   + ($all | of(["$X.forEach(function $NAME($KEY, $$$_) {$$$_})","$X.forEach(($KEY, $$$_) => {$$$_})"])) ))
         | finding("prototype-pollution-loop";
-            "Possibility of prototype polluting function detected.") ) )
+            "this copies a key of `$SRC` into `$DST` by the same name, so a "
+            + "source that carries `__proto__` changes `Object.prototype` for "
+            + "the whole page; copy named keys only, or start the target from "
+            + "`Object.create(null)`") ) )
 | report

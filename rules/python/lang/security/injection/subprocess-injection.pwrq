@@ -1,0 +1,52 @@
+# rules: subprocess-injection
+# languages: python
+# fixture: python/subprocess-injection.py
+# from: python/django/security/injection/command/subprocess-injection.yaml (subprocess-injection),
+#       python/flask/security/injection/subprocess-injection.yaml (subprocess-injection),
+#       python/lang/security/audit/dangerous-subprocess-use-audit.yaml (dangerous-subprocess-use-audit)
+#
+# Repair: this replaces three rules that reported the same finding under two
+# ids. The two framework rules reported every subprocess call a request
+# source could reach, and the general one reported every call whose command
+# was not a literal; together 4,800 findings, and 76% of the ones the audit
+# judged had a rationale saying the site was safe. What is reported now is
+# what makes the injection demonstrable: a shell command assembled from a
+# value, or request data reaching a call. A literal command or a fixed argv
+# list is not this, and the dict-key source that let `reaching` walk into
+# unrelated functions is gone.
+
+. as $root
+| ( ($root | scan_ast(["*.py"]; [
+      "subprocess.$F($ARG, shell=True, $$$_)",
+      "subprocess.$F(\"$$$_\" % $$$_, $$$_)",
+      "subprocess.$F(\"$$$_\".format($$$_), $$$_)",
+      "subprocess.$F(f\"$$$_\", $$$_)",
+      "os.system($ARG)",
+      "os.popen($ARG)",
+      "os.popen($ARG, $$$_)",
+      "subprocess.$F($ARG, $$$_)",
+      "request.GET.get($$$_)", "request.GET[$$$_]",
+      "request.POST.get($$$_)", "request.POST[$$$_]",
+      "request.args.get($$$_)", "request.args[$$$_]",
+      "request.form.get($$$_)", "request.form[$$$_]",
+      "request.values.get($$$_)", "request.values[$$$_]",
+      "request.json", "request.get_json()", "request.data",
+      "flask.request.args.get($$$_)", "flask.request.args[$$$_]",
+      "flask.request.form.get($$$_)", "flask.request.form[$$$_]",
+      "flask.request.values.get($$$_)", "flask.request.values[$$$_]",
+      "flask.request.json", "flask.request.get_json()", "flask.request.data"
+    ])) as $all
+    | ["subprocess.$F($ARG, shell=True, $$$_)","subprocess.$F(\"$$$_\" % $$$_, $$$_)","subprocess.$F(\"$$$_\".format($$$_), $$$_)","subprocess.$F(f\"$$$_\", $$$_)","os.system($ARG)","os.popen($ARG)","os.popen($ARG, $$$_)"] as $built
+    | ["subprocess.$F($ARG, $$$_)","os.system($ARG)","os.popen($ARG)","os.popen($ARG, $$$_)"] as $sinks
+    | ["request.GET.get($$$_)","request.GET[$$$_]","request.POST.get($$$_)","request.POST[$$$_]","request.args.get($$$_)","request.args[$$$_]","request.form.get($$$_)","request.form[$$$_]","request.values.get($$$_)","request.values[$$$_]","request.json","request.get_json()","request.data","flask.request.args.get($$$_)","flask.request.args[$$$_]","flask.request.form.get($$$_)","flask.request.form[$$$_]","flask.request.values.get($$$_)","flask.request.values[$$$_]","flask.request.json","flask.request.get_json()","flask.request.data"] as $sources
+    | ( ( $all | of($built)
+          | not_at($all | of($built) | where_capture("ARG"; "^[\"'][^\"']*[\"']$|^\\[")) )
+        + ( $all | of($sinks)
+            | not_at($all | of($sinks) | where_capture("ARG"; "^[\"'][^\"']*[\"']$|^\\["))
+            | focus("ARG")
+            | reaching(($all | of($sources)); []) )
+        | finding("subprocess-injection";
+            "command data from the request reaches a subprocess call, so whoever "
+            + "sent it chooses what runs; pass a fixed list of arguments and "
+            + "shell=False") ) )
+| report

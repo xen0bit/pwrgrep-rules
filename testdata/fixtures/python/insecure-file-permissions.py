@@ -1,6 +1,6 @@
 # Overly broad file modes hand data to other users on the box. Flag
-# os calls that set modes; calls that set nothing are fine. (The rule
-# matches any multi-argument os call, so the ok lines avoid those.)
+# os calls that set modes; calls that set something else, or a mode
+# no wider than 0o022, are fine.
 import os
 
 
@@ -20,3 +20,5 @@ def safe_calls(path):
     os.umask(0o022)
     # ok: insecure-file-permissions
     names = os.listdir(".")
+    # ok: insecure-file-permissions
+    version = os.getenv("OPENAI_API_VERSION", "2024-05-01")

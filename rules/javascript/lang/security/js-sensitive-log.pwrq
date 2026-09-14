@@ -4,9 +4,10 @@
 # from: CWE-532 Insertion of Sensitive Information into Log File
 
 ["console.log($MSG)", "console.info($MSG)", "console.debug($MSG)", "console.warn($MSG)", "console.error($MSG)", "logger.info($MSG)", "logger.debug($MSG)", "logger.error($MSG)"] as $sinks
-| "(?i)password|passwd|pwd|secret|api_?key|token" as $names
+| "(?i)\\b(password|passwd|pwd|secret|api[_-]?key|token|credential)\\b" as $names
 | scan_ast(["*.js"]; $sinks) as $all
-| ($all | of($sinks) | where_capture("MSG"; $names))
+| ($all | of($sinks) | where_capture("MSG"; $names)
+| where_capture_not("MSG"; "^[\"'][^\"']*[\"']$"))
 | finding("js-sensitive-log";
     "sensitive data is written to the log; it will be in log files and "
     + "shipped to any log collector — redact it")

@@ -19,4 +19,6 @@ function safe() {
   console.info("request processed");
   // ok: typescript-sensitive-log
   console.debug("redacted");
+  // ok: typescript-sensitive-log
+  console.info("secret rotation complete");
 }

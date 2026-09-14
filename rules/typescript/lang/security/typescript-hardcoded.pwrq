@@ -13,7 +13,10 @@
 | scan_ast(["*.ts","*.tsx"]; $decls) as $all
 | ($all | of($decls)
     | where_capture("NAME"; $names)
+    | where_capture_not("NAME"; "(?i)(url|uri|endpoint|host|scheme|prefix|suffix|header|method|name|type)$")
     | where_capture("VALUE"; $long)
+    | where_capture_not("VALUE"; "(?i)^[\"'](?:https?|ftp|s3|gs|postgres|mysql|mongodb|redis)://")
+    | where_capture_not("VALUE"; "(?i)^[\"'][^\"']*(?:your_|_here|placeholder|changeme|change_me|replace_?me|insert_?|fill_?in|dummy|sample|redacted|xxxx|\\.\\.\\.)[^\"']*[\"']$")
     | finding("typescript-hardcoded";
         "hardcoded credential $VALUE for $NAME is in every checkout and "
         + "cannot be rotated — read it from the environment or a vault"))

@@ -1,6 +1,6 @@
-# requests fetches whatever string it is handed, so a literal URL is
-# a fixed, reviewable destination. Flag literal URLs (the rule fires
-# on any string, http or https); computed URLs are the variable case.
+# requests fetches whatever string it is handed. A literal URL is a fixed,
+# reviewable destination, so flag the literal that is itself http://; a URL
+# from a variable, an https:// literal, or a namespace URL is not this.
 import requests
 
 
@@ -20,3 +20,7 @@ def safe_variable(url):
     requests.post(url, data=data)
     # ok: request-with-http
     requests.delete(url)
+    # ok: request-with-http
+    requests.get("https://example.com/api")
+    # ok: request-with-http
+    requests.get("http://www.w3.org/2001/XMLSchema")

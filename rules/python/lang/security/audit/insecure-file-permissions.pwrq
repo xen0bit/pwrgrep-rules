@@ -2,23 +2,33 @@
 # languages: python
 # fixture: python/insecure-file-permissions.py
 # from: python/lang/security/audit/insecure-file-permissions.yaml
+#
+# Repair: the translated rule matched any `os.$METHOD($FILE, $BITS)` and left
+# `$METHOD` unconstrained, so `os.getenv("OPENAI_API_VERSION", "2024-05-01")`
+# was reported as mode `"2024-05-01"` and `os.open(path, flags)` as mode
+# `flags`. The method is now the list of calls whose argument is a mode, and
+# only a mode the comparison reads reaches the finding.
 
 . as $root
 | ( ($root | scan_ast(["*.py"]; [
-      "os.$METHOD($$$_)",
-      "os.$METHOD($FILE, $BITS)",
-      "os.$METHOD($FILE, $BITS, $$$_)",
-      "os.$METHOD($FILE, $EXPR | $MOD, $$$_)"
+      "os.chmod($FILE, $MODE)",
+      "os.lchmod($FILE, $MODE)",
+      "os.fchmod($FD, $MODE)",
+      "os.mkdir($FILE, $MODE)",
+      "os.makedirs($FILE, $MODE, $$$_)",
+      "os.creat($FILE, $MODE)",
+      "os.mknod($FILE, $MODE, $$$_)",
+      "os.mkfifo($FILE, $MODE, $$$_)",
+      "os.open($FILE, $FLAGS, $MODE, $$$_)",
+      "os.umask($MODE)"
     ])) as $all
-    | ( ($all | of(["os.$METHOD($FILE, $BITS, $$$_)"])
-          | where_capture_compare("$BITS >= 0o650")
-          | where_capture_compare("$BITS < 0o100000"))
-          + ($all | of(["os.$METHOD($FILE, $BITS)"])
-          | where_capture_compare("$BITS >= 0o100650"))
-          + ($all | of(["os.$METHOD($FILE, $BITS, $$$_)"]))
-          + ($all | of(["os.$METHOD($FILE, $EXPR | $MOD, $$$_)"])
-          | where_capture_compare("$MOD == 0o111"))
-          | within($all | of(["os.$METHOD($$$_)"]))
+    | ( ( ($all | of(["os.chmod($FILE, $MODE)","os.lchmod($FILE, $MODE)","os.fchmod($FD, $MODE)","os.mkdir($FILE, $MODE)","os.makedirs($FILE, $MODE, $$$_)","os.creat($FILE, $MODE)","os.mknod($FILE, $MODE, $$$_)","os.mkfifo($FILE, $MODE, $$$_)","os.open($FILE, $FLAGS, $MODE, $$$_)"])
+          | where_capture_compare("$MODE >= 0o650")
+          | where_capture_compare("$MODE < 0o100000"))
+          + ($all | of(["os.chmod($FILE, $MODE)","os.lchmod($FILE, $MODE)","os.fchmod($FD, $MODE)","os.mkdir($FILE, $MODE)","os.makedirs($FILE, $MODE, $$$_)","os.creat($FILE, $MODE)","os.open($FILE, $FLAGS, $MODE, $$$_)"])
+          | where_capture_compare("$MODE >= 0o100650"))
+          + ($all | of(["os.umask($MODE)"])
+          | where_capture_compare("$MODE < 0o022")) )
         | finding("insecure-file-permissions";
-            "These permissions `$BITS` are widely permissive and grant access to more people than may be necessary.") ) )
+            "The mode `$MODE` grants group or other users access it does not need; use 0o600 for a file and 0o700 for a directory") ) )
 | report

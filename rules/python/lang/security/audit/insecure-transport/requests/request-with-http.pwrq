@@ -2,6 +2,13 @@
 # languages: python
 # fixture: python/request-with-http.py
 # from: python/lang/security/audit/insecure-transport/requests/request-with-http.yaml
+#
+# Repair: the source was every string literal in the file, so a request whose
+# URL was assembled elsewhere was reported as `http://` even when it was
+# `https://`; 60% of the judged findings read as safe. The source is now the
+# literal that is itself `http://`, while a URL from a variable is left alone
+# because nothing here can show which scheme it carries. Namespace and schema
+# URLs (`http://www.w3.org/...`) are not transport.
 
 . as $root
 | ( ($root | scan_ast(["*.py"]; [
@@ -12,8 +19,11 @@
     ])) as $all
     | ( (($all | of(["requests.$W($SINK, $$$_)","requests.request($METHOD, $SINK, $$$_)","requests.Request($METHOD, $SINK, $$$_)"])
           | focus("SINK")))
-          | reaching((($all | of(["\"$URL\""])));
+          | reaching((($all | of(["\"$URL\""])
+          | where_capture("URL"; "^http://")
+          | where_capture_not("URL"; "(?i)(w3\\.org|xmlns|schemas?\\.|localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0|\\.local)")));
               ([]))
         | finding("request-with-http";
-            "Detected a request using 'http://'.") ) )
+            "this request is sent over plain HTTP, so anyone on the path reads "
+            + "and rewrites it; use https://") ) )
 | report

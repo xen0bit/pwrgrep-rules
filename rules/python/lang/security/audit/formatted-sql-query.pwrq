@@ -2,28 +2,33 @@
 # languages: python
 # fixture: python/formatted-sql-query.py
 # from: python/lang/security/audit/formatted-sql-query.yaml
+#
+# A query whose SQL text is built by formatting values into it is re-parsed,
+# so a value is syntax: `"SELECT ... '%s'" % user` lets the value close the
+# quote and add a clause. Passing the query and the values separately keeps
+# them apart.
+#
+# This rule absorbed sqlalchemy-execute-raw-query, which reported the same
+# `.execute()` formatting under a second id (47 lines under both). The
+# variable-then-execute arms were dropped: a file-level "some concatenation
+# exists and some execute exists" join reported a query variable that was in
+# fact a bound-parameter call, which is why 82% of its judged findings read
+# as safe.
 
 . as $root
 | ( ($root | scan_ast(["*.py"]; [
-      "\"$$$_\"",
+      "$DB.execute($SQL + $$$_)",
+      "$DB.execute($SQL + $$$_, $$$_)",
       "$DB.execute(\"$$$_\" % $$$_)",
+      "$DB.execute($SQL % ($$$_), $$$_)",
       "$DB.execute(\"$$$_\".format($$$_))",
-      "$DB.execute($SQL)",
+      "$DB.execute($SQL.format($$$_), $$$_)",
       "$DB.execute(f\"$$$_\")",
-      "$SQL = \"$$$_\" % $$$_\n$$$_",
-      "$SQL = \"$$$_\".format($$$_)\n$$$_",
-      "$SQL = f\"$$$_{$X}$$$_\"\n$$$_"
+      "$DB.execute(f\"$$$_\", $$$_)"
     ])) as $all
-    | ( ($all | of(["$DB.execute(\"$$$_\" % $$$_)"]))
-          + ($all | of(["$DB.execute(\"$$$_\".format($$$_))"]))
-          + ($all | of(["$DB.execute(f\"$$$_\")"]))
-          + (($all
-          | in_files_with($all | of(["$SQL = \"$$$_\" % $$$_\n$$$_","\"$$$_\""])))
-          + ($all
-          | in_files_with($all | of(["$SQL = \"$$$_\".format($$$_)\n$$$_","\"$$$_\""])))
-          + ($all
-          | in_files_with($all | of(["$SQL = f\"$$$_{$X}$$$_\"\n$$$_"])))
-          | at_same_place(($all | of(["$DB.execute($SQL)"]))))
+    | ( $all | of(["$DB.execute($SQL + $$$_)","$DB.execute($SQL + $$$_, $$$_)","$DB.execute(\"$$$_\" % $$$_)","$DB.execute($SQL % ($$$_), $$$_)","$DB.execute(\"$$$_\".format($$$_))","$DB.execute($SQL.format($$$_), $$$_)","$DB.execute(f\"$$$_\")","$DB.execute(f\"$$$_\", $$$_)"])
         | finding("formatted-sql-query";
-            "Detected possible formatted SQL query.") ) )
+            "the SQL string is built by formatting a value into it, so the "
+            + "value is parsed as SQL; pass the query and its parameters "
+            + "separately, as `execute(sql, params)`") ) )
 | report

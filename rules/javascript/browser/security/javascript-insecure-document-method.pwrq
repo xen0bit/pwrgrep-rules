@@ -1,21 +1,25 @@
 # rules: javascript-insecure-document-method
-# languages: javascript
+# languages: javascript, typescript
 # fixture: javascript/insecure-document-method.js
 # from: javascript/browser/security/insecure-document-method.yaml (insecure-document-method)
 #
-# CWE-79. Assigning to innerHTML parses what you assign, so a value that came
-# from outside the program becomes markup, and markup runs.
+# CWE-79. Assigning to innerHTML/outerHTML parses the value as HTML, so a
+# value that came from outside the program becomes markup, and markup runs.
+# document.write is the same sink.
 #
-# Three alternatives, three exclusions, and the exclusions are the same three
-# calls with the value pinned to a string literal. The original writes that pin
-# as `"..."`; pwrq writes it as a typed hole, $S:string, and the pairing is then
-# not_at - the excluded pattern has to describe the same code, not merely
-# appear in the same file.
+# This rule absorbed insecure-innerhtml, which reported the same innerHTML
+# assignment under a second id (115 lines were reported by both). A DOM sink
+# whose value names no external source - a constant, or another element's own
+# markup - is not this finding, so the value must name a source the page does
+# not own.
 
-["$EL.innerHTML = $HTML", "$EL.outerHTML = $HTML", "document.write($$$_)"] as $writes
-| ["$EL.innerHTML = $S:string", "$EL.outerHTML = $S:string", "document.write($S:string)"] as $constant
-| scan_ast("*.js"; $writes + $constant) as $all
-| ($all | of($writes) | not_at($all | of($constant)))
+["$EL.innerHTML = $V", "$EL.outerHTML = $V", "document.write($V)", "$EL.insertAdjacentHTML($POS, $V)"] as $writes
+| ["$EL.innerHTML = $S:string", "$EL.outerHTML = $S:string", "document.write($S:string)", "$EL.insertAdjacentHTML($POS, $S:string)"] as $constant
+| "(?i)(location|hash|search|query|param|params|input|value|values|body|url|uri|referrer|req|request|payload|cookie|user|name|data)" as $untrusted
+| scan_ast(["*.js","*.ts"]; $writes + $constant) as $all
+| ($all | of($writes)
+    | not_at($all | of($constant))
+    | where_capture("V"; $untrusted))
 | finding("javascript-insecure-document-method";
     "this parses its value as HTML, so anything in it that looks like markup is "
     + "markup; assign to textContent, or sanitise first")

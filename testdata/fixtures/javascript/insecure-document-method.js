@@ -13,4 +13,7 @@ function render(el, name) {
   document.write("<hr>");
   // ok: javascript-insecure-document-method
   el.textContent = name;
+  // Not a source outside the page: another element's own markup.
+  // ok: javascript-insecure-document-method
+  el.innerHTML = el.innerHTML;
 }

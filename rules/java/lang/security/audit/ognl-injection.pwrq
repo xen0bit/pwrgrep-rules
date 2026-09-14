@@ -2,14 +2,19 @@
 # languages: java
 # fixture: java/ognl-injection.java
 #
-# The translated rule wrapped every call in a multi-statement method
-# scaffold, but statement sequences do not compose in Java, so all 116
-# patterns were empty. The finding is per-call — an OGNL evaluator fed
-# a non-literal — asked directly: each OGNL entry point as a single
-# statement, kept when its expression argument is not a string
-# literal. The receiver-type scaffolding (OgnlUtil, ValueStack, ...)
-# has no single-statement reading and is not re-checked; the method
-# names carry the finding.
+# Repair: every method name here - getValue, setValue, getText - is a common
+# name on classes that are not OGNL, and the rule reported them as expression
+# injection wherever its non-literal argument appeared (348 findings, 56% of
+# the judged ones safe). The finding is kept only in a file that names OGNL:
+# an ognl/com.opensymphony import or one of its types.
+#
+# The translated rule wrapped every call in a multi-statement method scaffold,
+# but statement sequences do not compose in Java, so all 116 patterns were
+# empty. The finding is per-call - an OGNL evaluator fed a non-literal - asked
+# directly: each OGNL entry point as a single statement, kept when its
+# expression argument is not a string literal. The receiver-type scaffolding
+# (OgnlUtil, ValueStack, ...) has no single-statement reading and is asked as
+# the file-level gate instead.
 # from: java/lang/security/audit/ognl-injection.yaml
 
 . as $root
@@ -33,10 +38,18 @@
       "$P.setValue($INPUT, $$$_)",
       "$P.shallBeIncluded($INPUT, $$$_)",
       "$P.translateVariables($INPUT, $$$_)",
-      "$P.translateVariablesCollection($INPUT, $$$_)"
+      "$P.translateVariablesCollection($INPUT, $$$_)",
+      "import ognl.$X;",
+      "import com.opensymphony.xwork2.$X;",
+      "OgnlUtil",
+      "ValueStack",
+      "OgnlContext"
     ])) as $all
     | ( ($all | of(["$P.callMethod($INPUT, $$$_)", "$P.commaDelimitedStringToSet($INPUT, $$$_)", "$P.compile($INPUT, $$$_)", "$P.evaluate($INPUT, $$$_)", "$P.findString($INPUT, $$$_)", "$P.findValue($INPUT, $$$_)", "$P.getField($T, $INPUT, $$$_)", "$P.getGetMethod($T, $INPUT, $$$_)", "$P.getSetMethod($T, $INPUT, $$$_)", "$P.getText($INPUT, $$$_)", "$P.getValue($INPUT, $$$_)", "$P.isTrue($INPUT, $$$_)", "$P.makeSelectList($INPUT, $$$_)", "$P.setParameter($INPUT, $$$_)", "$P.setProperties($INPUT, $$$_)", "$P.setProperty($INPUT, $$$_)", "$P.setValue($INPUT, $$$_)", "$P.shallBeIncluded($INPUT, $$$_)", "$P.translateVariables($INPUT, $$$_)", "$P.translateVariablesCollection($INPUT, $$$_)"])
-        | where_capture_not("INPUT"; "^\"")) )
+        | where_capture_not("INPUT"; "^\""))
+        | in_files_with($all | of(["import ognl.$X;","import com.opensymphony.xwork2.$X;","OgnlUtil","ValueStack","OgnlContext"])) )
     | finding("ognl-injection";
-        "A expression is built with a dynamic value.") )
+        "the OGNL expression is built from a non-literal value, so whoever "
+        + "controls it controls what the expression reads and calls; build it "
+        + "from fixed text and pass the data as a parameter") )
 | report

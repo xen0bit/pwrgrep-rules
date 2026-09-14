@@ -2,44 +2,35 @@
 # languages: javascript, typescript
 # fixture: javascript/hardcoded-jwt-secret.js
 # from: javascript/jsonwebtoken/security/jwt-hardcode.yaml
+#
+# Repair: the quoted hole `"$$$_"` matched a non-string argument, so the
+# literal branch reported `jwt.sign(data, process.env.JWT_SECRET)` - the
+# correct code - under this id, and `reaching` cannot carry a module-level
+# `const SECRET` into the function that signs (228 findings, 64% safe). A
+# real string literal, or an all-caps constant identifier, is the key written
+# into the source; a member expression is read at run time and is not.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
-      "const $JWT = require(\"jsonwebtoken\")",
-      "var $JWT = require(\"jsonwebtoken\")",
-      "$JWT = require(\"jsonwebtoken\")\n$$$_",
-      "$JWT.sign($DATA,\"$$$_\",$$$_);",
       "$JWT.sign($DATA,$VALUE,$$$_);",
-      "$JWT.verify($DATA,\"$$$_\",$$$_);",
       "$JWT.verify($DATA,$VALUE,$$$_);",
-      "$X = '$$$_'",
-      "$X = '$Y'",
-      "import $JWT from \"jsonwebtoken\"\n$$$_",
-      "import * as $JWT from \"jsonwebtoken\"\n$$$_",
-      "import {$$$_,$JWT,$$$_} from \"jsonwebtoken\"\n$$$_"
+      "$JWT.sign($DATA,$S:string,$$$_);",
+      "$JWT.verify($DATA,$S:string,$$$_);",
+      "$JWT.sign($DATA,process.env.$K,$$$_);",
+      "$JWT.sign($DATA,import.meta.env.$K,$$$_);",
+      "$JWT.verify($DATA,process.env.$K,$$$_);",
+      "$JWT.verify($DATA,import.meta.env.$K,$$$_);"
     ])) as $all
-    | ( ((($all
-          | in_files_with($all | of(["const $JWT = require(\"jsonwebtoken\")",
-      "var $JWT = require(\"jsonwebtoken\")",
-      "$JWT = require(\"jsonwebtoken\")\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["import $JWT from \"jsonwebtoken\"\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["import * as $JWT from \"jsonwebtoken\"\n$$$_"])))
-          + ($all
-          | in_files_with($all | of(["import {$$$_,$JWT,$$$_} from \"jsonwebtoken\"\n$$$_"])))
-          | at_same_place((($all
-          | within($all | of(["$JWT.sign($DATA,$VALUE,$$$_);"])))
-          + ($all
-          | within($all | of(["$JWT.verify($DATA,$VALUE,$$$_);"])))))
-          | focus("VALUE")))
-          | reaching((($all | of(["$X = '$$$_'"])
-          | at_same_place(($all | of(["$X = '$Y'"]))))
-              + (($all
-          | within($all | of(["$JWT.sign($DATA,\"$$$_\",$$$_);"])))
-          + ($all
-          | within($all | of(["$JWT.verify($DATA,\"$$$_\",$$$_);"])))));
-              ([]))
+    | [ "$JWT.sign($DATA,$VALUE,$$$_);", "$JWT.verify($DATA,$VALUE,$$$_);" ] as $sinks
+    | [ "$JWT.sign($DATA,$S:string,$$$_);", "$JWT.verify($DATA,$S:string,$$$_);" ] as $literal
+    | [ "$JWT.sign($DATA,process.env.$K,$$$_);", "$JWT.sign($DATA,import.meta.env.$K,$$$_);", "$JWT.verify($DATA,process.env.$K,$$$_);", "$JWT.verify($DATA,import.meta.env.$K,$$$_);" ] as $env
+    | ( ( $all | of($literal) )
+        + ( $all | of($sinks)
+            | not_at($all | of($literal))
+            | not_at($all | of($env))
+            | where_capture("VALUE"; "^[A-Z][A-Z0-9_]*$") )
         | finding("hardcoded-jwt-secret";
-            "A hard-coded credential was detected.") ) )
+            "the token signing key is written into the source, so it is in "
+            + "every checkout, anyone who reads it can forge a token, and it "
+            + "cannot be rotated without a release; read it from the environment") ) )
 | report

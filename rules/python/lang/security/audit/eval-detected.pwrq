@@ -2,16 +2,25 @@
 # languages: python
 # fixture: python/eval-detected.py
 # from: python/lang/security/audit/eval-detected.yaml
+#
+# Repair: the rule reported every non-literal eval() and 56% of the judged
+# findings read as safe, because eval is also how code loads a module it built
+# itself. It now reports eval of a value whose name says it came from outside,
+# or a string assembled from values, which is where the claim holds.
+# eval(compile(...)) of an external name is still caught through the name.
 
 . as $root
 | ( ($root | scan_ast(["*.py"]; [
-      "eval(\"$$$_\")",
-      "eval($$$_)",
-      "eval(f\"\")"
+      "eval($E)",
+      "eval($$$_ + $$$_)",
+      "eval(f\"$$$_\")"
     ])) as $all
-    | ( $all | of(["eval($$$_)"])
-          | not_at($all | of(["eval(f\"\")"]))
-          | not_at($all | of(["eval(\"$$$_\")"]))
+    | ( ( $all | of(["eval($E)"])
+          | where_capture_not("E"; "^[\"']")
+          | where_capture("E"; "(?i)(code|input|expr|expression|command|cmd|script|source|payload|body|data|user|param|query|arg|request|req)") )
+        + ( $all | of(["eval($$$_ + $$$_)","eval(f\"$$$_\")"]) )
         | finding("eval-detected";
-            "Detected the use of eval().") ) )
+            "eval parses its argument as code, so a value that came from "
+            + "outside the program runs as code; use ast.literal_eval or parse "
+            + "the data") ) )
 | report

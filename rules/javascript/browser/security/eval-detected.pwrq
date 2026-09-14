@@ -3,16 +3,23 @@
 # fixture: javascript/eval-detected.js
 # from: javascript/browser/security/eval-detected.yaml
 #
-# The static exclusion read its hole as any value and subtracted every
-# call. It keeps only the literal spelling now.
+# Repair: the rule reported every non-literal eval() - 343 findings across
+# this id, and 56% of the judged ones had a rationale saying the site was
+# safe, because eval is also how a library runs code it built itself. It now
+# reports eval of a value whose name says it came from outside, or a string
+# assembled from values, which is where the code-injection claim holds.
 
 . as $root
 | ( ($root | scan_ast(["*.js","*.ts"]; [
       "eval($E)",
-      "eval($$$_)"
+      "eval($$$_ + $$$_)",
+      "eval(`$$$_${$$$_}$$$_`)"
     ])) as $all
-    | ( $all | of(["eval($$$_)"])
-          | not_at(($all | of(["eval($E)"]) | where_capture("E"; "^[\"']")))
+    | ( ( $all | of(["eval($E)"])
+          | where_capture_not("E"; "^[\"']")
+          | where_capture("E"; "(?i)(code|input|expr|expression|command|cmd|script|source|payload|body|data|user|param|query|arg|request|req)") )
+        + ( $all | of(["eval($$$_ + $$$_)","eval(`$$$_${$$$_}$$$_`)"]) )
         | finding("eval-detected";
-            "Detected the use of eval().") ) )
+            "eval parses its argument as code, so a value that came from "
+            + "outside the program runs as code; parse the data instead") ) )
 | report

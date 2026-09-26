@@ -43,23 +43,9 @@ is also how a rule is selected, so naming a directory narrows a run:
 
 ## Using it
 
-pwrq embeds this repository as a Go module, so the corpus ships inside the
-binary and there is nothing to install:
-
-```go
-import pwrgreprules "github.com/xen0bit/pwrgrep-rules"
-
-// pwrgreprules.FS is the corpus, rooted at "rules".
-```
-
-It is a module rather than a git submodule for one concrete reason: a
-submodule's contents are not in the zip the module proxy serves, so
-`go install pwrq@latest` would fetch a tree with an empty rules directory and
-fail at the embed. As a dependency it is fetched like anything else, pinned in
-`go.sum`, and every build path gets the same corpus.
-
-To run a checkout of this repository instead of the copy inside your binary,
-put it on `PWRQ_RULES`:
+pwrq no longer embeds this corpus; it ships a small set of rules of its own
+for reading a codebase. To run these beside them, put a checkout on
+`PWRQ_RULES`:
 
 ```
 PWRQ_RULES=$PWD/rules pwrq -n '[invoke_pwrgrep("."; "go/lang/security")]'
@@ -67,37 +53,16 @@ PWRQ_RULES=$PWD/rules pwrq -n '[invoke_pwrgrep("."; "go/lang/security")]'
 
 pwrq reads `$PWRQ_RULES`, then `~/.config/pwrq/rules`, then
 `/usr/share/pwrq/rules`, then its own copy, and a rule found earlier hides one
-with the same path found later — which is how a shipped rule is edited.
+with the same path found later.
 
-## Getting a change into pwrq
+The module still exports the corpus as `FS` and the fixtures as `Fixtures`, for
+a program that wants to embed them:
 
-pwrq carries whatever is on this repository's main. Two things make that
-happen, and they are the same mechanism at two speeds.
+```go
+import pwrgreprules "github.com/xen0bit/pwrgrep-rules"
 
-`.github/workflows/notify-pwrq.yml` tells pwrq the moment main moves, and
-pwrq's `.github/workflows/rules.yml` sweeps for a new version every quarter
-hour in case that message never arrives. Either way pwrq bumps its pin, runs
-its full suite against the new corpus, and opens a pull request - it does not
-merge on its own, because a corpus change can fail in pwrq in two ways this
-repository cannot see: a rule that does not compile against that binary's
-cmdlet vocabulary, and a rule naming a language its release build has no
-grammar for.
-
-The instant half needs a token, because a repository's own `GITHUB_TOKEN`
-cannot dispatch to another repository. Without it nothing breaks - the
-workflow logs a notice and skips, and the quarter-hour sweep does the job.
-
-To turn it on: create a [fine-grained personal access
-token](https://github.com/settings/personal-access-tokens/new) scoped to
-`xen0bit/pwrq` with **Contents: read and write** - the dispatches endpoint
-rejects a read-only token - and save it here as the repository secret
-`PWRQ_DISPATCH_TOKEN`:
-
-    gh secret set PWRQ_DISPATCH_TOKEN --repo xen0bit/pwrgrep-rules
-
-Then check it works without waiting for a rule change:
-
-    gh workflow run "notify pwrq" --repo xen0bit/pwrgrep-rules
+// pwrgreprules.FS is the corpus, rooted at "rules".
+```
 
 ## Validating
 

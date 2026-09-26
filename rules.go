@@ -1,17 +1,11 @@
-// Package pwrgreprules is the pwrq structural rule corpus, and nothing else.
+// Package pwrgreprules is a pwrq structural rule corpus for security review,
+// and nothing else.
 //
 // It holds no code that reads a rule. A rule is a pwrq query - a text file
 // with a header naming the ids it reports under - so the corpus is data, and
-// the engine that compiles and runs it lives in pwrq's pkg/pwrgrep. Keeping
-// the two apart is what lets the rules be revised, reviewed and released on
-// their own cadence without a pwrq release behind each change.
-//
-// It is a Go module rather than a git submodule because the corpus is embedded
-// into the pwrq binary, and a submodule's contents are not in the zip the
-// module proxy serves: `go install pwrq@latest` would fetch a tree with an
-// empty rules directory and fail at the embed. As a dependency it is fetched
-// like any other, pinned in go.sum, and every build path - go install, a fresh
-// clone, goreleaser - gets the same corpus.
+// the engine that compiles and runs it lives in pwrq's pkg/pwrgrep. pwrq does
+// not embed it; a checkout is put on PWRQ_RULES. The embedded copies below are
+// for a program that wants to carry the corpus inside its binary.
 package pwrgreprules
 
 import "embed"
